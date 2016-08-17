@@ -1,0 +1,28 @@
+---
+layout: page
+title: 全部博文
+description: "博文目录"
+---
+<div class="filter" id="filter">
+    <img class="img-filter" src="./images/filter/find.png"/>
+    <input class="input-box"  placeholder="搜索{{ site.posts.size }}篇博文" id="keyword"/>
+</div>
+
+{% assign featuredcount = '0' %}
+{% for post in site.posts %}
+    {% assign currentdate = post.date | date: "%Y" %}
+    {% if currentdate != date %}
+        {% unless forloop.first %}</ul>{% endunless %}
+        <h2 class="page-title">{{ currentdate }}年</h2>
+        <ul class="post-list">
+        {% assign date = currentdate %}
+    {% endif %}
+    {% assign featuredcount = featuredcount | plus:'1' %}
+    <li><article><i class="fa fa-edit"></i> <a href="{{ site.url }}{{ post.url }}">{{ post.title }} <span class="entry-date"><time datetime="{{ post.date | date_to_xmlschema }}">{{ post.date | date: "%Y.%m.%d" }}</time></span></a></article></li>
+    {% if forloop.last %}</ul>{% endif %}
+{% endfor %}
+{% if featuredcount == '0' %}
+<div class="summer-page-title row">
+    <h1>No posts</h1>
+</div>
+{% endif %}
