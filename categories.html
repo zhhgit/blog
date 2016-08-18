@@ -27,7 +27,7 @@ description: "根据类别排序的索引"
     {% for post in pages_list %}
       {% if post.title != null %}
       {% if group == null or group == post.group %}
-      <li><article><i class="fa fa-edit"></i> <a href="{{ site.url }}{{ post.url }}">{{ post.title }}<span class="entry-date"><time datetime="{{ post.date | date_to_xmlschema }}" itemprop="datePublished">{{ post.date | date: "%Y.%m.%d" }}</time></a></article></li>
+      <li><article><i class="fa fa-edit"></i> <a href="{{ site.url }}{{ post.url }}">{{ post.title }}<span class="entry-date"><time datetime="{{ post.date | date_to_xmlschema }}" itemprop="datePublished">{{ post.date | date: "%Y-%m-%d" }}</time></a></article></li>
       {% endif %}
       {% endif %}
     {% endfor %}
