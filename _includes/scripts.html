@@ -43,7 +43,7 @@ var _hmt = _hmt || [];
 {% endif %}
 
 <script> 
-  $(".tag-box").nextAll("h2").on("click", function(){
+  $(".tag-box, .filter").nextAll("h2").on("click", function(){
     if($(this).children("i").hasClass("fa-angle-double-right")){
       $(this).children("i").removeClass("fa-angle-double-right").addClass("fa-angle-double-down");
     }

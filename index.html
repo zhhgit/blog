@@ -13,7 +13,7 @@ description: "博文目录"
     {% assign currentdate = post.date | date: "%Y" %}
     {% if currentdate != date %}
         {% unless forloop.first %}</ul>{% endunless %}
-        <h2 class="page-title">{{ currentdate }}年</h2>
+        <h2 class="page-title">{{ currentdate }}年&nbsp<i class="fa fa-angle-double-down"></i></h2>
         <ul class="post-list">
         {% assign date = currentdate %}
     {% endif %}
