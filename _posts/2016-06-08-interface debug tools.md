@@ -3,9 +3,8 @@ layout: post
 title: "接口调试工具"
 description: 接口调试工具
 modified: 2016-06-08
-category: Tool
-tags: [Tool]
-featured: true
+category: Tools
+tags: [Tools]
 ---
 
 # 一、Postman
