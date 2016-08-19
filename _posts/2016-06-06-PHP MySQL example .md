@@ -5,7 +5,6 @@ description: PHP MySQL实例
 modified: 2016-06-06
 category: PHP
 tags: [PHP]
-featured: true
 ---
 
 # 一、实例

@@ -5,7 +5,6 @@ description: 典型正则表达式整理
 modified: 2016-05-04
 category: JavaScript
 tags: [JavaScript]
-featured: true
 ---
 
 # 1.创建

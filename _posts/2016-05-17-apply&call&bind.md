@@ -5,7 +5,6 @@ description: apply与call
 modified: 2016-05-17
 category: JavaScript
 tags: [JavaScript]
-featured: true
 ---
 
 传递参数并非apply()和call()真正的用武之地；它们真正强大的地方是能够扩充函数赖以运行的作用域。参考《JavaScript高级程序设计》P116。
@@ -37,6 +36,12 @@ call()方法与apply()方法的作用相同，它们的区别仅在于接收参�
 		return sum.call(this, num1, num2);
 	}
 	alert(callSum(10,10)); //20
+
+# bind
+
+1.[Javascript中bind()方法的使用与实现](https://segmentfault.com/a/1190000002662251)
+
+2.[bind 方法 (Function) (JavaScript)](https://msdn.microsoft.com/zh-cn/library/ff841995)
 
 
 

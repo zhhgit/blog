@@ -5,7 +5,6 @@ description: Java连接数据库
 modified: 2016-07-10
 category: Java
 tags: [Java]
-featured: true
 ---
 
 # 一、JSP

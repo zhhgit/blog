@@ -5,7 +5,6 @@ description: JS异步编程
 modified: 2016-05-27
 category: JavaScript
 tags: [JavaScript]
-featured: true
 ---
 
 JavaScript所谓单线程，是指负责解释并执行JS代码的线程只有一个。我们不妨叫它主线程。其实还有其他很多线程的，比如进行ajax请求的线程、监控用户事件的线程、定时器线程、读写文件的线程(例如在NodeJS中)等等。

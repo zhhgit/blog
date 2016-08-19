@@ -5,7 +5,6 @@ description: JS AJAX请求
 modified: 2016-06-16
 category: JavaScript
 tags: [JavaScript]
-featured: true
 ---
 
 典型获取数据

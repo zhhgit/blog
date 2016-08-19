@@ -5,7 +5,6 @@ description: XSS CSRF MITM
 modified: 2016-05-17
 category: Security
 tags: [Security]
-featured: true
 ---
 
 几种常见的安全攻击方式XSS，CSRF，MITM。

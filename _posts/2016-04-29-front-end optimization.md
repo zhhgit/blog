@@ -5,7 +5,6 @@ description: 前端性能优化
 modified: 2016-04-29
 category: Web
 tags: [Web]
-featured: true
 ---
 
 经常被问这个问题，今天好好看了一下。

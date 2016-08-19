@@ -5,10 +5,7 @@ description: 博客整理
 modified: 2015-09-18
 category: Resources
 tags: [Resources]
-featured: true
 ---
-
-整理一些比较好的博客。值得学习！
 
 1.[苏洋博客](http://www.soulteary.com/)
 

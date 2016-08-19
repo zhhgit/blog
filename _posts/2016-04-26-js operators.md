@@ -5,7 +5,6 @@ description: JS与、或运算符
 modified: 2016-04-26
 category: JavaScript
 tags: [JavaScript]
-featured: true
 ---
 
 1.[JavaScript或运算符](http://www.zhihu.com/question/22914542/answer/23070403)

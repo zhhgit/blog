@@ -5,7 +5,6 @@ description: 求职网站整理
 modified: 2015-10-20
 category: Resources
 tags: [Resources]
-featured: true
 ---
 
 求职常用网站：

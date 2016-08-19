@@ -5,7 +5,6 @@ description: 前端模块化
 modified: 2016-07-26
 category: Web
 tags: [Web]
-featured: true
 ---
 
 # 一、SeaJS
