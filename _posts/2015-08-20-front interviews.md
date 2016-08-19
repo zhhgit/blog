@@ -5,7 +5,6 @@ description: 前端面试题整理
 modified: 2015-08-20
 category: Resources
 tags: [Resources]
-featured: true
 ---
 
 1.[我是如何同时拿到阿里和腾讯offer的](http://www.cnblogs.com/yuanzm/p/4372898.html)

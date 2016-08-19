@@ -5,7 +5,6 @@ description: Apache Cordova创建Android App
 modified: 2015-08-07
 category: Android
 tags: [Android]
-featured: true
 ---
 
 # 一、安装Cordova

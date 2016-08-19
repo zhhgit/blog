@@ -5,7 +5,6 @@ description: 跨域
 modified: 2015-07-09
 category: Web
 tags: [Web]
-featured: true
 ---
 
 # 一、Chrome开启跨域模式
