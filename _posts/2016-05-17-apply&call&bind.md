@@ -1,7 +1,7 @@
 ---
 layout: post
-title: "apply与call"
-description: apply与call
+title: "apply&call&bind"
+description: apply&call&bind
 modified: 2016-05-17
 category: JavaScript
 tags: [JavaScript]
