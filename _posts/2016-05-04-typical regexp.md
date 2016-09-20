@@ -72,6 +72,22 @@ tags: [JavaScript]
 
 	只能输入数字，每四位一个空格。
 
+# 9.金额
+
+	 /^[0-9]*(\.[0-9]{2})$/
+
+解释：
+
+	小数点后两位。
+
+# 10.四位验证码
+
+	 /^[a-zA-Z0-9]{4}$/
+
+解释：
+
+	数字字母组成的四位验证码。
+
 # 参考
 
 1.[JavaScript RegExp 对象](http://www.w3school.com.cn/jsref/jsref_obj_regexp.asp)
