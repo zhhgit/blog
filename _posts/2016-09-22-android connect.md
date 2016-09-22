@@ -7,11 +7,11 @@ category: Java
 tags: [Java]
 ---
 
-连接不上：
+# 连接不上：
 
 断开连接（不开HDB）-->撤销USB调试授权-->重新连接-->授权
 
-chrome找不到device:
+# chrome找不到device:
 
 参考[这里](http://stackoverflow.com/questions/20408996/native-usb-debugging-on-chrome-32-doesnt-detect-device)
 
