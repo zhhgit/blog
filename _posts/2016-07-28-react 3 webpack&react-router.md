@@ -1,7 +1,7 @@
 ---
 layout: post
-title: "React(3):webpack与react-router"
-description: React(3):webpack与react-router
+title: "React(3):webpack&react-router"
+description: React(3):webpack&react-router
 modified: 2016-07-28
 category: React
 tags: [React]

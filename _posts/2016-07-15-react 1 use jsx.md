@@ -1,8 +1,8 @@
 ---
 layout: post
-title: "React(1):写法"
-description: React(1):写法
-modified: 2016-06-29
+title: "React(1):使用jsx"
+description: React(1):使用jsx
+modified: 2016-07-15
 category: React
 tags: [React]
 ---

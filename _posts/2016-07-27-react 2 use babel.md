@@ -1,7 +1,7 @@
 ---
 layout: post
-title: "React(2):babel使用"
-description: React(2):babel使用
+title: "React(2):使用babel"
+description: React(2):使用babel
 modified: 2016-07-27
 category: React
 tags: [React]
