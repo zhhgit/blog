@@ -27,3 +27,5 @@ tags: [React]
 
 10.[结合ES6+开发React组件](http://www.oschina.net/question/2012764_242688?fromerr=FNP2HGiK)
 
+11[React/React Native的ES5 ES6写法对照表](http://www.cnblogs.com/bennman/p/5301320.html)
+
