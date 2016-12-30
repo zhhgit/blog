@@ -13,7 +13,7 @@ Hi，我是张昊，江苏淮安人，2016年硕士毕业于上海交通大学�
 
 Github：<http://github.com/zhhgit>
 
-部分参与项目：<http://zhhhorizon.net/Blog/resources/projects>
+部分项目：<http://zhhhorizon.net/Blog/resources/projects>
 
 
 
