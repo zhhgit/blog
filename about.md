@@ -7,6 +7,8 @@ tags: [张昊，上海交通大学]
 
 Hi，我是张昊，江苏淮安人，2016年硕士毕业于上海交通大学。现在生活在上海，是一名Web开发工程师，专注前端开发，涉猎后台开发。
 
+简历：[Resume_20161231](http://zhhhorizon.net/Simple-resume/)
+
 邮箱：[zhh900601@sina.com](mailto:zhh900601@sina.com)
 
 主页：<http://zhhhorizon.net>
