@@ -38,3 +38,5 @@ tags: [Resources]
 15.[廖雪峰](http://www.liaoxuefeng.com/)
 
 16.[ityouknow](http://www.ityouknow.com/)
+
+17.[粉丝日志](http://blog.fens.me/)
