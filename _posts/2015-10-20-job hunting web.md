@@ -20,3 +20,5 @@ tags: [Resources]
 5.[Linkedin](https://www.linkedin.com/)
 
 6.[看准网](http://www.kanzhun.com/)
+
+7.[猎聘网](https://www.liepin.com/)

@@ -22,3 +22,5 @@ tags: [Web]
 3.[socket.io](https://github.com/socketio/socket.io)
 
 4.[weapp-demo-websocket](https://github.com/CFETeam/weapp-demo-websocket)
+
+5.[刨根问底HTTP和WebSocket协议](http://www.jianshu.com/p/0e5b946880b4)
