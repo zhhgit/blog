@@ -28,7 +28,12 @@ tags: [Tips]
 
     ln -s /usr/local/apache2/bin/apachectl /usr/local/bin/apachectl
 
-至此安装完成。在其他目录可以执行Apache的启动停止命令。Apache具体配置和Windows下一致。
+至此安装完成。在其他目录可以执行Apache的启动停止命令。
+
+    apachectl start
+    apachectl stop
+
+Apache具体配置和Windows下一致。
 
 # 二、用Vim编辑文档
 
