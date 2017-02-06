@@ -16,7 +16,7 @@ tags: [Tips]
 解压压缩文件
 
     xz -d node-v6.9.5-linux-x64.tar.xz
-    tar xvf node-v6.9.5-linux-x64.tar
+    tar -xvf node-v6.9.5-linux-x64.tar
     
 进入bin目录可以看到node和npm 两个命令
 
@@ -35,4 +35,4 @@ tags: [Tips]
 
 # 二、参考
 
-1.[linux 下部署nodejs（两种方式）](http://www.cnblogs.com/dubaokun/p/3558848.html)
+1.[linux下部署nodejs（两种方式）](http://www.cnblogs.com/dubaokun/p/3558848.html)
