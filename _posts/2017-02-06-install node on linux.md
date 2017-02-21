@@ -3,8 +3,8 @@ layout: post
 title: "Linux上安装NodeJS"
 description: Linux上安装NodeJS
 modified: 2017-02-06
-category: Tips
-tags: [Tips]
+category: Linux
+tags: [Linux]
 ---
 
 # 一、安装NodeJS

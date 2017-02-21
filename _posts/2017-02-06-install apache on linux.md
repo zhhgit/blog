@@ -3,8 +3,8 @@ layout: post
 title: "Linux上安装Apache"
 description: Linux上安装Apache
 modified: 2017-02-06
-category: Tips
-tags: [Tips]
+category: Linux
+tags: [Linux]
 ---
 
 # 一、安装Apache

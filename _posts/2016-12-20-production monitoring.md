@@ -3,8 +3,8 @@ layout: post
 title: "生产监控"
 description: 生产监控
 modified: 2016-12-20
-category: Tips
-tags: [Tips]
+category: Linux
+tags: [Linux]
 ---
 
 # 一、观察点

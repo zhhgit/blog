@@ -3,8 +3,8 @@ layout: post
 title: "Virtualbox中Ubuntu共享文件夹"
 description: Virtualbox中Ubuntu共享文件夹
 modified: 2015-06-13
-category: Tips
-tags: [Tips]
+category: Linux
+tags: [Linux]
 ---
 
 # 一、Virtualbox中设置
