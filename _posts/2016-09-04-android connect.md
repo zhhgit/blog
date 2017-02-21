@@ -3,8 +3,8 @@ layout: post
 title: "Android连接问题"
 description: Android连接问题
 modified: 2016-09-04
-category: Java
-tags: [Java]
+category: Android
+tags: [Android]
 ---
 
 # 连接不上：
