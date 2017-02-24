@@ -67,6 +67,8 @@ File
 
 # 二、参考
 
-1.[Android官网](https://developer.android.google.cn/index.html)
+1.[zhhgit/Android-demos](https://github.com/zhhgit/Android-demos)
 
-2.[Android中文API](http://www.android-doc.com/)
+2.[Android官网](https://developer.android.google.cn/index.html)
+
+3.[Android中文API](http://www.android-doc.com/)
