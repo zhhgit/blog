@@ -7,7 +7,7 @@ category: Android
 tags: [Android]
 ---
 
-# 一、Demos
+# 一、Demo说明
 
 ## Demo1
 
@@ -64,6 +64,34 @@ MediaStore.ACTION_IMAGE_CAPTURE,
 ImageView,
 Bitmap,
 File
+
+## Demo6
+
+右上角按钮。
+
+用到的：
+Menu,
+Toast
+
+## Demo7
+
+所有Activity继承自BasicActivity，当中打印log。ActivityController管理所有的Activity，可以一次性finish。
+
+用到的：
+BasicActivity,
+ActivityController
+
+## Demo8
+
+常用组件使用。
+
+用到的：
+Toast,
+EditText,
+Button,
+ProgressBar,
+AlertDialog,
+ProgressDialog
 
 # 二、参考
 
