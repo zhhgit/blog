@@ -134,3 +134,5 @@ StaggeredGridLayoutManager
 3.[Android中文API](http://www.android-doc.com/)
 
 4.[菜鸟Android教程](http://www.runoob.com/w3cnote/android-tutorial-intro.html)
+
+5.[《第一行代码Android》代码](https://github.com/zhhgit/booksource)
