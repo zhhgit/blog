@@ -7,7 +7,7 @@ category: Linux
 tags: [Linux]
 ---
 
-# 一、安装NodeJS
+# 一、安装XAMPP
 
 下载64位的包，放到共享目录/mnt/share下。拷贝到/software目录下
 
