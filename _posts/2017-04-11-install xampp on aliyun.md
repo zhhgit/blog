@@ -37,7 +37,7 @@ tags: [Linux]
 
     message from server: "Host xxx is not allowed to connect to this MySQL server
     
-4.MySQL数据可能出现乱码，
+4.MySQL数据可能出现乱码，需要修改my.cnf文件中的配置。
 
 5.Apache配置文件路径为
 
