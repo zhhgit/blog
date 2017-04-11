@@ -1,7 +1,7 @@
 ---
 layout: post
-title: "PHP MySQL实例"
-description: PHP MySQL实例
+title: "PHP MySQL例子"
+description: PHP MySQL例子
 modified: 2016-06-06
 category: PHP
 tags: [PHP]
@@ -9,63 +9,46 @@ tags: [PHP]
 
 # 一、实例
 
-先手动新建了数据库test，表名为user，分别有7个字段：id userid sex age tel email address。
+数据库vote，表名tbl_paper，有3个字段：PAPER_INDEX, NAME, VOTE_NUM。mysqli现在基本取代了mysql。
 
-	<!DOCTYPE html>
-	<html>
-	<head>
-	    <title>TEST</title>
-	</head>
+	<?php
+	/**
+	 * Created by PhpStorm.
+	 * User: ZhangHao
+	 * Date: 2017/4/9
+	 * Time: 13:43
+	 */
+	include_once "../dao/rankItem.php";
 
-	<body>
-	<table cellspacing=0 bordercolordark=#FFFFFF width="95%" bordercolorlight=#000000 border=1 align="center" cellpadding="2">
-	    <caption style="padding-bottom:10px">Table</caption>
-	    <tr bgcolor="#6b8ba8" style="color:FFFFFF">
-	        <td align="center" valign="bottom">ID</td>
-	        <td align="center" valign="bottom">姓名</td>
-	        <td align="center" valign="bottom">性别</td>
-	        <td align="center" valign="bottom">年龄</td>
-	        <td align="center" valign="bottom">联系电话</td>
-	        <td align="center" valign="bottom">电子邮件</td>
-	        <td align="center" valign="bottom">家庭住址</td>
-	    </tr>
-	<?php
-	    header("Content-type: text/html; charset=utf8");
-	    //连接到本地mysql数据库，地址为localhost，用户名为root，密码暂时未设，缺省
-	    $myconn=mysql_connect("localhost","root");
-	    //指定数据库字符集，一般放在连接数据库后面
-	    mysql_query("set names 'utf8'");
-	    //选择test数据库
-	    mysql_select_db("test",$myconn);
-	    //删除一条记录
-	    // mysql_query("DELETE FROM user WHERE id='1'");
-	    //增加一条记录
-	    $addSql="INSERT INTO user (id, userid, sex, age, tel, email, address) VALUES ('1', 'Zhh', '男', '26', '15100000000', 'xxx@126.com', 'Shanghai')";
-	    mysql_query($addSql,$myconn); 
-	    //用mysql_query函数从user表里读取数据
-	    $strSql="select * from user";
-	    $result=mysql_query($strSql,$myconn);
-	    //通过循环读取数据内容
-	    echo $result;
-	    while($row=mysql_fetch_array($result)){
-	?>
-	<tr>
-	    <td align="center"><?php echo $row["id"]?></td>
-	    <td align="center"><?php echo $row["userid"]?></td>
-	    <td align="center"><?php echo $row["sex"]?></td>
-	    <td align="center"><?php echo $row["age"]?></td>
-	    <td align="center"><?php echo $row["tel"]?></td>
-	    <td align="center"><?php echo $row["email"]?></td>
-	    <td align="center"><?php echo $row["address"]?></td>
-	</tr>
-	<?php
+	header("Content-type: text/html; charset=utf8");
+	$con = mysqli_connect("localhost","root","root","vote");
+	if (mysqli_connect_errno($con)) {
+	    $ret = json_encode([
+	        "code" => "01",
+	        "msg" => "获取排名失败",
+	        "data" => []
+	    ]);
+	}
+	else{
+	    $result = mysqli_query($con,"SELECT PAPER_INDEX, NAME, VOTE_NUM FROM tbl_paper ORDER BY VOTE_NUM DESC");
+	    $data = array();
+	    while($row = mysqli_fetch_array($result,MYSQLI_ASSOC)) {
+	        $paperItem = new paperItem();
+	        $paperItem->paper_index = $row["PAPER_INDEX"];
+	        $paperItem->name = $row["NAME"];
+	        $paperItem->vote_num = $row["VOTE_NUM"];
+	        array_push($data,$paperItem);
 	    }
-	    //关闭对数据库的连接
-	    mysql_close($myconn);
-	?>
-	</table>
-	</body>
-	</html>
+	    mysqli_close($con);
+
+	    $ret = json_encode([
+	        "code" => "00",
+	        "msg" => "获取排名成功",
+	        "data" => $data
+	    ]);
+	}
+
+	echo $ret;
 
 # 二、参考
 
