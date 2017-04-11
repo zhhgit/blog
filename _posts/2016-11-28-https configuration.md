@@ -13,7 +13,7 @@ tags: [Web]
 
 # 二、HTTPS证书
 
-通过腾讯云SSL证书管理申请，针对某个二级域名。验证的方式是通过添加一条新的域名解析，CNAME类型，主机记录例如为s2hw3l7imz8ihypx307fdm7fxicap6pj.wechat，记录值例如为s20161121111701.wechat.zhhhorizon.net。
+通过腾讯云SSL证书管理申请，针对某个二级域名。验证的方式是通过添加一条新的域名解析，CNAME类型，主机记录例如为s2hw3l7imz8ihypx307fdm7fxicap6pj.wechat，记录值例如为s20161121111701.wechat.zhhhorizon.net。(腾讯云验证方式有变化，具体看其官方文档)
 
 # 三、Apache配置
 
@@ -30,6 +30,10 @@ SSL证书安装参考[这里](https://www.qcloud.com/document/product/400/4143#1
 
 需要注意的是一定要用默认的443端口！至此已经可以通过https://wechat.zhhhorizon.net访问htdocs目录下的文件。
 
+在阿里云Linux机器上安装XAMPP后，需要这样配置才能生效。
+
+	<VirtualHost *:443>
+	
 # 四、反向代理
 
 通过Apache反向代理到另一个端口上的Tomcat。首先是要打开conf/httpd.conf文件中的一些模块。参考[利用Apache的转发模块实现反向代理服务器](http://blog.csdn.net/smstong/article/details/48976333)，因为已经配置了https，所有此时的ProxyPass和ProxyPassReverse应该写在conf/extra/httpd-ssl.conf文件中。例如
