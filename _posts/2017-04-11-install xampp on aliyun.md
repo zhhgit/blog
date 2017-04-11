@@ -1,8 +1,8 @@
 ---
 layout: post
-title: "Linux上安装XAMPP"
-description: Linux上安装XAMPP
-modified: 2017-04-06
+title: "阿里云XAMPP开发环境安装配置"
+description: 阿里云XAMPP开发环境安装配置
+modified: 2017-04-11
 category: Linux
 tags: [Linux]
 ---
