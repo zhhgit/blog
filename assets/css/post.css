@@ -746,7 +746,7 @@ code
 .summer-page-content > div:not(.summer-page-title) a,
 .summer-page-content > div:not(.summer-page-title) code {
     color: #e51843;
-    margin: 0 auto 2em auto;
+    margin: 0 auto 0 auto;
     max-width: 56.25rem;
     /* font-size: 1.125rem; */
     font-size: 16px;
@@ -759,13 +759,6 @@ code
     background-color: #e51843;
     color: #fff;
 }
-
-
-
-
-
-
-
 
 .summer-page-content > div:not(.summer-page-title) ul,
 .summer-page-content > div:not(.summer-page-title) ol {
@@ -807,15 +800,6 @@ code
     font-family: "arial", "heltivitar", "Hiragino Sans GB", "STHeiti", "Microsoft YaHei", "WenQuanYi Micro Hei";
 
 }
-/*.summer-page-content > div:not(.summer-page-title) p:first-child {
-    font-size: 1.375rem;
-    font-weight: 300;
-}
-@media only screen and (min-width: 40.063em) {
-    .summer-page-content > div:not(.summer-page-title) p:first-child {
-        font-size: 1.625rem;
-    }
-}*/
 
 .summer-page-content > div:not(.summer-page-title) p.with-image {
     text-align: center;
@@ -907,22 +891,6 @@ pre {
 }
 
 pre code {
-    /*font-family: Consolas,
-    "Liberation Mono",
-    Menlo,
-    Courier,
-    monospace;
-    display: inline;
-    max-width: initial;
-    padding: 0;
-    margin: 0;
-    overflow: initial;
-    line-height: inherit;
-    word-wrap: normal;
-    background-color: transparent;
-    border: 0;
-    */
-    
     font-size: 14px;
     font-family: consolas, monaco, "Source Code Pro", monospace;
     margin: 0;
@@ -1051,8 +1019,6 @@ iframe {
     vertical-align: super;
     color: black;
 }
-
-
 
 /*filter*/
 .filter{
