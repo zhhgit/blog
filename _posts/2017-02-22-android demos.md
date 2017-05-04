@@ -125,6 +125,30 @@ RecyclerView.ViewHolder,
 LinearLayoutManager,
 StaggeredGridLayoutManager
 
+## Demo12
+
+动态注册、静态注册BroadcastReceiver，发送自定义标准广播。
+
+用到的：
+IntentFilter,
+registerReceiver,
+unregisterReceiver,
+ConnectivityManager,
+NetworkInfo,
+getSystemService
+
+## Demo13
+
+文件存储与读取
+
+用到的：
+outputStream,
+BufferedWriter,
+FileInputStream,
+BufferedReader,
+openFileInput,
+openFileOutput
+
 # 二、参考
 
 1.[zhhgit/Android-demos](https://github.com/zhhgit/Android-demos)
