@@ -167,6 +167,58 @@ SQLiteDatabase,
 Cursor,
 ContentValues
 
+## Demo16
+
+使用LitePal进行SQLite存储与读取
+
+用到的：
+Connector.getDatabase
+DataSupport.findAll,
+DataSupport.deleteAll,
+updateAll,
+save
+
+## Demo17
+
+运行时授权拨打电话
+
+用到的：
+ContextCompat.checkSelfPermission,
+Manifest.permission.CALL_PHONE,
+PackageManager.PERMISSION_GRANTED,
+ActivityCompat.requestPermissions,
+onRequestPermissionsResult,
+Intent.ACTION_CALL,
+SecurityException
+
+## Demo18
+
+ContentProvider读取通讯录联系人，显示为列表。
+
+用到的：
+ContextCompat.checkSelfPermission,
+Manifest.permission.READ_CONTACTS,
+PackageManager.PERMISSION_GRANTED,
+ActivityCompat.requestPermissions,
+onRequestPermissionsResult,
+ArrayAdapter,
+notifyDataSetChanged,
+getContentResolver,
+ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
+ContactsContract.CommonDataKinds.Phone.NUMBER,
+Cursor
+
+## Demo19
+
+创建并响应提示。
+
+用到的：
+NotificationManager,
+NotificationCompat.Builder,
+getSystemService(NOTIFICATION_SERVICE),
+PendingIntent.getActivity
+
 # 二、参考
 
 1.[zhhgit/Android-demos](https://github.com/zhhgit/Android-demos)
