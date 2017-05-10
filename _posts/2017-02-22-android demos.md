@@ -219,6 +219,58 @@ NotificationCompat.Builder,
 getSystemService(NOTIFICATION_SERVICE),
 PendingIntent.getActivity
 
+## Demo20
+
+拍照并显示。
+
+用到的：
+File,
+getExternalCacheDir,
+createNewFile,
+Uri.fromFile,
+FileProvider.getUriForFile,
+Build.VERSION.SDK_INT,
+android.media.action.IMAGE_CAPTURE,
+MediaStore.EXTRA_OUTPUT,
+startActivityForResult,
+onActivityResult,
+getContentResolver,
+openInputStream,
+BitmapFactory.decodeStream
+
+## Demo21
+
+选择图片并显示。
+
+用到的：
+ContextCompat.checkSelfPermission,
+Manifest.permission.WRITE_EXTERNAL_STORAGE,
+PackageManager.PERMISSION_GRANTED,
+ActivityCompat.requestPermissions,
+DocumentsContract.isDocumentUri,
+DocumentsContract.getDocumentId,
+ContentUris.withAppendedId,
+getContentResolver,
+BitmapFactory.decodeFile
+
+## Demo22
+
+播放音频。
+
+用到的：
+MediaPlayer,
+Environment.getExternalStorageDirectory
+
+## Demo23
+
+加载网页。
+
+用到的：
+getSettings,
+setJavaScriptEnabled,
+setWebViewClient,
+loadUrl
+
 # 二、参考
 
 1.[zhhgit/Android-demos](https://github.com/zhhgit/Android-demos)
