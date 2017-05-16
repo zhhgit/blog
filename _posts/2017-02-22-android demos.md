@@ -271,6 +271,60 @@ setJavaScriptEnabled,
 setWebViewClient,
 loadUrl
 
+## Demo24
+
+HttpURLConnection发请求。
+
+用到的：
+HttpURLConnection,
+Thread,
+Runnable,
+BufferedReader,
+StringBuilder,
+runOnUiThread
+
+## Demo25
+
+OkHttp发请求。
+
+用到的：
+OkHttpClient,
+Thread,
+Runnable,
+Request,
+Response,
+runOnUiThread
+
+## Demo26
+
+OkHttp发请求，Gson解析JSON数据。
+
+用到的：
+OkHttpClient,
+Gson,
+TypeToken
+
+## Demo27
+
+子线程通过Message通知主线程更新UI。
+
+用到的：
+Handler,
+Message,
+Thread,
+Runnable
+
+## Demo28
+
+启动、停止、绑定、解绑服务。
+
+用到的：
+startService,
+stopService,
+bindService,
+unbindService,
+ServiceConnection
+
 # 二、参考
 
 1.[zhhgit/Android-demos](https://github.com/zhhgit/Android-demos)
