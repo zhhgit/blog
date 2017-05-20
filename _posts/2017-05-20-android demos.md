@@ -7,7 +7,9 @@ category: Android
 tags: [Android]
 ---
 
-# 一、Demo说明
+Github地址：[https://github.com/zhhgit/Android_demos](https://github.com/zhhgit/Android_demos)
+
+# 一、Demos
 
 ## Demo1
 
@@ -340,12 +342,10 @@ SwipeRefreshLayout
 
 # 二、参考
 
-1.[zhhgit/Android-demos](https://github.com/zhhgit/Android-demos)
+1.[Android官网](https://developer.android.google.cn/index.html)
 
-2.[Android官网](https://developer.android.google.cn/index.html)
+2.[Android中文API](http://www.android-doc.com/)
 
-3.[Android中文API](http://www.android-doc.com/)
+3.[菜鸟Android教程](http://www.runoob.com/w3cnote/android-tutorial-intro.html)
 
-4.[菜鸟Android教程](http://www.runoob.com/w3cnote/android-tutorial-intro.html)
-
-5.[《第一行代码Android》代码](https://github.com/zhhgit/booksource)
+4.[《第一行代码Android》代码](https://github.com/zhhgit/booksource)
