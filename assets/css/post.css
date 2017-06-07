@@ -1062,3 +1062,8 @@ iframe {
     text-align: center;
     color: #e51843;
 }
+
+.post-img{
+    max-width: 50rem;
+    width:80%;
+}
