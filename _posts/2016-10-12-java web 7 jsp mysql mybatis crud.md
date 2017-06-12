@@ -1,7 +1,7 @@
 ---
 layout: post
-title: "Java Web(7):Spring&MyBatis对MySQL中数据增删改查"
-description: Java Web(7):Spring&MyBatis对MySQL中数据增删改查
+title: "Java Web(7):Spring&MyBatis操作MySQL"
+description: Java Web(7):Spring&MyBatis操作MySQL
 modified: 2016-10-12
 category: Java
 tags: [Java]

@@ -1,7 +1,7 @@
 ---
 layout: post
-title: "Java Web(6):Spring JdbcTemplate对MySQL中数据增删改查"
-description: Java Web(6):Spring JdbcTemplate对MySQL中数据增删改查
+title: "Java Web(6):Spring JdbcTemplate操作MySQL"
+description: Java Web(6):Spring JdbcTemplate操作MySQL
 modified: 2016-10-08
 category: Java
 tags: [Java]

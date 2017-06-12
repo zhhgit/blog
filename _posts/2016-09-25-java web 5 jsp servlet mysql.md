@@ -1,7 +1,7 @@
 ---
 layout: post
-title: "Java Web(5):JSP&Servlet访问MySQL数据库"
-description: Java Web(5):JSP&Servlet访问MySQL数据库
+title: "Java Web(5):JSP&Servlet操作MySQL"
+description: Java Web(5):JSP&Servlet操作MySQL
 modified: 2016-09-25
 category: Java
 tags: [Java]
