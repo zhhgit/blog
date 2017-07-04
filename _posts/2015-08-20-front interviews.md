@@ -15,4 +15,6 @@ tags: [Resources]
 
 4.[前端开发面试题](http://www.runoob.com/w3cnote/front-end-developer-questions-and-answers.html)
 
+5.[前端面试知识点锦集](http://www.cnblogs.com/SeeYouBug/p/6188583.html)
+
 	
