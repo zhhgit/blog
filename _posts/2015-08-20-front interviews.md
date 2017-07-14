@@ -17,4 +17,8 @@ tags: [Resources]
 
 5.[前端面试知识点锦集](http://www.cnblogs.com/SeeYouBug/p/6188583.html)
 
+6.[Web前端知识体系精简](http://www.cnblogs.com/onepixel/p/7021506.html)
+
+7.[阿里、网易、滴滴共十次前端面试碰到的问题](http://www.cnblogs.com/niuxiaoying/p/7000374.html)
+
 	
