@@ -46,7 +46,7 @@ tags: [JavaScript]
 
 # 二、分析
 
-Base是函数对象，所以输出的是一个函数。Base.prototype是Base的原型，该对象有三个属性。Base.__proto__为Object.prototype。baseObj为new出来的Base实例。baseObj.prototype不是函数对象，所以没有prototype，输出为undefined。baseObj.__proto__保存的是Base.prototype。
+Base是函数对象，所以输出的是一个函数。Base.prototype是Base的原型，该对象有三个属性。constructor指向Base函数对象。sayName属性是动态添加的。__proto__指向Object.prototype。因为函数对象也是一个对象。Base.__proto__为Function.prototype，是Function这个函数对象的原型。baseObj为new出来的Base实例，拥有构造函数中的属性和方法。当调用sayName方法时，在属性中无法找到，就去__proto__中找，所谓“原型链”。baseObj.prototype为undefined，因为baseObj不是函数对象，所以没有prototype。baseObj.__proto__保存的是构造函数的原型，也就是Base.prototype。
 
 借用两张图和比较经典的总结
 
