@@ -44,7 +44,15 @@ Android平台会检查Java JDK，Android SDK，Android target，Gradle这几个�
 
     cordova run android
 
-# 二、参考
+# 二、使用插件
+
+核心插件API的用法看起来很明确，直接参照文档上每个插件的用法，安装例如
+
+    cordova plugin add cordova-plugin-battery-status
+
+然后修改www目录中的JS代码，重新执行cordova run android
+
+# 三、参考
 
 1.[Cordova官网](http://cordova.apache.org/)
 
