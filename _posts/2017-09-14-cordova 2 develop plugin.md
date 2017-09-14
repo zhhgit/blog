@@ -1,7 +1,7 @@
 ---
 layout: post
-title: "Cordova(1):开发Cordova Android插件"
-description: Cordova(1):开发Cordova Android插件
+title: "Cordova(2):开发Cordova Android插件"
+description: Cordova(2):开发Cordova Android插件
 modified: 2017-09-14
 category: Cordova
 tags: [Cordova]
