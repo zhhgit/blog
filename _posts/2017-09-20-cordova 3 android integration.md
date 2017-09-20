@@ -76,7 +76,51 @@ tags: [Cordova]
                 ["this is a test",0]
     );
 
-5.直接使用Android Studio来build和安装。
+5.修改MainActivity继承CordovaActivity。
+
+    package cn.zhanghao90.demo1;
+
+    import android.os.Bundle;
+    import org.apache.cordova.*;
+
+    public class MainActivity extends CordovaActivity
+    {
+        @Override
+        public void onCreate(Bundle savedInstanceState)
+        {
+            super.onCreate(savedInstanceState);
+            // Set by <content src="index.html" /> in config.xml
+            loadUrl(launchUrl);
+        }
+    }
+
+6.修改AndroidManifest.xml
+
+    <?xml version="1.0" encoding="utf-8"?>
+    <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+        package="cn.zhanghao90.demo1">
+
+        <application
+            android:hardwareAccelerated="true"
+            android:icon="@mipmap/ic_launcher"
+            android:label="@string/app_name">
+            <activity
+                android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale"
+                android:label="@string/activity_name"
+                android:launchMode="singleTop"
+                android:name="MainActivity"
+                android:theme="@android:style/Theme.DeviceDefault.NoActionBar"
+                android:windowSoftInputMode="adjustResize">
+                <intent-filter android:label="@string/launcher_name">
+                    <action android:name="android.intent.action.MAIN" />
+                    <category android:name="android.intent.category.LAUNCHER" />
+                </intent-filter>
+            </activity>
+        </application>
+
+    </manifest>
+
+7.直接使用Android Studio来build和安装。
 
 # 二、参考
 
