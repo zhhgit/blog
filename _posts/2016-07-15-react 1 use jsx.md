@@ -88,10 +88,10 @@ try1.jsx为
 	  document.getElementById('example')
 	);
 
-例子见[demo1](https://github.com/zhhgit/React-demos/tree/master/demo1-browser%20compile%20jsx)
+例子见[demo1](https://github.com/zhhgit/react_coupons/tree/master/demo1-browser%20compile%20jsx)
 
 # 二、通过npm使用 React
 
-参考[通过 npm 使用 React](http://www.runoob.com/react/react-install.html)，例子见[demo2](https://github.com/zhhgit/React-demos/tree/master/demo2-node%20compile%20jsx)
+参考[通过 npm 使用 React](http://www.runoob.com/react/react-install.html)，例子见[demo2](https://github.com/zhhgit/react_coupons/tree/master/demo2-node%20compile%20jsx)
 
 

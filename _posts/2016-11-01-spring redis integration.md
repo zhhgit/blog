@@ -247,5 +247,5 @@ src/org/controller包中HomeController拦截index.html并返回index.jsp页面�
 
 # 四、Github Demo
 
-1.详见[Spring-redis](https://github.com/zhhgit/Spring-redis)
+1.详见[Spring-redis](https://github.com/zhhgit/spring_redis)
 

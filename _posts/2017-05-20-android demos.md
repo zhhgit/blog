@@ -7,7 +7,7 @@ category: Android
 tags: [Android]
 ---
 
-Github地址：[https://github.com/zhhgit/Android_demos](https://github.com/zhhgit/Android_demos)
+Github地址：[https://github.com/zhhgit/android_demos](https://github.com/zhhgit/android_demos)
 
 # 一、Demos
 
@@ -348,4 +348,4 @@ SwipeRefreshLayout
 
 3.[菜鸟Android教程](http://www.runoob.com/w3cnote/android-tutorial-intro.html)
 
-4.[《第一行代码Android》代码](https://github.com/zhhgit/booksource)
+4.[《第一行代码Android》代码](https://github.com/guolindev/booksource)

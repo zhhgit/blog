@@ -9,7 +9,7 @@ tags: [Java]
 
 # 一、配置
 
-同样，建立Dynamic web project，在WebContent/WEB-INF/lib目录下放入一系列jar包，需要的jar包参见[这里](https://github.com/zhhgit/Java_web_demos/tree/master/demo2-spring%20mvc)（只会多不会少）。
+同样，建立Dynamic web project，在WebContent/WEB-INF/lib目录下放入一系列jar包，需要的jar包参见[这里](https://github.com/zhhgit/java_web_demos/tree/master/demo2-spring%20mvc)（只会多不会少）。
 
 配置文件web.xml为：
 
@@ -255,7 +255,7 @@ succ.jsp页面中通过${variable}的形式获取具体的参数值：
 
 # 三、参考
 
-1.[demo2](https://github.com/zhhgit/Java_web_demos/tree/master/demo2-spring%20mvc)
+1.[demo2](https://github.com/zhhgit/java_web_demos/tree/master/demo2-spring%20mvc)
 
 2.[SpringMVC基础教程简单入门实例](http://blog.csdn.net/swingpyzf/article/details/8904205)
 

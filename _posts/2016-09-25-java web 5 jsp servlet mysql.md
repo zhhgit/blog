@@ -179,7 +179,7 @@ WebContent/WEB-INF/web.xml文件中要建立访问的URL与对应的Servlet的cl
 
 # 四、参考
 
-1.[demo4](https://github.com/zhhgit/Java_web_demos/tree/master/demo4-jsp%20servlet%20mysql)
+1.[demo4](https://github.com/zhhgit/java_web_demos/tree/master/demo4-jsp%20servlet%20mysql)
 
 2.[在eclipse导入Java的jar包的方法JDBC](http://www.cnblogs.com/taoweiji/archive/2012/12/11/2812295.html)
 

@@ -200,4 +200,4 @@ WebContent/WEB-INF/page目录下的home.jsp如下，有两个按钮，分别发�
 
 # 四、参考
 
-1.[demo3](https://github.com/zhhgit/Java_web_demos/tree/master/demo3-spring%20rest)
+1.[demo3](https://github.com/zhhgit/java_web_demos/tree/master/demo3-spring%20rest)

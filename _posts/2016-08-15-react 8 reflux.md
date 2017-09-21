@@ -120,7 +120,7 @@ ListStore.js中通过this.listenTo监听某个具体的action，通过this.trigg
 
 # 四、具体参考
 
-1.[demo8](https://github.com/zhhgit/React-demos/tree/master/demo8-react%20and%20reflux)
+1.[demo8](https://github.com/zhhgit/react_coupons/tree/master/demo8-react%20and%20reflux)
 
 2.[Creating a Note Taking App with React and Flux](https://www.sitepoint.com/creating-note-taking-app-react-flux/)
 

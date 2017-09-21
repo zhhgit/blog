@@ -110,7 +110,7 @@ mybatis.xml中写具体的增删改查语句
 
 # 三、参考
 
-1.[demo6](https://github.com/zhhgit/Java_web_demos/tree/master/demo6-jsp%20mysql%20mybatis%20crud)
+1.[demo6](https://github.com/zhhgit/java_web_demos/tree/master/demo6-jsp%20mysql%20mybatis%20crud)
 
 2.[Mybatis整合Spring](http://elim.iteye.com/blog/1843309)
 

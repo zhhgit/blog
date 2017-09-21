@@ -106,4 +106,4 @@ Person.java
 	name:ZhangHao age:26
 	kind:Cat sound:miaomiao
 
-参见[demo1](https://github.com/zhhgit/Java_web_demos/tree/master/demo1-spring%20beans)
+参见[demo1](https://github.com/zhhgit/java_web_demos/tree/master/demo1-spring%20beans)

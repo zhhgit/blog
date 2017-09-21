@@ -108,4 +108,4 @@ buttonArea.js:
 	cd C:\xampp\htdocs\React\demo5
 	webpack --display-error-details
 
-具体参考[demo5](https://github.com/zhhgit/React-demos/tree/master/demo5-static%20list%20and%20detail)
+具体参考[demo5](https://github.com/zhhgit/react_coupons/tree/master/demo5-static%20list%20and%20detail)

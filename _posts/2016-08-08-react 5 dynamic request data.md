@@ -199,4 +199,4 @@ billDetail.js：
 	});
 	export default BillDetail;
 
-具体参考[demo6](https://github.com/zhhgit/React-demos/tree/master/demo6-dynamic%20list%20and%20detail)
+具体参考[demo6](https://github.com/zhhgit/react_coupons/tree/master/demo6-dynamic%20list%20and%20detail)

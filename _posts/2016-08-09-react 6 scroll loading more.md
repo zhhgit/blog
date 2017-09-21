@@ -271,6 +271,6 @@ billItem.js：
 
 具体参考
 
-1.[demo7](https://github.com/zhhgit/React-demos/tree/master/demo7-scroll%20loading)
+1.[demo7](https://github.com/zhhgit/react_coupons/tree/master/demo7-scroll%20loading)
 
 2.[jQuery插件实现网页底部自动加载-类似新浪微博](http://justcoding.iteye.com/blog/2108040)

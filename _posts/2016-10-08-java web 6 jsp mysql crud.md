@@ -411,7 +411,7 @@ Student.java为实体类：
 
 # 七、参考
 
-1.[demo5](https://github.com/zhhgit/Java_web_demos/tree/master/demo5-jsp%20mysql%20crud)
+1.[demo5](https://github.com/zhhgit/java_web_demos/tree/master/demo5-jsp%20mysql%20crud)
 
 
 

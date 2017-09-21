@@ -117,7 +117,7 @@ pom.xml如下
 
 # 二、参考
 
-1.[zhhgit/SpringMVC_maven_framework](https://github.com/zhhgit/SpringMVC_maven_framework)
+1.[zhhgit/SpringMVC_maven_framework](https://github.com/zhhgit/springMVC_maven_framework)
 
 2.[Maven Repository](http://mvnrepository.com/)
 

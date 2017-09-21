@@ -86,7 +86,7 @@ test2.js
 
 也可以参考[这里](http://babeljs.io/docs/usage/cli/)，直接编译某个文件或者目录。
 
-具体参考[demo3](https://github.com/zhhgit/React-demos/tree/master/demo3-use%20babel)
+具体参考[demo3](https://github.com/zhhgit/react_coupons/tree/master/demo3-use%20babel)
 
 
 
