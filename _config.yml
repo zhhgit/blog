@@ -6,7 +6,7 @@ dropcap:          true
 # or use the hint from http://jekyllrb.com/docs/github-pages/ to keep this the same 
 # whether working locally or remotely. Start Jekyll with: jekyll serve --baseurl ''
 baseurl:          http://zhhgit.github.io
-url:              /Blog
+url:              /blog
 
 #port:        4000
 #baseurl:     /

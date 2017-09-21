@@ -1,7 +1,7 @@
 ---
 layout: post
-title: "Github Pages静态Blog"
-description: Github Pages静态Blog
+title: "Github Pages静态blog"
+description: Github Pages静态blog
 modified: 2015-05-20
 category: Tools
 tags: [Tools]

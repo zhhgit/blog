@@ -44,7 +44,7 @@ tags: [Linux]
     httpd.conf位于：/opt/lampp/etc/httpd.conf
     httpd-ssl.conf位于：/opt/lampp/etc/extra/httpd-ssl.conf
     
-主要对httpd-ssl.conf的VirtualHost进行配置，参考[HTTPS配置](http://zhanghao90.cn/Blog/web/https-configuration)
+主要对httpd-ssl.conf的VirtualHost进行配置，参考[HTTPS配置](http://zhanghao90.cn/blog/web/https-configuration)
 
 # 三、参考
 
