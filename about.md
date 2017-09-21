@@ -7,16 +7,11 @@ tags: [张昊，上海交通大学]
 
 Hi，我是张昊，江苏淮安人，2016年硕士毕业于上海交通大学。现在生活在上海，是一名Web开发工程师。
 
-前台：
-    
-    HTML、CSS、JavaScript、React、
-    React Native、Android、微信小程序
-    
-后台：
+大前端技能：
 
-    Java Web、PHP、Apache、MySQL、NodeJS
+Web前端 / Android / Cordova / React Native / NodeJS
 
-简历：[Resume_20161231](http://zhhgit.github.io/Simple-resume/)
+简历：[Resume_20161231](http://zhhgit.github.io/simple_resume/)
 
 邮箱：[zhh900601@sina.com](mailto:zhh900601@sina.com)
 
