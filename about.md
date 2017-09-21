@@ -15,8 +15,6 @@ Web前端 / Android / Cordova / React Native / NodeJS
 
 邮箱：[zhh900601@sina.com](mailto:zhh900601@sina.com)
 
-主页：<http://zhanghao90.cn>
-
 Github：<http://github.com/zhhgit>
 
 部分项目：<http://zhanghao90.cn/blog/resources/projects>
