@@ -1,2 +1,2 @@
-# 个人博客
-My personal blog
+# blog
+Zhang Hao's personal blog
