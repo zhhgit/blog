@@ -140,3 +140,5 @@ res/www/test.html中两个按钮分别调用JSKit中定义的两个方法
 # 二、参考
 
 1.[android cordova混合开发（交互部分）](http://blog.csdn.net/u010819959/article/details/50608273)
+
+2.[zhhgit/android_js_java_bridge](https://github.com/zhhgit/android_js_java_bridge)
