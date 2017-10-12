@@ -18,3 +18,9 @@ tags: [Resources]
 1.[Android API](http://www.android-doc.com/reference/packages.html)
 
 2.[Android官方API](https://developer.android.google.cn/reference/packages.html)
+
+<hr>
+
+# 设计
+
+1.[干货！我开发 Android 是如何界面设计的](http://www.jianshu.com/p/531efdf5cdc5)
