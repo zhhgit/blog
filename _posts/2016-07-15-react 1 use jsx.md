@@ -94,7 +94,7 @@ try1.jsx为
 
 参考[通过 npm 使用 React](http://www.runoob.com/react/react-install.html)，例子见[demo2](https://github.com/zhhgit/react_coupons/tree/master/demo2-node%20compile%20jsx)
 
-# 三、通过jsx命令编译成js
+# 三、通过jsx命令编译
 
-    npm install -g react-tools
-    jsx --watch script/ js/
+	npm install -g react-tools
+	jsx --watch script/ js/
