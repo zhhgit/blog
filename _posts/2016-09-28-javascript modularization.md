@@ -41,7 +41,7 @@ tags: [JavaScript]
 	var commonui = new CommonUI();
 	commonui.showLoading("加载中");
 
-1.2.第二种常用的模式是通过匿名闭包，这种模式是当前钱包前端代码中最常用的JS模块化的方式。通过匿名闭包的模式可以避免对全局的污染，将用到的变量限制在function作用域。如下的commonUI.js为一段典型的匿名闭包代码，一个匿名函数被定义后立即执行。在全局变量window下的子模块window.UP.W.UI中定义了showLoading(),showToast(),showAlert这三种常用的UI方法。
+1.2.第二种常用的模式是通过匿名闭包，这种模式是当前前端代码中最常用的JS模块化的方式。通过匿名闭包的模式可以避免对全局的污染，将用到的变量限制在function作用域。如下的commonUI.js为一段典型的匿名闭包代码，一个匿名函数被定义后立即执行。在全局变量window下的子模块window.UP.W.UI中定义了showLoading(),showToast(),showAlert这三种常用的UI方法。
 
 	(function ($, UP) {
 
