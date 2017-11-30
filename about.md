@@ -17,7 +17,7 @@ Web前端 / Android / Cordova / React Native / NodeJS
 
 Github：<http://github.com/zhhgit>
 
-部分项目：<http://zhanghao90.cn/blog/resources/projects>
+我的项目：<http://zhanghao90.cn/my_project_list/prod/dist/index.html>
 
 
 
