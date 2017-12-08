@@ -21,6 +21,39 @@ tags: [React]
     cd my-app
     npm start
 
+# 二、React组件
+
+SimpleComponent.js:
+
+    import React, { Component } from 'react';
+    import AnotherComponent from './AnotherComponent.js';
+
+    export default class SimpleComponent extends Component {
+        constructor(props) {
+            super(props);
+            this.state = {
+                name: "Zhang Hao",
+            };
+        }
+
+        componentDidMount(){
+        
+        }
+        
+        handleClick = () => {
+        
+        }
+
+        render() {
+            return (
+                <div>
+                    {this.state.name}
+                    <AnotherComponent />
+                </div>
+            )
+        }
+    }
+
 # N、参考
 
 1.[React菜鸟教程](http://www.runoob.com/react/react-tutorial.html)
