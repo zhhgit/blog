@@ -126,3 +126,11 @@ tags: [Resources]
 # 图片素材
 
 1.[千库网](http://588ku.com/)
+
+<hr>
+
+# Chrome扩展程序
+
+1.[360极速浏览器扩展](http://open.chrome.360.cn/extension_dev/overview.html)
+
+2.[360安全浏览器扩展](http://open.se.360.cn/open/extension_dev/overview.html)
