@@ -66,7 +66,7 @@ SimpleComponent.js:
         }
     }
 
-# N、参考
+# 三、参考
 
 1.[React菜鸟教程](http://www.runoob.com/react/react-tutorial.html)
 
@@ -79,3 +79,9 @@ SimpleComponent.js:
 5.[React 组件之间如何交流](http://www.tuicool.com/articles/AzQzEbq)
 
 6.[结合ES6+开发React组件](http://www.oschina.net/question/2012764_242688?fromerr=FNP2HGiK)
+
+7.[React Router使用教程](http://www.ruanyifeng.com/blog/2016/05/react_router.html)
+
+8.[从React Router谈谈路由的那些事](http://stylechen.com/react-router.html)
+
+9.[深入理解react-router路由系统](https://segmentfault.com/a/1190000004075348?utm_source=tuicool&utm_medium=referral)
