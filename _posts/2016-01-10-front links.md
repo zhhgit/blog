@@ -162,3 +162,13 @@ tags: [Resources]
 2.[Javascript 异步编程的4种方法](http://kb.cnblogs.com/page/167474/)
 
 3.[JavaScript既然是单线程的，那么异步要怎么理解？](https://segmentfault.com/q/1010000004266993?_ea=549894)
+
+<hr>
+
+# 调试工具
+
+1.[Postman](https://www.getpostman.com/)
+
+2.[mac环境下使用Charles抓包Https请求](https://segmentfault.com/a/1190000005070614)
+
+3.[Fiddler与Charles的特殊用途](http://www.cnblogs.com/cos2004/archive/2013/04/16/3024171.html)
