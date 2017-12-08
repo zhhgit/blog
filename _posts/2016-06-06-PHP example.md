@@ -1,7 +1,7 @@
 ---
 layout: post
-title: "PHP MySQL例子"
-description: PHP MySQL例子
+title: "PHP实例"
+description: PHP实例
 modified: 2016-06-06
 category: PHP
 tags: [PHP]
@@ -50,7 +50,35 @@ tags: [PHP]
 
 	echo $ret;
 
-# 二、参考
+# 二、调试
+
+修改C:\xampp\php目录下的php.ini，打开error_log功能，去掉下面这行的分号，修改后重启Apache。
+
+	;error_log = php_errors.log
+
+error_log会打印在C:\xampp\php\logs\php_error_log文件中。Windows下也用tail命令查看，并监视文件变化。参考[linux tail命令的使用方法详解](http://www.cnblogs.com/mfryf/p/3336804.html)和[Windows下tail 查看日志命令工具分享](http://www.cnblogs.com/hantianwei/archive/2012/03/14/2395634.html)。
+
+	cd C:\xampp\php\logs
+	tail -f php_error_log
+
+在PHP的代码中，调用以下函数可以打印log信息。
+
+	Util::log($params);
+
+该静态方法的实现为
+
+	class Util {
+	    public static function log($msg){
+	      if(!is_string($msg)) {
+	          $msg = json_encode($msg);
+	      }
+	      error_log(__FILE__ . ' [log]: ' . $msg . ' on line ' . __LINE__);
+	    }
+	}
+
+log时区可能不对，可以参考[PHP的php.ini时区设置问题 解决时间相差8小时问题](http://www.smsyun.com/home-index-page-id-169.html)，改完重启Apache。
+
+# 三、参考
 
 1.[php数据库操作实例](http://www.cnblogs.com/qiantuwuliang/archive/2009/11/11/1600896.html)
 
