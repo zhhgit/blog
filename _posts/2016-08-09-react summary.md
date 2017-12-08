@@ -35,9 +35,21 @@ SimpleComponent.js:
                 name: "Zhang Hao",
             };
         }
-
-        componentDidMount(){
         
+        componentDidMount(){
+            $.ajax({
+                type: 'GET',
+                url: "http://zhanghao90.cn/interface1",
+                contentType: "application/json; charset=utf-8",
+                data: {},
+                dataType: 'json',
+                success: function (resp) {
+                    this.setState({
+                        name: resp
+                    });
+                },
+                error: function(err) {}
+            });
         }
         
         handleClick = () => {
