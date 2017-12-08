@@ -22,3 +22,5 @@ tags: [Resources]
 6.[看准网](http://www.kanzhun.com/)
 
 7.[猎聘网](https://www.liepin.com/)
+
+8.[拉勾网](https://www.lagou.com/)
