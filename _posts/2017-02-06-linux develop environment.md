@@ -1,0 +1,116 @@
+---
+layout: post
+title: "安装配置Linux开发环境"
+description: 安装配置Linux开发环境
+modified: 2017-02-06
+category: Linux
+tags: [Linux]
+---
+
+# 一、安装NodeJS
+
+下载64位的Binary包node-v6.9.5-linux-x64.tar.xz，放到共享目录/mnt/share下。拷贝到/software目录下
+
+    cp /mnt/share/node-v6.9.5-linux-x64.tar.xz /software
+
+解压压缩文件
+
+    xz -d node-v6.9.5-linux-x64.tar.xz
+    tar -xvf node-v6.9.5-linux-x64.tar
+    
+进入bin目录可以看到node和npm 两个命令
+
+    cd node-v6.9.5-linux-x64/bin
+
+此时已经可以通过以下方式看到版本号
+
+    ./node -v
+
+但是在其他目录不能执行命令，需要在/usr/local/bin目录下建软链接
+
+    ln -s /software/node-v6.9.5-linux-x64/bin/node /usr/local/bin/node
+    ln -s /software/node-v6.9.5-linux-x64/bin/npm /usr/local/bin/npm
+
+至此安装完成。在其他目录可以执行node和npm命令。
+
+# 二、安装Apache
+
+下载64位的源码httpd-2.2.32.tar.gz，放到共享目录/mnt/share下。拷贝到/software目录下
+
+    cp /mnt/share/httpd-2.2.32.tar.gz /software
+
+解压压缩文件
+
+    tar -zxvf httpd-2.2.32.tar.gz
+
+分别执行如下命令进行编译，/usr/local/apach2为安装的后的目录
+
+    cd httpd-2.2.32
+    ./configure --prefix=/usr/local/apache2 --enable-so --enable-rewrite 
+    make
+    make install
+
+控制Apache启动停止的命令为apachectl，需要建软链接
+
+    ln -s /usr/local/apache2/bin/apachectl /usr/local/bin/apachectl
+
+至此安装完成。在其他目录可以执行Apache的启动停止命令。
+
+    apachectl start
+    apachectl stop
+
+Apache具体配置和Windows下一致。
+
+# 三、安装Tomcat
+
+下载apache-tomcat-8.5.15.zip(core,zip包)，解压后放到/usr/local/目录下
+
+    upzip apache-tomcat-8.5.15.zip
+    cp ./apache-tomcat-8.5.15 /usr/local/apache-tomcat-8.5.15
+
+修改端口号，默认为8080，找到对应位置，修改为8081
+
+    cd /usr/local/apache-tomcat-8.5.15/conf
+    grep "8080" server.xml
+
+通过浏览器登录时需要修改conf/tomcat-users.xml，添加用户
+
+    <role rolename="manager-gui"/>
+    <user username="user" password="password" roles="manager-gui"/>
+
+启动和停止命令分别为
+
+    cd /usr/local/apache-tomcat-8.5.15/bin
+    //启动
+    sh startup.sh
+    //停止
+    sh shutdown.sh
+    //命令无法执行时可能需要增加执行权限
+    chmmod +x *.sh
+
+war包需要部署到webapps目录下，会自动解压。
+
+# 四、用Vim编辑文档
+
+安装Vim
+
+    sudo apt-get install vim
+    
+新建、编辑、保存文件
+
+    cd /home/zhanghao
+    mkdir test1
+    touch app.js
+    vim app.js
+    
+按i进入Insert模式，按Esc退出Insert模式。在一般模式下保存并退出Vim
+
+    ：wq
+
+# 五、参考
+
+1.[linux下部署nodejs（两种方式）](http://www.cnblogs.com/dubaokun/p/3558848.html)
+
+2.[Linux安装配置apache](http://www.cnblogs.com/fly1988happy/archive/2011/12/14/2288064.html)
+
+3.[在mac系统安装Apache Tomcat的详细步骤](http://blog.csdn.net/huyisu/article/details/38372663)
