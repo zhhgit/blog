@@ -26,3 +26,11 @@ tags: [React]
 1.[React菜鸟教程](http://www.runoob.com/react/react-tutorial.html)
 
 2.[React官网](https://reactjs.org/)
+
+3.[React 入门实例教程](http://www.ruanyifeng.com/blog/2015/03/react.html)
+
+4.[Babel官网](http://babeljs.io/)
+
+5.[React 组件之间如何交流](http://www.tuicool.com/articles/AzQzEbq)
+
+6.[结合ES6+开发React组件](http://www.oschina.net/question/2012764_242688?fromerr=FNP2HGiK)

@@ -1,7 +1,7 @@
 ---
 layout: post
-title: "React(8):Reflux架构实例"
-description: React(8):Reflux架构实例
+title: "Reflux架构实例"
+description: Reflux架构实例
 modified: 2016-08-15
 category: React
 tags: [React]
