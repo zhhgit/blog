@@ -134,3 +134,31 @@ tags: [Resources]
 1.[360极速浏览器扩展](http://open.chrome.360.cn/extension_dev/overview.html)
 
 2.[360安全浏览器扩展](http://open.se.360.cn/open/extension_dev/overview.html)
+
+<hr>
+
+# 性能优化
+
+1.[前端工程与性能优化](https://github.com/fouber/blog/issues/3)
+
+2.[前端各种优化](http://www.cnblogs.com/Darren_code/archive/2011/12/31/property.html)
+
+3.[前端性能优化](http://www.iteye.com/magazines/116-Web-Front-Performance-Best-Practice#385)
+
+4.[网站前端性能优化总结](http://www.open-open.com/news/view/9902b7)
+
+<hr>
+
+# 浏览器
+
+1.[前端必读：浏览器内部工作原理](http://kb.cnblogs.com/page/129756/)
+
+<hr>
+
+# JS异步编程
+
+1.[Javascript异步编程的4种方法](http://www.ruanyifeng.com/blog/2012/12/asynchronous%EF%BC%BFjavascript.html)
+
+2.[Javascript 异步编程的4种方法](http://kb.cnblogs.com/page/167474/)
+
+3.[JavaScript既然是单线程的，那么异步要怎么理解？](https://segmentfault.com/q/1010000004266993?_ea=549894)
