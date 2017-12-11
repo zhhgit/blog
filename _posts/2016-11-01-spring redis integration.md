@@ -3,8 +3,8 @@ layout: post
 title: "Spring Redis整合"
 description: Spring Redis整合
 modified: 2016-11-01
-category: Java
-tags: [Java]
+category: Spring
+tags: [Spring]
 ---
 
 # 一、安装并使用
