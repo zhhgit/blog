@@ -17,6 +17,10 @@ body,
     height: 100%;
 }
 
+body{
+    background-image: url(../img/bg.png);
+}
+
 .summer-post-header-title {
     display: inline-block;
     padding: 0;

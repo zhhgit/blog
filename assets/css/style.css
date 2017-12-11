@@ -31,7 +31,7 @@ footer, header, main {
 }
 .summer-disqus, .summer-share-icons, main {
     /*Background of the main body*/
-    background-color: #D3D3D3;
+    /*background-color: #D3D3D3;*/
 }
 .animated-post {
     background: 0 0
