@@ -92,11 +92,7 @@ tags: [JavaScript]
 
 1.[JavaScript RegExp 对象](http://www.w3school.com.cn/jsref/jsref_obj_regexp.asp)
 
-2.[正则表达式语法](https://msdn.microsoft.com/zh-cn/library/ae5bf541(VS.80).aspx)
-
-3.[正则表达式语法](http://www.runoob.com/regexp/regexp-syntax.html)
-
-4.[正则表达式基本语法](http://www.cnblogs.com/light169/archive/2006/10/18/532347.html)
+2.[正则表达式语法](http://www.runoob.com/regexp/regexp-syntax.html)
 
 
 
