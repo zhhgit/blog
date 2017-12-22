@@ -17,7 +17,7 @@ Hi，我是张昊，江苏淮安人，最老的一批90后，2016年硕士毕业
 
 2. **专注Web前端技术**，工作实战经验良好。
 
-3. Zepto、React熟练使用。VueJS使用体验良好。
+3. Zepto、React熟练使用。Vue使用体验良好。
 
 4. Hybrid APP框架Cordova长期使用，React Native项目参与个把。
 
