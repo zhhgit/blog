@@ -19,10 +19,10 @@ links:
   - title: 首页
     url: /
     external: false
-  - title: 关于我
-    url: /about
   - title: 分类
     url: /categories
+  - title: 关于我
+    url: /about
   - title: 我的项目
     url: http://zhanghao90.cn/my_project_list/prod/dist/index.html
     external: true
