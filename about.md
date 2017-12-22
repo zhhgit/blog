@@ -17,7 +17,7 @@ Hi，我是张昊，江苏淮安人，2016年硕士毕业于上海交通大学�
 
 2. **专注Web前端技术**，工作实战经验良好。
 
-3. **Zepto、React**熟练使用。**Vue**使用体验良好。
+3. **Zepto、React**熟练使用。**Vue**使用良好。
 
 4. Hybrid APP框架**Cordova**长期使用，**React Native**项目参与个把。
 
