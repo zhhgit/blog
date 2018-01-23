@@ -17,7 +17,7 @@ tags: [JavaScript]
     2^E表示指数位。
     M表示有效数字，大于等于1，小于2。
 
-![ieee754](../images/javasript number/ieee754.png)
+![ieee754](../images/javascript number/ieee754.png)
 
 因为M可以写成1.xxxxxxxxx的形式，其中xxxxxxxxx表示小数部分。IEEE 754规定，在计算机内部保存M时，默认这个数的第一位总是1，因此可以被舍去，只保存后面的xxxxxxxxx部分。比如保存1.01的时候，只保存01，等到读取的时候，再把第一位的1加上去。
 
