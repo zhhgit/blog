@@ -1,7 +1,7 @@
 ---
 layout: post
-title: "Eclipses设置与操作"
-description: Eclipses设置与操作
+title: "Eclipse设置与操作"
+description: Eclipse设置与操作
 modified: 2018-03-08
 category: Tools
 tags: [Tools]
