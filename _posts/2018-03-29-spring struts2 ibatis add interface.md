@@ -40,4 +40,4 @@ tags: [Java框架]
 
 # 访问权限：
 
-13.revise com.unionpay.nmg.service.interceptor.LoginInterceptor		//修改访问权限控制
+13.修改 com.unionpay.nmg.service.interceptor.LoginInterceptor		//修改访问权限控制
