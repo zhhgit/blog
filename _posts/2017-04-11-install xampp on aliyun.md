@@ -9,13 +9,11 @@ tags: [Linux]
 
 # 一、安装XAMPP
 
-下载64位的包，放到共享目录/mnt/share下。拷贝到/software目录下
-
-    cp /mnt/share/xampp-linux-x64-5.6.30-0-installer.run /software
+下载64位的包xampp-linux-x64-5.6.30-0-installer.run，通过FileZilla将文件上传到阿里云的机器上。
 
 执行如下命令，套件将被安装到/opt/lampp目录下
 
-    chmod -x xampp-linux-x64-5.6.30-0-installer.run
+    chmod 777 xampp-linux-x64-5.6.30-0-installer.run
     ./xampp-linux-x64-5.6.30-0-installer.run
     
 # 二、配置集成环境
@@ -25,13 +23,34 @@ tags: [Linux]
     /opt/lampp/lampp start
     /opt/lampp/lampp stop
 
-2.MySQL 安装好后，初始用户root，密码为空。应该通过命令行重置密码
+2.启动mysql客户端应该进入/opt/lampp/bin目录执行以下语句，初始用户root，密码为空
 
-    mysql -uroot -p   ----要求输入密码时，直接回车即可。
-    > use mysql;
-    > update user set password=PASSWORD('12345678') where user="root";    ---将root密码设置为12345678
-    > flush privileges;
-    > quit
+    ./mysql -uroot -p
+
+可能会出现root用户没有mysql这个数据库访问权限的情况，应该参考[这里](https://blog.csdn.net/jt_121217/article/details/78247265)删除空用户数据。
+
+先停止MySQL服务，用mysqld命令启动MySQL服务端，在另一个窗口中无需密码地启动MySQL客户端，此时可以看到并操作mysql这个数据库中的user表。
+
+    -------------------------------停止服务
+    /opt/lampp/lampp stop
+    -------------------------------启动服务端
+    cd /opt/lampp/sbin
+    ./mysqld --skip-grant-table
+    -------------------------------启动客户端
+    cd /opt/lampp/bin
+    ./mysql
+    -------------------------------删除空用户
+    delete from user where user='';
+    flush privileges;
+
+之后再启动MySQL客户端
+
+    mysql -uroot -p
+    use mysql;
+    -------------------------------将root密码设置为123456
+    update user set password=password('123456') where user="root";
+    flush privileges;
+    quit
     
 3.用DbVisualizer远程连接可能出现如下错误，参考[解决方法](http://blog.csdn.net/langzi7758521/article/details/51729735)
 
