@@ -52,11 +52,13 @@ tags: [Linux]
     flush privileges;
     quit
     
-3.用DbVisualizer远程连接可能出现如下错误，参考[解决方法](http://blog.csdn.net/langzi7758521/article/details/51729735)
+3.用DbVisualizer远程连接MySQL可能出现如下问题，参考[解决方法](http://blog.csdn.net/langzi7758521/article/details/51729735)
 
     message from server: "Host xxx is not allowed to connect to this MySQL server
+
+也可能会提示通信失败，参考[阿里云MySQL远程连接不上问题](https://www.cnblogs.com/funnyboy0128/p/7966531.html)，主要是添加阿里云的安全组。
     
-4.MySQL数据可能出现乱码，需要修改my.cnf文件中的配置。
+4.MySQL数据可能出现乱码，需要修改/opt/lampp/etc/my.cnf文件中的配置。
 
 5.Apache配置文件路径为
 
