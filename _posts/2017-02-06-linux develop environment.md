@@ -90,7 +90,18 @@ Apache具体配置和Windows下一致。
 
 war包需要部署到webapps目录下，会自动解压。
 
-# 四、用Vim编辑文档
+# 四、安装JDK
+
+    cd /usr/java/jdk
+    tar -zxvf jdk-8u171-linux-x64.tar.gz
+    //修改profile
+    vim /etc/profile
+    export JAVA_HOME=/usr/java/jdk/jdk1.8.0_171
+    export JRE_HOME=/usr/java/jdk/jdk1.8.0_171/jre
+    export CLASSPATH=.:$JAVA_HOME/lib:$JRE_HOME/lib:$CLASSPATH
+    export PATH=$JAVA_HOME/bin:$JRE_HOME/bin:$JAVA_HOME:$PATH
+
+# 五、用Vim编辑文档
 
 安装Vim
 
@@ -107,7 +118,7 @@ war包需要部署到webapps目录下，会自动解压。
 
     ：wq
 
-# 五、参考
+# 六、参考
 
 1.[linux下部署nodejs（两种方式）](http://www.cnblogs.com/dubaokun/p/3558848.html)
 
