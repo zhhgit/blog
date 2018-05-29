@@ -27,6 +27,6 @@ Hi，我是张昊，江苏淮安人，2016年硕士毕业于上海交通大学�
 
 **Github：** <http://github.com/zhhgit>
 
-**简历：** [Resume_20180529](http://zhhgit.github.io/simple_resume/)
+**简历：** [Resume_20180529](http://zhhgit.github.io/simple_resume/html/index.html)
 
 **邮箱：** [zhh900601@sina.com](mailto:zhh900601@sina.com)
