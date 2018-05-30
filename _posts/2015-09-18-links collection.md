@@ -1,11 +1,13 @@
 ---
 layout: post
-title: "博客整理"
-description: 博客整理
+title: "链接整理"
+description: 链接整理
 modified: 2015-09-18
 category: Resources
 tags: [Resources]
 ---
+
+# 博客
 
 1.[苏洋博客](http://www.soulteary.com/)
 
@@ -36,3 +38,21 @@ tags: [Resources]
 14.[ityouknow](http://www.ityouknow.com/)
 
 15.[粉丝日志](http://blog.fens.me/)
+
+# 求职
+
+1.[应届生](http://www.yingjiesheng.com/)
+
+2.[前程无忧](http://www.51job.com/default.php)
+
+3.[智联招聘](http://www.zhaopin.com/)
+
+4.[大街网](http://www.dajie.com/)
+
+5.[Linkedin](https://www.linkedin.com/)
+
+6.[看准网](http://www.kanzhun.com/)
+
+7.[猎聘网](https://www.liepin.com/)
+
+8.[拉勾网](https://www.lagou.com/)
