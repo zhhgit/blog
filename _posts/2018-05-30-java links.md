@@ -19,8 +19,8 @@ tags: [Resources]
 
 2.[Android官方API](https://developer.android.google.cn/reference/packages.html)
 
+3.[菜鸟Android教程](http://www.runoob.com/w3cnote/android-tutorial-intro.html)
+
+4.[《第一行代码Android》代码](https://github.com/guolindev/booksource)
+
 <hr>
-
-# 设计
-
-1.[干货！我开发 Android 是如何界面设计的](http://www.jianshu.com/p/531efdf5cdc5)
