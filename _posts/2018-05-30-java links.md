@@ -1,8 +1,8 @@
 ---
 layout: post
-title: "Android资源整理"
-description: Android资源整理
-modified: 2017-09-27
+title: "Java资源整理"
+description: Java资源整理
+modified: 2018-05-30
 category: Resources
 tags: [Resources]
 ---
