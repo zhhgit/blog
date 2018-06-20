@@ -3,8 +3,8 @@ layout: post
 title: "Spring SpringMVC MyBatis Maven整合"
 description: Spring SpringMVC MyBatis Maven整合
 modified: 2017-06-12
-category: Spring
-tags: [Spring]
+category: Java
+tags: [Java]
 ---
 
 # 一、整合概要

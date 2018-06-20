@@ -3,8 +3,8 @@ layout: post
 title: "Spring使用小结"
 description: Spring使用小结
 modified: 2016-10-12
-category: Spring
-tags: [Spring]
+category: Java
+tags: [Java]
 ---
 
 # 一、安装Tomcat

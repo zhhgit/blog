@@ -1,10 +1,10 @@
 ---
 layout: post
-title: "在Spring Struts iBatis整合的工程中新增接口"
-description: 在Spring Struts iBatis整合的工程中新增接口
+title: "在Spring Struts2 iBatis整合的工程中新增接口"
+description: 在Spring Struts2 iBatis整合的工程中新增接口
 modified: 2018-03-29
-category: Java框架
-tags: [Java框架]
+category: Java
+tags: [Java]
 ---
 
 # 数据层：
