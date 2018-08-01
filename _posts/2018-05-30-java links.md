@@ -34,3 +34,7 @@ tags: [Resources]
 # Git
 
 1.[在IDEA中实战Git](https://blog.csdn.net/autfish/article/details/52513465)
+
+# fastjson
+
+1.[fastjson API](https://blog.csdn.net/wilsonke/article/details/37921571)
