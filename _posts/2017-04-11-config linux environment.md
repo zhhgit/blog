@@ -172,7 +172,11 @@ war包需要部署到webapps目录下，会自动解压。
     touch app.js
     vim app.js
 
-按i进入Insert模式，按Esc退出Insert模式。在一般模式下保存并退出Vim
+按i进入Insert模式，按Esc退出Insert模式。
+
+按v进入Visual模式，选择几行然后按y复制，Esc退出后再移动到希望插入的位置按p粘贴。
+
+在一般模式下保存并退出Vim
 
     ：wq
 
