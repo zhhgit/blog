@@ -180,7 +180,14 @@ war包需要部署到webapps目录下，会自动解压。
 
     ：wq
 
-# 七、参考
+# 七、搜索日志
+
+    less server.log
+    shift + g(即G) // 跳到文档最后
+    ?keyword // 反向搜索
+    n // 反向搜索下一个
+
+# 八、参考
 
 1.[linux下xampp安装](http://jingyan.baidu.com/article/afd8f4de7976b034e286e90c.html)
 
