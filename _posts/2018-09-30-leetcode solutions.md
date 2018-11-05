@@ -44,7 +44,7 @@ tags: [Algorithm]
 
 #### 6.原字符转按照蛇形方式重新排序成n行，返回重排后各行拼接而成的字符串。
 
-思路：对字符分组，并找规律，List<List<Character>>。
+思路：对字符分组，并找规律，List&lt;List&lt;Character&gt;&gt;。
 
 #### 7.反转整数。
 
