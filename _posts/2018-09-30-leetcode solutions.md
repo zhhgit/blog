@@ -554,7 +554,7 @@ matrix[i][j]表示s的前i位，t的前j位，满足条件的种数，当S增加
 #### 126.给定起始字符串，终止字符串，以及字符串列表，每次只能变化一个字符，且变化的字符在字符串列表中，返回所有可能的最短字符串变化过程列表，即List&lt;List&lt;String&gt;&gt;。
 
 思路：方法1：backTracking时间超限。
-方法2：先BFS，用neighbours（HashMap&ltString,List&ltString&gt;&gt;）保存每个字符串和变化一个字符后可能达到的字符串列表。
+方法2：先BFS，用neighbours（HashMap&lt;String,List&lt;String&gt;&gt;）保存每个字符串和变化一个字符后可能达到的字符串列表。
 distance（HashMap&lt;String, Integer&gt;）保存每个字符串和从起始字符串变化到当前字符串需要的最小步数。
 最后再通过DFS得到所有解。
 
