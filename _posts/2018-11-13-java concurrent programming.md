@@ -7,7 +7,38 @@ category: Java
 tags: [Java]
 ---
 
-# 一.可重入锁ReentrantLock
+读书小结。
+
+# 一、线程
+
+1.语法1：
+
+	public class NewThread extends Thread {
+	    @Override
+	    public void run(){
+	    
+	    }
+	}
+
+	Thread thread1 = new NewThread();
+	thread1.start();
+
+2.语法2：
+
+    public class NewRunnable implements Runnable{
+	    @Override
+	    public void run(){
+	    
+	    }
+    }
+
+    Thread thread1 = new Thread(new NewRunable());
+    thread1.start();
+
+# 二、线程中断
+
+
+# 三、可重入锁ReentrantLock
 
 1.语法：
 
@@ -24,11 +55,11 @@ tags: [Java]
 
 3.new ReentrantLock(true)将构造一个持有公平策略的锁，偏爱等待时间最长的线程。
 
-# 二.条件对象Condition
+# 四、条件对象Condition
 
 1.一个锁对象可以有一个或多个相关的锁对象。
 
-2.考虑要转账金额低于余额的场景，一致循环等待，希望有其他线程转入金额使得while循环等待结束。但是其他线程因为无法获得锁，而不可能进入临界区。
+2.考虑要转账金额低于余额的场景，一直循环等待，希望有其他线程转入金额使得while循环等待结束。但是其他线程因为无法获得锁，而不可能进入临界区。
 
 3.语法
 	
@@ -49,7 +80,7 @@ tags: [Java]
 
 4.调用await()方法后，线程进入该条件对象的等待集，当锁可用时不能马上解除阻塞，直达另一线程调用同一条件对象的signalAll()方法。
 
-# 三、synchronized关键字
+# 五、synchronized关键字
 
 1.语法
 
@@ -58,6 +89,16 @@ tags: [Java]
 	}
 
 2.从Java 1.0开始每个对象都有一个内部锁，用synchronized关键字修饰的方法，对象的锁将保护整个方法，等效于ReentrantLock。内部锁只有一个条件对象，Object对象的final方法wait(),notify(),notifyAll()方法等价于Condition对象的await(),signal(),signalAll()。
+
+# 六、同步阻塞(synchronized block)
+
+1.语法：
+
+	synchronized (obj){
+	    doSomething();
+	}
+
+2.同步阻塞是脆弱不推荐使用的，因为其依赖于一个事实，锁定对象的所有可修改方法都是使用内部锁，是原子操作。
 
 # N、参考
 
