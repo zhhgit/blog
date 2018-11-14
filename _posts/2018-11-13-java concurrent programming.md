@@ -137,6 +137,27 @@ tags: [Java]
 
 2.同步阻塞是脆弱不推荐使用的，因为其依赖于一个事实，锁定对象的所有可修改方法都是使用内部锁，是原子操作。
 
+3.同步格言：如果向一个变量写入值，而这个变量接下来可能被另一个线程读取，或者从一个变量读取值，而这个值可能是之前由另一个线程写入的，此时必须使用同步。
+
+# 九、volatile关键字
+
+1.volatile关键字为实例域的同步访问提供了一种免锁机制。声明为volatile，则编译器和虚拟机就知道该域可能被多个线程并发更新。
+
+# 十、死锁
+
+1.所有线程都不满足执行条件，处在Waiting等待执行的状态。
+
+# 十一、线程局部变量
+
+1.ThreadLocal为每个线程提供各自的实例，有get(),set(),remove()方法，语法：
+
+    public static final ThreadLocal<SimpleDateFormat> dateFormat = new ThreadLocal<SimpleDateFormat>(){
+        protected SimpleDateFormat initalValue(){
+            return new SimpleDateFormat("yyyy-MM--dd");
+        }
+    }
+    String dateStamp = dateFormat.get().format(new Date());
+
 # N、参考
 
 1.Java核心技术卷1，十四章-多线程。
