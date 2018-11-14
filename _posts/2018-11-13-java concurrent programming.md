@@ -98,7 +98,7 @@ tags: [Java]
 
 2.考虑要转账金额低于余额的场景，一直循环等待，希望有其他线程转入金额使得while循环等待结束。但是其他线程因为无法获得锁，而不可能进入临界区。
 
-3.语法
+3.语法：
 	
 	Lock mylock = new ReentrantLock();
 	Condition sufficientFunds = mylock.newCondition();
@@ -212,6 +212,20 @@ void lockInterruptibly()，获得锁，但是给定时间无限长，可能一�
 1.stop方法会导致不一致，考虑转账的场景已经从一个账户转出，但是未对另一个账户转入。
 
 2.suspend方法容易导致死锁，挂起的线程持有锁但是等待被恢复，而将其挂起的线程等待获得锁。
+
+# 十五、阻塞队列
+
+1.队列操作可以分为三类：
+
+(1).add(),remove(),element()，抛异常。
+(2).offer(),pull().peek()，返回true/false或者null。
+(3).put(),take()，阻塞线程。
+
+2.当生产者线程比消费者线程快时，队列满了后再put，生产者阻塞。当生产者线程比消费者线程慢时，队列空了后再take，消费者阻塞。
+
+    BlockingQueue<File> queue = new ArrayBlockingQueue<File>(100);
+    
+3.实现类包括：ArrayBlockingQueue,LinkedBlockingQueue,LinkedBlockingDeque,PriorityBlockingQueue,DelayQueue,BlockingQueue,BlockingDeque
 
 # N、参考
 
