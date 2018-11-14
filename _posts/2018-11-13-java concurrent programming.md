@@ -71,7 +71,7 @@ tags: [Java]
 
     t.setDaemon(true)
 
-3.可以为线程设置未捕获异常处理器，所谓未捕获是指没有通过try...catch...的语法显示捕获，因为这些异常是未检查异常(unchecked exception)，例如数组越界，空指针等，本可以避免不需要try...catch...这样的语法。
+3.可以为线程设置未捕获异常处理器，所谓未捕获是指没有通过try...catch...的语法显式捕获，因为这些异常是未检查异常(unchecked exception)，例如数组越界，空指针等，本可以避免不需要try...catch...这样的语法。
 
     t.setUncaughtExceptionHandler(Thread.UncaughtExceptionHandler handler)
  
@@ -157,6 +157,61 @@ tags: [Java]
         }
     }
     String dateStamp = dateFormat.get().format(new Date());
+    
+# 十二、锁测试与超时
+
+1.tryLock()方法尝试获得一个锁，如果成功就返回true，否则立即返回false，线程立即离开去做其他事情。
+
+    if(mylock.tryLock()){
+        try {
+            doSomething();
+        }
+        finally{
+            mylock.unlock();
+        }
+    }
+    else{
+        doSomethingElse();
+    }
+
+2.boolean tryLock(100, TimeUnit.MILLISECONDS)，尝试获得锁，阻塞时间不会超过给定值，成功就返回true。
+void lock()，获得锁，如果一个线程在等待获得锁时被中断，在获得锁之前一直阻塞。如果死锁，lock()方法就无法终止。
+void lockInterruptibly()，获得锁，但是给定时间无限长，可能一直阻塞，如果线程被中断会抛出InterruptedException。
+
+# 十三、读写锁
+
+1.ReentrantReadWriteLock读写锁。多个读操作共用读锁，但是排斥写操作。写锁排斥其他读、写操作。语法：
+
+    private int age;
+    private ReentrantReadWriteLock rwl = new ReentrantReadWriteLock();
+    private Lock readLock = rwl.readlock();
+    private Lock writeLock = rwl.writelock();
+    
+    public int getAge(){
+        readLock.lock();
+        try{
+        }
+        finally{
+            readLock.unlock();
+        }
+        return age;
+    }
+    
+    public void setAge(age){
+        writeLock.lock();
+        try{
+            this.age = age
+        }
+        finally{
+            writeLock.unlock();
+        }
+    }
+    
+# 十四、stop()与suspend()的弃用
+
+1.stop方法会导致不一致，考虑转账的场景已经从一个账户转出，但是未对另一个账户转入。
+
+2.suspend方法容易导致死锁，挂起的线程持有锁但是等待被恢复，而将其挂起的线程等待获得锁。
 
 # N、参考
 
