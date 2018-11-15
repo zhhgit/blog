@@ -304,7 +304,41 @@ void lockInterruptibly()，获得锁，但是给定时间无限长，可能一�
     ScheduledFuture<?> schedule(Runnable task, Long time, TimeUnit unit)    // 指定时间后执行一次
     ScheduledFuture<?> scheduleAtFixedRate(Runnable task, Long initialDelay, Long period, TimeUnit unit)    // 初始延迟后指定周期执行
     ScheduledFuture<?> scheduleWithFixedDelay(Runnable task, Long initialDelay, Long delay, TimeUnit unit)  // 初始延迟后前一次完成与后一次经过指定延迟后周期执行
+    
+5.控制一组相关任务，ExecutorService实例有如下方法
 
-# N、参考
+    T invokeAny(Collection<Callable<T>> tasks)  // 给定一组相关任务，只要有一个完成及返回结果
+    List<Future<T>> invokeAll(Collection<Callable<T>> tasks)    // 给定一组相关任务，所有任务都完成返回列表
+    
+6.invokeAll的缺点是必须所有执行完才能获取结果，ExecutorCompletionService按照完成顺序返回执行结果
+
+    ExecutorCompletionService service = new ExecutorCompletionService(executor);
+    for (Callable<T> task : tasks){
+        service.submit(task);
+    }
+    for (int i = 0;i<tasks.size();i++){
+        // 取tasks.size()次，如果结果还没有take()会阻塞
+        furtherProcess(service.take().get());
+    }
+    
+# 十九、fork-join
+
+1.递归型的任务可以继承RecursiveTask<T>，实现compute方法。
+
+    ForkJoinPool pool = new ForkJoinPool();
+    pool.invoke(counter);
+    System.out.println(counter.join())
+    
+    class Counter extends RecursiveTask<Integer>{
+        @Override
+        protected Integer computer(){
+        }
+    }
+
+# 二十、同步器
+
+1.待补充详细用法：CyclicBarrier, CountDownLatch, Semaphore, Exchanger, SynchronousQueue
+
+# 二十一、参考
 
 1.Java核心技术卷1，十四章-多线程。
