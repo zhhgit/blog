@@ -227,6 +227,46 @@ void lockInterruptibly()，获得锁，但是给定时间无限长，可能一�
     
 3.实现类包括：ArrayBlockingQueue,LinkedBlockingQueue,LinkedBlockingDeque,PriorityBlockingQueue,DelayQueue,BlockingQueue,BlockingDeque
 
+# 十六、集合类
+
+1.实现类包括：散列表ConcurrentHashMap，ConcurrentSkipListMap，有序集ConcurrentSkipListSet，队列ConcurrentLinkedQueue
+
+2.散列表操作包括：
+
+    map.putIfAbsent(key,value);
+    map.remove(key,value);
+    map.replace(key,oldValue,newValue);
+    
+3.CocyOnWriteArrayList,CopyOnWriteArraySet，所有的写线程对底层数组进行复制。构建一个迭代器，包含对当前数组的引用，即使数组后续被修改了，迭代器仍然引用旧数组。
+
+4.HashTable,Vector是线程安全的旧集合类，HashMap和ArrayList是线程不安全的，但是提供了同步包装器变成线程安全的。还有synchronizedSet,synchronizedSortedSet,synchronizedSortedMap。
+
+    List<E> synList = Collections.synchronizedList(new ArrayList<E>);
+    Map<K,V> synMap = Collections.synchronizedMap(new HashMap<K,V>);
+    
+5.通过迭代器或者"for each"循环对集合进行访问是，如果有其他线程对集合进行修改，仍然需要客户端锁定
+
+    Iterator<K> iter = synMap.keySet().iterator();
+    while(iter.hasNext()){
+    }
+
+6.推荐使用concurrent包中的集合，而不是同步包装器中的。
+
+# 十七、Callable与Future
+
+Callable代表一个有返回值的异步计算任务，Future是异步计算的结果。FutureTask是包装类，可以将Callable转化为Runnable和Future，同时实现了Runnable和Future接口。
+
+    Callable<Integer> myComputation = new Callable<Integer>(){
+        @Override
+        public Integer call(){
+            return RESULT;
+        }
+    )
+    FutureTask<Integer> futureTask =  new FutureTask<Integer>(myComputation);
+    Thread thread = new Thread(futureTask);
+    thread.start();
+    Integer result = task.get();
+
 # N、参考
 
 1.Java核心技术卷1，十四章-多线程。
