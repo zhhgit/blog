@@ -276,6 +276,34 @@ void lockInterruptibly()，获得锁，但是给定时间无限长，可能一�
     boolean cancel(boolean mayInterrupt) 取消任务，如果已经开始且mayInterrupt为true，就会被中断。成功取消就返回true
     boolean isCancelled() 是否在完成前被取消
     boolean isDone() //是否结束，无论完成、被取消、或抛出异常都返回true
+    
+# 十八、执行器
+
+1.Executors类静态方法返回ExecutorService实例
+
+    newCachedThreadPool()   // 必要时创建新线程，空闲线程保留60秒
+    newFixedThreaadPool()   // 固定大小线程池
+    newSingleThreadExecutor()   // 退化为大小为1的固定大小线程池
+    newScheduledTheadPool() // 为预定执行而创建的固定线程池
+    newSingleThreadScheduledExecutor() // 为预定执行而创建的单线程线程池
+
+2.ExecutorService对象可以提交Runnable或者Callable对象
+
+    Future<?> submit(Runnable task)
+    Future<?> submit(Runnable task,T result)
+    Future<?> submit(Callable task)
+    
+3.程序执行结束需要关闭线程池
+
+    shutdown()  // 等待所有任务执行完成后，线程死亡
+    shutdownNow()   // 取消未开始任务，中断执行中的任务，线程死亡
+
+4.ScheduledExecutorService有如下方法：
+
+    ScheduledFuture<E> schedule(Callable<E> task, Long time, TimeUnit unit) //  指定时间后执行一次
+    ScheduledFuture<?> schedule(Runnable task, Long time, TimeUnit unit)    // 指定时间后执行一次
+    ScheduledFuture<?> scheduleAtFixedRate(Runnable task, Long initialDelay, Long period, TimeUnit unit)    // 初始延迟后指定周期执行
+    ScheduledFuture<?> scheduleWithFixedDelay(Runnable task, Long initialDelay, Long delay, TimeUnit unit)  // 初始延迟后前一次完成与后一次经过指定延迟后周期执行
 
 # N、参考
 
