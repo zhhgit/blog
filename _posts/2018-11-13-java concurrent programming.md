@@ -246,15 +246,17 @@ void lockInterruptibly()，获得锁，但是给定时间无限长，可能一�
     
 5.通过迭代器或者"for each"循环对集合进行访问是，如果有其他线程对集合进行修改，仍然需要客户端锁定
 
-    Iterator<K> iter = synMap.keySet().iterator();
-    while(iter.hasNext()){
+    synchronized(synMap){
+        Iterator<K> iter = synMap.keySet().iterator();
+        while(iter.hasNext()){
+        }
     }
 
 6.推荐使用concurrent包中的集合，而不是同步包装器中的。
 
 # 十七、Callable与Future
 
-Callable代表一个有返回值的异步计算任务，Future是异步计算的结果。FutureTask是包装类，可以将Callable转化为Runnable和Future，同时实现了Runnable和Future接口。
+1.Callable代表一个有返回值的异步计算任务，Future是异步计算的结果。FutureTask是包装类，可以将Callable转化为Runnable和Future，同时实现了Runnable和Future接口。
 
     Callable<Integer> myComputation = new Callable<Integer>(){
         @Override
@@ -266,6 +268,14 @@ Callable代表一个有返回值的异步计算任务，Future是异步计算的
     Thread thread = new Thread(futureTask);
     thread.start();
     Integer result = task.get();
+      
+2.Future的方法：
+
+    E get() //会阻塞，直到得到计算结果
+    E get(Long time, TimeUnit unit) //会阻塞或超时，如果未能获取结果会抛出TimeoutException
+    boolean cancel(boolean mayInterrupt) 取消任务，如果已经开始且mayInterrupt为true，就会被中断。成功取消就返回true
+    boolean isCancelled() 是否在完成前被取消
+    boolean isDone() //是否结束，无论完成、被取消、或抛出异常都返回true
 
 # N、参考
 
