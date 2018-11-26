@@ -15,18 +15,18 @@ tags: [Java]
 
 3.修改 resources/spring/db/updsdb.xml //实例化数据层DAO，也就是4
 
-4.新增 com.unionpay.nmg.service.dao.TblPpdataAtDao    //新增的数据访问DAO
+4.新增 cn.zhanghao90.nmg.service.dao.TblPpdataAtDao    //新增的数据访问DAO
 
-5.新增 com.unionpay.nmg.service.entity.TblPpdataAt    //新增的领域对象，数据实体
+5.新增 cn.zhanghao90.nmg.service.entity.TblPpdataAt    //新增的领域对象，数据实体
 
 
 # 服务层：
 
 6.新增 resources/spring/bo/ppdata.xml //新增的服务层spring xml文件，实例化服务层对象，也就是8
 
-7.新增 com.unionpay.nmg.service.bo.PpdataAtBo //新增的服务层接口
+7.新增 cn.zhanghao90.nmg.service.bo.PpdataAtBo //新增的服务层接口
 
-8.新增 com.unionpay.nmg.service.bo.impl.PpdataAtBoImpl    //新增的服务层实现类
+8.新增 cn.zhanghao90.nmg.service.bo.impl.PpdataAtBoImpl    //新增的服务层实现类
 
 # 控制层：
 
@@ -36,8 +36,8 @@ tags: [Java]
 
 11.修改 resources/spring/action/action.xml    //实例化控制层action，也就是12
 
-12.新增 com.unionpay.nmg.service.action.PpdataAction  //新增的控制层action
+12.新增 cn.zhanghao90.nmg.service.action.PpdataAction  //新增的控制层action
 
 # 访问权限：
 
-13.修改 com.unionpay.nmg.service.interceptor.LoginInterceptor		//修改访问权限控制
+13.修改 cn.zhanghao90.nmg.service.interceptor.LoginInterceptor		//修改访问权限控制
