@@ -1,7 +1,7 @@
 ---
 layout: post
-title: "React Native(1):Windows上Android开发环境搭建"
-description: React Native(1):Windows上Android开发环境搭建
+title: "React Native:Windows上Android开发环境搭建"
+description: React Native:Windows上Android开发环境搭建
 modified: 2016-12-08
 category: React Native
 tags: [React Native]
@@ -59,7 +59,31 @@ gradle执行失败可能是需要修改\Test1\android\app\build.gradle
 
 6.如果是AVD，直接apk拖进模拟器安装，双击r来reload。
 
-# 二、参考
+# 二、Android连接问题
+
+1.连接不上：断开连接（不开HDB）-->撤销USB调试授权-->重新连接-->授权
+
+2.Chrome找不到device:参考[这里](http://stackoverflow.com/questions/20408996/native-usb-debugging-on-chrome-32-doesnt-detect-device)
+
+(1).Download the Android SDK
+
+(2).Locate ADB.exe, found in the platform-tools folder
+
+(3).Open the file using command prompt
+
+	cd c:\path\to\platform-tools\adb.exe
+
+(4).Make sure your phone is disconnected from USB
+
+(5).Type the following commands
+
+	adb devices
+	adb kill-server
+	adb start-server
+
+(6).Reconnect your phone, authorise your PC and enjoy the USB debugging
+
+# 三、参考
 
 1.[React Native中文网](http://reactnative.cn/)
 
