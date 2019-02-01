@@ -206,3 +206,10 @@ tags: [Resources]
 1.[fastjson API](https://blog.csdn.net/wilsonke/article/details/37921571)
 
 <hr>
+
+# python
+
+1.[菜鸟Python3教程](http://www.runoob.com/python3/python3-tutorial.html)
+2.[莫烦Python](https://morvanzhou.github.io/)
+3.[廖雪峰Python教程](https://www.liaoxuefeng.com/wiki/0014316089557264a6b348958f449949df42a6d3a2e542c000)
+4.[tensorflow](https://tensorflow.google.cn/)
