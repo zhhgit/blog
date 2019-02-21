@@ -173,6 +173,7 @@ tags: [Resources]
 # Java
 
 1.[Java 7 API](http://docs.oracle.com/javase/7/docs/api/)
+2.[fastjson API](https://blog.csdn.net/wilsonke/article/details/37921571)
 
 <hr>
 
@@ -201,15 +202,13 @@ tags: [Resources]
 
 <hr>
 
-# fastjson
-
-1.[fastjson API](https://blog.csdn.net/wilsonke/article/details/37921571)
-
-<hr>
-
-# python
+# Python
 
 1.[菜鸟Python3教程](http://www.runoob.com/python3/python3-tutorial.html)
 2.[莫烦Python](https://morvanzhou.github.io/)
 3.[廖雪峰Python教程](https://www.liaoxuefeng.com/wiki/0014316089557264a6b348958f449949df42a6d3a2e542c000)
 4.[tensorflow](https://tensorflow.google.cn/)
+
+# C++
+
+1.[Window10上CLion极简配置教程](https://www.jianshu.com/p/1aa989808e15)
