@@ -25,7 +25,7 @@ links:
     url: /about
   #- title: 我的项目
     #url: http://zhanghao90.cn/my_project_list/prod/dist/index.html
-    external: true
+    #external: true
 
 # http://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 timezone:    Asia/Shanghai
