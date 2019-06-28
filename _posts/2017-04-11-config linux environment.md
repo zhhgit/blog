@@ -148,6 +148,35 @@ Apache具体配置和Windows下一致。
 
 war包需要部署到webapps目录下，会自动解压。
 
+配置全局JNDI数据源方法如下：
+
+1.在conf/server.xml中GlobalNamingResources节点下加一个全局数据源
+
+    <Resource name="jdbc/horizon" auth="Container"
+                scope="jdbc/horizon"
+                type="javax.sql.DataSource"
+                driverClassName="com.mysql.jdbc.Driver"
+                url="jdbc:mysql://localhost:3306/horizon"
+                username="root"
+                password="password"
+                maxIdle="30" />
+
+2.在conf/context.xml中Context节点下加一个ResourceLink节点对第一步配置的数据源进行引用
+
+    <ResourceLink
+             global="jdbc/horizon"
+             name="jdbc/horizon"
+             auth="Container"
+             type="javax.sql.DataSource"/>
+
+3.Spring配置文件中添加的bean为
+
+    <bean id="dataSource" class="org.springframework.jndi.JndiObjectFactoryBean">
+		<property name="jndiName">
+			<value>java:comp/env/jdbc/horizon</value>
+		</property>
+	</bean>
+
 # 五、安装JDK
 
     cd /usr/java/jdk
