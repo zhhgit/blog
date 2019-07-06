@@ -177,6 +177,8 @@ war包需要部署到webapps目录下，会自动解压。
 		</property>
 	</bean>
 
+4.在Tomcat的lib文件夹中放一个MySQL JDBC的jar包。
+
 # 五、安装JDK
 
     cd /usr/java/jdk
