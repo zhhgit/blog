@@ -28,26 +28,23 @@ tags: [Resources]
 4.[JavaScript教程](http://javascript.ruanyifeng.com/#introduction)
 5.[JavaScript教程](http://www.liaoxuefeng.com/wiki/001434446689867b27157e896e74d51a89c25cc8b43bdb3000)
 6.[gulp API](http://www.gulpjs.com.cn/docs/api/)
-7.[gulp使用指南](http://www.techug.com/gulp)
-8.[gulp开发教程](http://www.w3ctech.com/topic/134)
-9.[gulp学习总结](http://www.cnblogs.com/morong/p/4469637.html)
-10.[jQuery速查表1](http://hemin.cn/jq/)
-11.[jQuery速查表2](http://jquery.cuishifeng.cn/index.html)
-12.[Zepto中文API手册](http://www.runoob.com/manual/zeptojs.html#)
-13.[Bootstrap中文网](http://www.bootcss.com/)
-14.[node.js教程](http://www.runoob.com/nodejs/nodejs-tutorial.html)
-15.[Cordova官网](http://cordova.apache.org/)
-16.[可视化布局](http://www.bootcss.com/p/layoutit/)
-17.[雪碧图工具](http://css.spritegen.com/)
-18.[ant design](http://ant.design/)
-19.[360极速浏览器扩展](http://open.chrome.360.cn/extension_dev/overview.html)
-20.[360安全浏览器扩展](http://open.se.360.cn/open/extension_dev/overview.html)
+7.[gulp学习总结](http://www.cnblogs.com/morong/p/4469637.html)
+8.[jQuery速查表1](http://hemin.cn/jq/)
+9.[jQuery速查表2](http://jquery.cuishifeng.cn/index.html)
+10.[Zepto中文API手册](http://www.runoob.com/manual/zeptojs.html#)
+11.[Bootstrap中文网](http://www.bootcss.com/)
+12.[node.js教程](http://www.runoob.com/nodejs/nodejs-tutorial.html)
+13.[Cordova官网](http://cordova.apache.org/)
+14.[可视化布局](http://www.bootcss.com/p/layoutit/)
+15.[雪碧图工具](http://css.spritegen.com/)
+16.[ant design](http://ant.design/)
+17.[360极速浏览器扩展](http://open.chrome.360.cn/extension_dev/overview.html)
 
 # Java
 
 1.[Java 7 API](http://docs.oracle.com/javase/7/docs/api/)
 2.[fastjson API](https://blog.csdn.net/wilsonke/article/details/37921571)
-1.[Spring Framework Documentation](https://docs.spring.io/spring/docs/current/spring-framework-reference/index.html)
+3.[Spring官网](https://docs.spring.io/spring/docs/current/spring-framework-reference/index.html)
 
 <hr>
 
