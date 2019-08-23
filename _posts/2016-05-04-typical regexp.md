@@ -3,8 +3,8 @@ layout: post
 title: "典型正则表达式整理"
 description: 典型正则表达式整理
 modified: 2016-05-04
-category: JavaScript
-tags: [JavaScript]
+category: 前端
+tags: [前端]
 ---
 
 # 1.创建

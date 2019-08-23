@@ -3,8 +3,8 @@ layout: post
 title: "React Native:Windows上Android开发环境搭建"
 description: React Native:Windows上Android开发环境搭建
 modified: 2016-12-08
-category: React Native
-tags: [React Native]
+category: 前端
+tags: [前端]
 ---
 
 # 一、开发环境搭建

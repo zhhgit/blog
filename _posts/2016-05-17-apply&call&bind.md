@@ -3,8 +3,8 @@ layout: post
 title: "apply&call&bind"
 description: apply&call&bind
 modified: 2016-05-17
-category: JavaScript
-tags: [JavaScript]
+category: 前端
+tags: [前端]
 ---
 
 传递参数并非apply()和call()真正的用武之地；它们真正强大的地方是能够扩充函数赖以运行的作用域。参考《JavaScript高级程序设计》P116。

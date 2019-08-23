@@ -3,8 +3,8 @@ layout: post
 title: "JavaScript原型"
 description: JavaScript原型
 modified: 2017-07-31
-category: JavaScript
-tags: [JavaScript]
+category: 前端
+tags: [前端]
 ---
 
 # 一、例子
