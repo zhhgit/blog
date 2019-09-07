@@ -50,6 +50,17 @@ Nginx镜像
 
 然后就可以在http://localhost:8080/horizon/，访问到应用了。
 
+    // 先删除容器
+    docker rm xxxxx
+    // 在删除镜像
+    docker rmi yyyyy
+
+推送本地镜像到阿里云镜像仓库
+
+    docker login --username=xxx registry.cn-shanghai.aliyuncs.com
+    docker tag [ImageId] registry.cn-shanghai.aliyuncs.com/zhhaliyun/horizonproj:[镜像版本号]
+    docker push registry.cn-shanghai.aliyuncs.com/zhhaliyun/horizonproj:[镜像版本号]
+
 # 三、参考
 
 1.[网易云镜像中心](https://c.163yun.com/hub#/m/home/)
@@ -57,3 +68,5 @@ Nginx镜像
 2.[阿里云开源镜像站](https://opsx.alibaba.com/)
 
 3.[菜鸟docker教程](https://www.runoob.com/docker/docker-tutorial.html)
+
+4.[阿里云容器镜像服务](https://help.aliyun.com/document_detail/60743.html)
