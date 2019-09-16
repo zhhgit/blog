@@ -27,6 +27,6 @@ tags: [Database]
 
     mysqldump -h 127.0.0.1 -P 9000 -u username --databases database_name -p > ./table_name_new.sql
 
-# 三、参考
+# 二、参考
 
 1.[备份或导出数据库命令mysqldump怎么使用](https://jingyan.baidu.com/article/b2c186c804be48c46ff6ff6a.html)
