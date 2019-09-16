@@ -45,6 +45,7 @@ tags: [Resources]
 1.[Java 7 API](http://docs.oracle.com/javase/7/docs/api/)
 2.[fastjson API](https://blog.csdn.net/wilsonke/article/details/37921571)
 3.[Spring官网](https://docs.spring.io/spring/docs/current/spring-framework-reference/index.html)
+4.[Spring Initializr](https://start.spring.io/)
 
 <hr>
 
@@ -77,3 +78,7 @@ tags: [Resources]
 # C++
 
 1.[Window10上CLion极简配置教程](https://www.jianshu.com/p/1aa989808e15)
+
+# 大数据
+
+1.[Hadoop教程](https://www.w3cschool.cn/hadoop/)
