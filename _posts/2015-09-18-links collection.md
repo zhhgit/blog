@@ -78,6 +78,7 @@ tags: [Resources]
 # C++
 
 1.[Window10上CLion极简配置教程](https://www.jianshu.com/p/1aa989808e15)
+2.[C++:一个程序多个源/头文件](https://blog.csdn.net/Zzwtyds/article/details/79673153)
 
 # 大数据
 
