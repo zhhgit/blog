@@ -86,10 +86,3 @@ tags: [Resources]
 # 大数据
 
 1.[Hadoop教程](https://www.w3cschool.cn/hadoop/)
-
-# 量化
-
-1.[掘金](https://www.myquant.cn/)
-2.[聚宽](https://www.joinquant.com/)
-3.[米筐](https://www.ricequant.com/welcome/)
-4.[优矿](https://uqer.datayes.com/)
