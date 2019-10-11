@@ -17,20 +17,22 @@ tags: [Java]
 
 在Java Resources/src目录下新建bean.xml如下。获取类并实例化，通过该配置文件配置实例的相关属性。
 
-	<?xml version="1.0" encoding="UTF-8"?>
-	<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	    xmlns="http://www.springframework.org/schema/beans"
-	    xsi:schemaLocation="http://www.springframework.org/schema/beans
-	    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
-	    <bean id="person" class="com.beans.Person">
-	        <property name="name" value="ZhangHao"/>
-	        <property name="age" value="26"/>
-	    </bean>
-	    <bean id="animal" class="com.beans.Animal">
-	        <property name="kind" value="Cat"/>
-	        <property name="sound" value="miaomiao"/>
-	    </bean>
-	</beans>
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://www.springframework.org/schema/beans"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+    <bean id="person" class="com.beans.Person">
+        <property name="name" value="ZhangHao"/>
+        <property name="age" value="26"/>
+    </bean>
+    <bean id="animal" class="com.beans.Animal">
+        <property name="kind" value="Cat"/>
+        <property name="sound" value="miaomiao"/>
+    </bean>
+</beans>
+```
 
 在src/com.beans包下，有两个简单bean，分别为:
 
@@ -118,95 +120,101 @@ Person.java
 
 配置文件web.xml为：
 
-	<?xml version="1.0" encoding="UTF-8"?>  
-	<web-app version="3.0" xmlns="http://java.sun.com/xml/ns/javaee"  
-	    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  
-	    xsi:schemaLocation="http://java.sun.com/xml/ns/javaee   
-	    http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd">  
-	    <display-name></display-name>  
-	      
-	    
-	    <!-- 监听spring上下文容器 -->  
-	    <listener>  
-	        <listener-class>  
-	            org.springframework.web.context.ContextLoaderListener  
-	        </listener-class>  
-	    </listener>  
-	      
-	    <!-- 加载spring的xml配置文件到 spring的上下文容器中 -->  
-	    <context-param>  
-	        <param-name>contextConfigLocation</param-name>  
-	        <param-value>classpath:root-context.xml</param-value>  
-	    </context-param>  
-	      
-	    <!-- 配置Spring MVC DispatcherServlet -->  
-	    <servlet>  
-	        <servlet-name>MVC</servlet-name>  
-	        <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>  
-	        <!-- 初始化参数 -->  
-	        <init-param>  
-	            <!-- 加载SpringMVC的xml到 spring的上下文容器中 -->  
-	            <param-name>contextConfigLocation</param-name>  
-	            <param-value>  
-	                /WEB-INF/classes/mvc*.*  
-	            </param-value>  
-	        </init-param>  
-	        <load-on-startup>1</load-on-startup>  
-	    </servlet>  
-	  
-	    <!-- 配置DispatcherServlet所需要拦截的 url -->  
-	    <servlet-mapping>  
-	        <servlet-name>MVC</servlet-name>  
-	        <url-pattern>*.html</url-pattern>  
-	    </servlet-mapping>  
-	  
-	    <welcome-file-list>  
-	        <welcome-file>index.html</welcome-file>  
-	    </welcome-file-list>  
-	  
-	  
-	</web-app>  
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app version="3.0" xmlns="http://java.sun.com/xml/ns/javaee"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
+    http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd">
+    <display-name></display-name>
+
+
+    <!-- 监听spring上下文容器 -->
+    <listener>
+        <listener-class>
+            org.springframework.web.context.ContextLoaderListener
+        </listener-class>
+    </listener>
+
+    <!-- 加载spring的xml配置文件到 spring的上下文容器中 -->
+    <context-param>
+        <param-name>contextConfigLocation</param-name>
+        <param-value>classpath:root-context.xml</param-value>
+    </context-param>
+
+    <!-- 配置Spring MVC DispatcherServlet -->
+    <servlet>
+        <servlet-name>MVC</servlet-name>
+        <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+        <!-- 初始化参数 -->
+        <init-param>
+            <!-- 加载SpringMVC的xml到 spring的上下文容器中 -->
+            <param-name>contextConfigLocation</param-name>
+            <param-value>
+                /WEB-INF/classes/mvc*.*
+            </param-value>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <!-- 配置DispatcherServlet所需要拦截的 url -->
+    <servlet-mapping>
+        <servlet-name>MVC</servlet-name>
+        <url-pattern>*.html</url-pattern>
+    </servlet-mapping>
+
+    <welcome-file-list>
+        <welcome-file>index.html</welcome-file>
+    </welcome-file-list>
+
+
+</web-app>
+```
 
 在Java Resources/src目录下，Spring MVC的配置文件mvc-context.xml和Spring全局配置文件root-context.xml分别为：
 
 root-context.xml:
 
-	<?xml version="1.0" encoding="UTF-8"?>
-	<beans xmlns="http://www.springframework.org/schema/beans"
-		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
-		xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
-					http://www.springframework.org/schema/context
-					 http://www.springframework.org/schema/context/spring-context-3.2.xsd
-					http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.2.xsd">
-		<!-- Root Context: defines shared resources visible to all other web components -->
-		 
-	</beans>
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+                http://www.springframework.org/schema/context
+                 http://www.springframework.org/schema/context/spring-context-3.2.xsd
+                http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.2.xsd">
+    <!-- Root Context: defines shared resources visible to all other web components -->
+
+</beans>
+```
 
 mvc-context.xml:
 
-	<?xml version="1.0" encoding="UTF-8"?>
-	<beans:beans xmlns="http://www.springframework.org/schema/mvc"
-		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:beans="http://www.springframework.org/schema/beans"
-		xmlns:p="http://www.springframework.org/schema/p" xmlns:aop="http://www.springframework.org/schema/aop"
-		xmlns:context="http://www.springframework.org/schema/context"
-		xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd
-					http://www.springframework.org/schema/aop
-					http://www.springframework.org/schema/aop/spring-aop-3.2.xsd http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-			http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
-		<!-- 加载Spring的全局配置文件 -->
-		<beans:import resource="root-context.xml" />
-		
-		<!-- SpringMVC配置 -->
-		
-		<!-- 通过component-scan 让Spring扫描org.controller下的所有的类，让Spring的代码注解生效 -->
-		<context:component-scan base-package="org.controller"></context:component-scan>
-		
-		<!-- 配置SpringMVC的视图渲染器， 让其前缀为:/ 后缀为.jsp  将视图渲染到/page/<method返回值>.jsp中 -->
-		<beans:bean
-			class="org.springframework.web.servlet.view.InternalResourceViewResolver"
-			p:prefix="/page/" p:suffix=".jsp">
-			</beans:bean>
-	</beans:beans>
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/mvc"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:beans="http://www.springframework.org/schema/beans"
+    xmlns:p="http://www.springframework.org/schema/p" xmlns:aop="http://www.springframework.org/schema/aop"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd
+                http://www.springframework.org/schema/aop
+                http://www.springframework.org/schema/aop/spring-aop-3.2.xsd http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+    <!-- 加载Spring的全局配置文件 -->
+    <beans:import resource="root-context.xml" />
+
+    <!-- SpringMVC配置 -->
+
+    <!-- 通过component-scan 让Spring扫描org.controller下的所有的类，让Spring的代码注解生效 -->
+    <context:component-scan base-package="org.controller"></context:component-scan>
+
+    <!-- 配置SpringMVC的视图渲染器， 让其前缀为:/ 后缀为.jsp  将视图渲染到/page/<method返回值>.jsp中 -->
+    <beans:bean
+        class="org.springframework.web.servlet.view.InternalResourceViewResolver"
+        p:prefix="/page/" p:suffix=".jsp">
+        </beans:bean>
+</beans:beans>
+```
 
 在Java Resources/src/org.controller包下分别为HomeController.java、UserController.java、OtherController：
 
@@ -360,42 +368,44 @@ succ.jsp页面中通过${variable}的形式获取具体的参数值：
 
 配置如下。WebContent/WEB-INF/目录下配置文件web.xml如下，拦截*.do的请求。
 
-	<?xml version="1.0" encoding="UTF-8"?>
-	<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd" version="3.0">
-	  <display-name></display-name>
-	  <listener>
-	    <listener-class>
-				org.springframework.web.context.ContextLoaderListener
-			</listener-class>
-	  </listener>
-	  <context-param>
-	    <param-name>contextConfigLocation</param-name>
-	    <param-value>classpath:root-context.xml</param-value>
-	  </context-param>
-	  <servlet>
-	    <servlet-name>Rest</servlet-name>
-	    <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
-	    <init-param>
-	      <param-name>contextConfigLocation</param-name>
-	      <param-value>
-					/WEB-INF/classes/rest*.*
-				</param-value>
-	    </init-param>
-	    <load-on-startup>1</load-on-startup>
-	  </servlet>
-	  <servlet-mapping>
-	    <servlet-name>Rest</servlet-name>
-	    <url-pattern>*.do</url-pattern>
-	  </servlet-mapping>
-	    <servlet-mapping>
-	    <servlet-name>Rest</servlet-name>
-	    <url-pattern>*.html</url-pattern>
-	  </servlet-mapping>
-	  
-	  <welcome-file-list>
-	    <welcome-file>index.html</welcome-file>
-	  </welcome-file-list>
-	</web-app>
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd" version="3.0">
+  <display-name></display-name>
+  <listener>
+    <listener-class>
+            org.springframework.web.context.ContextLoaderListener
+        </listener-class>
+  </listener>
+  <context-param>
+    <param-name>contextConfigLocation</param-name>
+    <param-value>classpath:root-context.xml</param-value>
+  </context-param>
+  <servlet>
+    <servlet-name>Rest</servlet-name>
+    <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+    <init-param>
+      <param-name>contextConfigLocation</param-name>
+      <param-value>
+                /WEB-INF/classes/rest*.*
+            </param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>Rest</servlet-name>
+    <url-pattern>*.do</url-pattern>
+  </servlet-mapping>
+    <servlet-mapping>
+    <servlet-name>Rest</servlet-name>
+    <url-pattern>*.html</url-pattern>
+  </servlet-mapping>
+
+  <welcome-file-list>
+    <welcome-file>index.html</welcome-file>
+  </welcome-file-list>
+</web-app>
+```
 
 Java Resources/src/目录下的mvc-context.xml和root-context.xml与上一篇中相同。
 
@@ -638,98 +648,102 @@ jdbc.properties为:
 
 root-context.xml为:
 
-	<?xml version="1.0" encoding="UTF-8"?>
-	<beans xmlns="http://www.springframework.org/schema/beans"
-		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
-		xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
-					http://www.springframework.org/schema/context
-					 http://www.springframework.org/schema/context/spring-context-3.2.xsd
-					http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.2.xsd">
-		<!-- Root Context: defines shared resources visible to all other web components -->
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+                http://www.springframework.org/schema/context
+                 http://www.springframework.org/schema/context/spring-context-3.2.xsd
+                http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.2.xsd">
+    <!-- Root Context: defines shared resources visible to all other web components -->
 
-		<!-- 将数据库配置文件读取到容器中，交给Spring管理 -->
-		<bean id="propertyConfigurer"
-			class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
-			<property name="locations">
-				<list>
-					<value>classpath:jdbc.properties</value>
-				</list>
-			</property>
-		</bean>
-		
-		 <!-- 数据源定义 -->  
-	    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource"
-			init-method="init" destroy-method="close"> 
-	        <property name="driverClassName" value="${jdbc.driverClassName}"></property>  
-	        <property name="url" value="${jdbc.url}"></property>  
-	        <property name="username" value="${jdbc.username}"></property>  
-	        <property name="password" value="${jdbc.password}"></property>  
-	    </bean>  
-	      
-	    <bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate" abstract="false" lazy-init="false" autowire="default" >  
-	        <property name="dataSource">  
-	            <ref bean="dataSource" />  
-	        </property>  
-	    </bean>
-	    
-	    <bean id="studentDao" class="org.dao.StudentDao">  
-	       <property name="template">  
-	          <ref bean="jdbcTemplate" />  
-	       </property>  
-	    </bean>
+    <!-- 将数据库配置文件读取到容器中，交给Spring管理 -->
+    <bean id="propertyConfigurer"
+        class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="locations">
+            <list>
+                <value>classpath:jdbc.properties</value>
+            </list>
+        </property>
+    </bean>
 
-	</beans>
+     <!-- 数据源定义 -->
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource"
+        init-method="init" destroy-method="close">
+        <property name="driverClassName" value="${jdbc.driverClassName}"></property>
+        <property name="url" value="${jdbc.url}"></property>
+        <property name="username" value="${jdbc.username}"></property>
+        <property name="password" value="${jdbc.password}"></property>
+    </bean>
+
+    <bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate" abstract="false" lazy-init="false" autowire="default" >
+        <property name="dataSource">
+            <ref bean="dataSource" />
+        </property>
+    </bean>
+
+    <bean id="studentDao" class="org.dao.StudentDao">
+       <property name="template">
+          <ref bean="jdbcTemplate" />
+       </property>
+    </bean>
+
+</beans>
+```
 
 解决中文乱码：
 
 mvc-context.xml为:
 
-	<?xml version="1.0" encoding="UTF-8"?>
-	<beans
-		xmlns="http://www.springframework.org/schema/beans"
-		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-		xmlns:beans="http://www.springframework.org/schema/beans"
-		xmlns:p="http://www.springframework.org/schema/p"
-		xmlns:aop="http://www.springframework.org/schema/aop"
-		xmlns:context="http://www.springframework.org/schema/context"
-		xmlns:mvc="http://www.springframework.org/schema/mvc" 
-		xsi:schemaLocation="
-				http://www.springframework.org/schema/mvc
-				http://www.springframework.org/schema/mvc/spring-mvc.xsd
-				http://www.springframework.org/schema/aop
-				http://www.springframework.org/schema/aop/spring-aop-3.2.xsd 
-				http://www.springframework.org/schema/beans 
-				http://www.springframework.org/schema/beans/spring-beans.xsd
-				http://www.springframework.org/schema/context 
-				http://www.springframework.org/schema/context/spring-context.xsd" >
-				
-		<!-- 加载Spring的全局配置文件 -->
-		<import resource="root-context.xml" />
-		
-		<!-- SpringMVC配置 -->
-		
-		<!-- 通过component-scan 让Spring扫描org.controller，org.service，org.dao下的所有的类，让Spring的代码注解生效 -->
-		<context:component-scan base-package="org.controller"></context:component-scan>
-		<context:component-scan base-package="org.service"></context:component-scan>
-		<context:component-scan base-package="org.dao"></context:component-scan>
-		
-		<!-- 配置SpringMVC的视图渲染器， 让其前缀为:/ 后缀为.jsp  将视图渲染到/page/<method返回值>.jsp中 -->
-		<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver" p:prefix="/page/" p:suffix=".jsp"></bean>		
-			
-		<!-- 解决中文乱码问题 -->
-		<mvc:annotation-driven>
-		    <mvc:message-converters>
-		        <bean class="org.springframework.http.converter.StringHttpMessageConverter">
-		            <property name="supportedMediaTypes">
-		                <list>
-		                    <value>application/json;charset=UTF-8</value>
-		                </list>
-		            </property>
-		        </bean>
-		    </mvc:message-converters>
-		</mvc:annotation-driven>
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+    xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:beans="http://www.springframework.org/schema/beans"
+    xmlns:p="http://www.springframework.org/schema/p"
+    xmlns:aop="http://www.springframework.org/schema/aop"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:mvc="http://www.springframework.org/schema/mvc"
+    xsi:schemaLocation="
+            http://www.springframework.org/schema/mvc
+            http://www.springframework.org/schema/mvc/spring-mvc.xsd
+            http://www.springframework.org/schema/aop
+            http://www.springframework.org/schema/aop/spring-aop-3.2.xsd
+            http://www.springframework.org/schema/beans
+            http://www.springframework.org/schema/beans/spring-beans.xsd
+            http://www.springframework.org/schema/context
+            http://www.springframework.org/schema/context/spring-context.xsd" >
 
-	</beans>
+    <!-- 加载Spring的全局配置文件 -->
+    <import resource="root-context.xml" />
+
+    <!-- SpringMVC配置 -->
+
+    <!-- 通过component-scan 让Spring扫描org.controller，org.service，org.dao下的所有的类，让Spring的代码注解生效 -->
+    <context:component-scan base-package="org.controller"></context:component-scan>
+    <context:component-scan base-package="org.service"></context:component-scan>
+    <context:component-scan base-package="org.dao"></context:component-scan>
+
+    <!-- 配置SpringMVC的视图渲染器， 让其前缀为:/ 后缀为.jsp  将视图渲染到/page/<method返回值>.jsp中 -->
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver" p:prefix="/page/" p:suffix=".jsp"></bean>
+
+    <!-- 解决中文乱码问题 -->
+    <mvc:annotation-driven>
+        <mvc:message-converters>
+            <bean class="org.springframework.http.converter.StringHttpMessageConverter">
+                <property name="supportedMediaTypes">
+                    <list>
+                        <value>application/json;charset=UTF-8</value>
+                    </list>
+                </property>
+            </bean>
+        </mvc:message-converters>
+    </mvc:annotation-driven>
+
+</beans>
+```
 
 org.controller包：
 
@@ -1061,75 +1075,79 @@ MyBatis配置：
 
 root-context.xml为：
 
-	<?xml version="1.0" encoding="UTF-8"?>
-	<beans xmlns="http://www.springframework.org/schema/beans"
-		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
-		xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
-					http://www.springframework.org/schema/context
-					 http://www.springframework.org/schema/context/spring-context-3.2.xsd
-					http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.2.xsd">
-		<!-- Root Context: defines shared resources visible to all other web components -->
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+                http://www.springframework.org/schema/context
+                 http://www.springframework.org/schema/context/spring-context-3.2.xsd
+                http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.2.xsd">
+    <!-- Root Context: defines shared resources visible to all other web components -->
 
-		<!-- 将数据库配置文件读取到容器中，交给Spring管理 -->
-		<bean id="propertyConfigurer"
-			class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
-			<property name="locations">
-				<list>
-					<value>classpath:jdbc.properties</value>
-				</list>
-			</property>
-		</bean>
-		
-		 <!-- 数据源定义 -->  
-	    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource"
-			init-method="init" destroy-method="close"> 
-	        <property name="driverClassName" value="${jdbc.driverClassName}"></property>  
-	        <property name="url" value="${jdbc.url}"></property>  
-	        <property name="username" value="${jdbc.username}"></property>  
-	        <property name="password" value="${jdbc.password}"></property>  
-	    </bean>  
-	    
-	     <!-- MyBatis配置 -->  
-		<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">  
-	    	<property name="mapperLocations" value="classpath:mybatis.xml" /> 
-	    	<property name="dataSource" ref="dataSource" />  
-		</bean>
-		
-		<bean id="mapper" class="org.mybatis.spring.mapper.MapperFactoryBean">  
-	    	<property name="mapperInterface" value="org.dao.StudentDao" />  
-	    	<property name="sqlSessionFactory" ref="sqlSessionFactory" />  
-		</bean>
+    <!-- 将数据库配置文件读取到容器中，交给Spring管理 -->
+    <bean id="propertyConfigurer"
+        class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="locations">
+            <list>
+                <value>classpath:jdbc.properties</value>
+            </list>
+        </property>
+    </bean>
 
-	</beans>
+     <!-- 数据源定义 -->
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource"
+        init-method="init" destroy-method="close">
+        <property name="driverClassName" value="${jdbc.driverClassName}"></property>
+        <property name="url" value="${jdbc.url}"></property>
+        <property name="username" value="${jdbc.username}"></property>
+        <property name="password" value="${jdbc.password}"></property>
+    </bean>
+
+     <!-- MyBatis配置 -->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="mapperLocations" value="classpath:mybatis.xml" />
+        <property name="dataSource" ref="dataSource" />
+    </bean>
+
+    <bean id="mapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
+        <property name="mapperInterface" value="org.dao.StudentDao" />
+        <property name="sqlSessionFactory" ref="sqlSessionFactory" />
+    </bean>
+
+</beans>
+```
 
 mybatis.xml中写具体的增删改查语句
 
-	<?xml version="1.0" encoding="UTF-8" ?>
-	<!DOCTYPE mapper    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"    
-	        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">  
-	<mapper namespace="org.dao.StudentDao">
-	   
-	    <!--查询所有记录-->
-	    <select id="queryAll" resultType="org.entity.Student">
-	    	select * from newstudent2 
-	    </select>
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.dao.StudentDao">
 
-	    <!--插入一条记录-->
-	    <insert id="addOne" parameterType="org.entity.Student">
-	    	insert into newstudent2 (id,name,phone) values (#{id},#{name},#{phone}) 
-	    </insert>
-	    
-	    <!--修改一条记录  -->  
-	    <update id="updateOne" parameterType="org.entity.Student">   
-	        update newstudent2 set name = #{name},phone = #{phone} where id = #{id} 
-	    </update>
-	    
-	    <!--删除一条记录  -->  
-	    <delete id="deleteOne" parameterType="int">  
-	       delete from newstudent2 where id = #{id}  
-	    </delete>
+    <!--查询所有记录-->
+    <select id="queryAll" resultType="org.entity.Student">
+        select * from newstudent2
+    </select>
 
-	</mapper>
+    <!--插入一条记录-->
+    <insert id="addOne" parameterType="org.entity.Student">
+        insert into newstudent2 (id,name,phone) values (#{id},#{name},#{phone})
+    </insert>
+
+    <!--修改一条记录  -->
+    <update id="updateOne" parameterType="org.entity.Student">
+        update newstudent2 set name = #{name},phone = #{phone} where id = #{id}
+    </update>
+
+    <!--删除一条记录  -->
+    <delete id="deleteOne" parameterType="int">
+       delete from newstudent2 where id = #{id}
+    </delete>
+
+</mapper>
+```
 
 # 八、Maven构建
 
