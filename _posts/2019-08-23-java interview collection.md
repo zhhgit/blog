@@ -116,7 +116,7 @@ Java虚拟机规范规定，Java堆可以处在物理上不连续的内存空间
 
 N.参考
 
-(1)[经典面试题|讲一讲JVM的组成](https://www.cnblogs.com/vipstone/p/10681211.html)
+(1)[讲一讲JVM的组成](https://www.cnblogs.com/vipstone/p/10681211.html)
 
 # MySQL
 
