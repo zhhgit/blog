@@ -40,13 +40,6 @@ tags: [Resources]
 16.[ant design](http://ant.design/)
 17.[360极速浏览器扩展](http://open.chrome.360.cn/extension_dev/overview.html)
 
-# Java
-
-1.[Java 7 API](http://docs.oracle.com/javase/7/docs/api/)
-2.[fastjson API](https://blog.csdn.net/wilsonke/article/details/37921571)
-3.[Spring官网](https://docs.spring.io/spring/docs/current/spring-framework-reference/index.html)
-4.[Spring Initializr](https://start.spring.io/)
-
 <hr>
 
 # Android
