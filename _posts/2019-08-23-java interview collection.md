@@ -81,6 +81,12 @@ N.参考
 
 (1)[Java 7 API](https://docs.oracle.com/javase/7/docs/api/)
 
+# 异常
+1.throw和throws的区别？
+(1)throws出现在方法函数头；而throw出现在函数体。
+(2)throws表示出现异常的一种可能性，并不一定会发生这些异常；throw则是抛出了异常，执行throw则一定抛出了某种异常对象。
+(3)两者都是消极处理异常的方式（这里的消极并不是说这种方式不好），只是抛出或者可能抛出异常，但是不会由函数去处理异常，真正的处理异常由函数的上层调用处理。
+
 # Spring
 
 N.参考
@@ -92,7 +98,7 @@ N.参考
 # JVM
 
 1.JVM 整体组成可分为以下四个部分：类加载器（ClassLoader），运行时数据区（Runtime Data Area），执行引擎（Execution Engine），本地库接口（Native Interface）。
-程序在执行之前先要把java代码转换成字节码（class文件），jvm首先需要把字节码通过一定的方式，类加载器（ClassLoader）把文件加载到内存中（运行时数据区（Runtime Data Area）） ，而字节码文件是jvm的一套指令集规范，并不能直接交个底层操作系统去执行，因此需要特定的命令解析器（执行引擎（Execution Engine））将字节码翻译成底层系统指令再交由CPU去执行，而这个过程中需要调用其他语言的接口（本地库接口（Native Interface））来实现整个程序的功能，这就是这4个主要组成部分的职责与功能。
+程序在执行之前先要把java代码转换成字节码（class文件），jvm首先需要把字节码通过一定的方式，类加载器（ClassLoader）把文件加载到内存中（运行时数据区（Runtime Data Area）） ，而字节码文件是jvm的一套指令集规范，并不能直接交给底层操作系统去执行，因此需要特定的命令解析器（执行引擎（Execution Engine））将字节码翻译成底层系统指令再交由CPU去执行，而这个过程中需要调用其他语言的接口（本地库接口（Native Interface））来实现整个程序的功能，这就是这4个主要组成部分的职责与功能。
 
 2.运行时数据区组成：程序计数器（Program Counter Register）、Java虚拟机栈（Java Virtual Machine Stacks）、本地方法栈（Native Method Stack）、Java堆（Java Heap）、方法区（Methed Area）
 
@@ -116,7 +122,7 @@ Java虚拟机规范规定，Java堆可以处在物理上不连续的内存空间
 
 N.参考
 
-(1)[讲一讲JVM的组成](https://www.cnblogs.com/vipstone/p/10681211.html)
+(1)[经典面试题|讲一讲JVM的组成](https://www.cnblogs.com/vipstone/p/10681211.html)
 
 # MySQL
 
