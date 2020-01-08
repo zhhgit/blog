@@ -11,9 +11,7 @@ tags: [Resources]
 
 1.==/equals()/hashCode()
 (1)==比较左右两侧是否为同一对象，比较的是对象的地址。如果比较的是阿拉伯数字，则值相等则为true。
-
 (2)equals()继承自Object对象，默认为==的比较。可Override。
-
 (3)hashCode()继承自Object对象，用于计算对象散列值。Object对象默认hashCode为调用JVM的JNI方法，根据内存地址得到的值。
 通常如果equals() override了，hashCode()也应该override，即equals相等，散列也应该相等。hashCode是用于散列数据的快速存取，如利用HashSet/HashMap/Hashtable类来存储数据时，都会根据存储对象的hashCode值来进行判断是否相同的。
 
@@ -26,60 +24,61 @@ tags: [Resources]
 4.抽象
 (1)抽象类中不一定包含抽象方法，但是有抽象方法的类必定是抽象类。
 
-5.IO
-(1)InputStream：ByteArrayInputStream,StringBufferInputStream,FileInputStream是三种基本的介质流，它们分别从Byte数组、StringBuffer、和本地文件中读取数据。
+N.参考
+
+(1)[Java 7 API](https://docs.oracle.com/javase/7/docs/api/)
+
+# IO
+
+1.InputStream：ByteArrayInputStream,StringBufferInputStream,FileInputStream是三种基本的介质流，它们分别从Byte数组、StringBuffer、和本地文件中读取数据。
 PipedInputStream从与其它线程共用的管道中读取数据。
 ObjectInputStream和所有FilterInputStream的子类都是装饰流。
 FilterInputStream子类包括BufferedInputStream能为输入流提供缓冲区，DataInputStream可以从输入流中读取Java基本类型数据，PushBackInputStream可以把读取到的字节重新推回到InputStream中。
 
-(2)OutputStream：ByteArrayOutputStream、FileOutputStream是两种基本的介质流，它们分别向Byte数组和本地文件中写入数据。
+2.OutputStream：ByteArrayOutputStream、FileOutputStream是两种基本的介质流，它们分别向Byte数组和本地文件中写入数据。
 PipedOutputStream是向与其它线程共用的管道中写入数据。
 ObjectOutputStream 和所有FilterOutputStream的子类都是装饰流。
 
-(2)BIO/NIO/AIO
+3.BIO/NIO/AIO
 (a)BIO：阻塞。如果服务端连接多个客户端，则需要多个线程分别从套接字读取数据。
 (b)NIO：非阻塞。NIO = I/O多路复用 + 非阻塞式I/O
 
-(3)NIO线程模型
+4.NIO线程模型
 (a)Reactor单线程模型：由一个线程监听连接事件、读写事件，并完成数据读写。
 (b)Reactor多线程模型：一个Acceptor线程专门监听各种事件，再由专门的线程池负责处理真正的IO数据读写
 (c)主从Reactor多线程模型：一个线程监听连接事件，线程池的多个线程监听已经建立连接的套接字的数据读写事件，另外和多线程模型一样有专门的线程池处理真正的IO操作。
 
-(4)File类
-(a)创建：
+5.File类
+(1)创建：
 createNewFile()在指定位置创建一个空文件，成功就返回true，如果已存在就不创建，然后返回false。
 mkdir() 在指定位置创建一个单级文件夹。
 mkdirs() 在指定位置创建一个多级文件夹。
 renameTo(File dest)如果目标文件与源文件是在同一个路径下，那么renameTo的作用是重命名， 如果目标文件与源文件不是在同一个路径下，那么renameTo的作用就是剪切，而且还不能操作文件夹。
 
-(b)删除：
+(2)删除：
 delete() 删除文件或者一个空文件夹，不能删除非空文件夹，马上删除文件，返回一个布尔值。
 deleteOnExit()jvm退出时删除文件或者文件夹，用于删除临时文件，无返回值。
 
-(c)判断：
+(3)判断：
 exists() 文件或文件夹是否存在。
 isFile() 是否是一个文件，如果不存在，则始终为false。
 isDirectory() 是否是一个目录，如果不存在，则始终为false。
 isHidden() 是否是一个隐藏的文件或是否是隐藏的目录。
 isAbsolute() 测试此抽象路径名是否为绝对路径名。
 
-(d)获取：
+(4)获取：
 getName() 获取文件或文件夹的名称，不包含上级路径。
 getAbsolutePath()获取文件的绝对路径，与文件是否存在没关系
 length() 获取文件的大小（字节数），如果文件不存在则返回0L，如果是文件夹也返回0L。
 getParent() 返回此抽象路径名父目录的路径名字符串；如果此路径名没有指定父目录，则返回null。
 lastModified()获取最后一次被修改的时间。
 
-(e)文件夹相关：
+(5)文件夹相关：
 static File[] listRoots()列出所有的根目录（Window中就是所有系统的盘符）
 list() 返回目录下的文件或者目录名，包含隐藏文件。对于文件这样操作会返回null。
 listFiles() 返回目录下的文件或者目录对象（File类实例），包含隐藏文件。对于文件这样操作会返回null。
 list(FilenameFilter filter)返回指定当前目录中符合过滤条件的子文件或子目录。对于文件这样操作会返回null。
 listFiles(FilenameFilter filter)返回指定当前目录中符合过滤条件的子文件或子目录。对于文件这样操作会返回null。
-
-N.参考
-
-(1)[Java 7 API](https://docs.oracle.com/javase/7/docs/api/)
 
 # 异常
 1.throw和throws的区别？
@@ -89,11 +88,51 @@ N.参考
 
 # Spring
 
+1.使用Spring的好处和原因
+(1)低侵入式设计，代码污染极低
+(2)独立于各种应用服务器，基于Spring框架的应用，可以真正实现Write Once,Run Anywhere的承诺
+(3)Spring的DI机制降低了业务对象替换的复杂性，提高了组件之间的解耦。IOC（控制反转）创建对象不是通过new方式来实现，而是交给Spring配置来创建对象。
+(4)Spring的AOP（面向切面编程）支持允许将一些通用任务如安全、事务、日志等进行集中式管理，从而提供了更好的复用
+(5)Spring的ORM和DAO提供了与第三方持久层框架的良好整合，并简化了底层的数据库访问
+(6)Spring并不强制应用完全依赖于Spring，开发者可自由选用Spring框架的部分或全部。Spring是开源的轻量级一站式框架，内部支持对多种优秀开源框架的集成。
+
 N.参考
 
 (1)[Spring 官网](https://docs.spring.io/spring/docs/current/spring-framework-reference/index.html)
 
 (2)[Spring Initializer](https://start.spring.io/)
+
+(3)[详解IOC](https://www.cnblogs.com/xb1223/p/10148503.html)
+
+(4)[详解AOP](https://www.cnblogs.com/xb1223/p/10169220.html)
+
+(5)[面试题思考：解释一下什么叫AOP](https://www.cnblogs.com/songanwei/p/9417343.html)
+
+# Hibernate
+
+1.Hibernate的优缺点
+
+优点：
+(1)Hibernate对JDBC访问数据库的代码做了封装，大大简化了数据访问层繁琐的重复性代码，使得Java程序员可以随心所欲的使用对象编程思维来操纵数据库。
+(2)Hibernate是一个基于JDBC的主流持久化框架，是一个优秀的ORM实现，很大程度上简化了dao层编码工作。
+(3)Hibernate使用java反射机制，而不是字节码增强程序类实现透明性。
+(4)Hibernate的性能非常好，因为它是一个轻量级框架。映射的灵活性很出色。它支持很多关系型数据库，从一对一到多对多的各种复杂关系。
+
+缺点：
+Hibernate在批量数据处理时有弱势，针对单一对象简单的增删查改，适合于Hibernate。而对于批量的修改，删除，不适合用Hibernate,这也是ORM框架的弱点。
+
+2.Hibernate的工作原理
+(1)通过Configuration().configure();读取并解析hibernate.cfg.xml配置文件。(2)由hibernate.cfg.xml中的<mapping resource="com/xx/User.hbm.xml"/>读取并解析映射信息。(3)通过config.buildSessionFactory();创建SessionFactory。(4)sessionFactory.openSession();打开Session。
+(5)session.beginTransaction();创建事务Transaction。(6)持久化操作。(7)session.getTransaction().commit();提交事务。(8)关闭Session。(9)关闭SessionFactory。
+
+3.Hibernate的核心接口
+
+一共5个，分别是Session、SessionFactory、Transaction、Query 和 Configuration。
+(1)Session接口:Session接口负责执行被持久化对象的CRUD操作。但需要注意的是Session对象是非线程安全的。同时，Hibernate的session不同于JSP应用中的HttpSession。这里当使用session这个术语时，其实指的是Hibernate中的session，HttpSesion对象称为用户session。
+(2)SessionFactory接口:SessionFactory接口负责初始化Hibernate。它充当数据存储源的代理，并负责创建Session对象。这里用到了工厂模式。需要注意的是SessionFactory并不是轻量级的，因为一般情况下， 一个项目通常只需要一个SessionFactory就够，当需要操作多个数据库时，可以为每个数据库指定一个SessionFactory。
+(3)Configuration接口:Configuration接口负责配置并启动Hibernate，创建SessionFactory对象。在Hibernate的启动的过程中，Configuration类的实例首先定位映射文档位置、读取配置，然后创建SessionFactory对象。
+(4)Transaction接口:Transaction接口负责事务相关的操作。它是可选的，开发人员也可以设计编写自己的底层事务处理代码。
+(5)Query和Criteria接口:Query和Criteria接口负责执行各种数据库查询。它可以使用HQL语言或SQL语句两种表达方式。
 
 # JVM
 
@@ -122,7 +161,7 @@ Java虚拟机规范规定，Java堆可以处在物理上不连续的内存空间
 
 N.参考
 
-(1)[经典面试题|讲一讲JVM的组成](https://www.cnblogs.com/vipstone/p/10681211.html)
+(1)[讲一讲JVM的组成](https://www.cnblogs.com/vipstone/p/10681211.html)
 
 # MySQL
 
@@ -161,9 +200,9 @@ N.参考
 
 (3)列表list
 (a)lpop key；lpush key value；rpop key；rpush key value；
-(b)lrange start end
-(c)lindex key index
-(d)linsert key before|after pivot value
+(b)lrange start end 返回存储在key的列表里指定范围内的元素。
+(c)lindex key index 返回列表里的元素的索引index存储在key里面。 
+(d)linsert key before|after pivot value 把value插入存于ke 的列表中在基准值pivot的前面或后面。
 
 (4)集合set
 (a)sadd key member
@@ -198,6 +237,36 @@ N.参考
 (1)[ZooKeeper面试题](https://blog.csdn.net/weixin_41847891/article/details/100734093)
 
 (2)[什么是ZooKeeper](https://cloud.tencent.com/developer/article/1418528)
+
+# Kafka
+
+1.kafka可以脱离zookeeper单独使用吗？为什么？
+不可以，kafka必须要依赖一个zookeeper集群才能运行。kafka系群里面各个broker都是通过zookeeper来同步topic列表以及其它broker列表的，一旦连不上zookeeper，kafka也就无法工作。
+
+2.kafka有几种数据保留的策略
+Kafka Broker默认的消息保留策略是：要么保留一定时间，要么保留到消息达到一定大小的字节数。当消息达到设置的条件上限时，旧消息就会过期并被删除，所以，在任何时刻，可用消息的总量都不会超过配置参数所指定的大小。
+topic可以配置自己的保留策略，可以将消息保留到不再使用他们为止。因为在一个大文件里查找和删除消息是很费时的事，也容易出错，所以，分区被划分为若干个片段。默认情况下，每个片段包含1G或者一周的数据，以较小的那个为准。在broker往leader分区写入消息时，如果达到片段上限，就关闭当前文件，并打开一个新文件。当前正在写入数据的片段叫活跃片段。当所有片段都被写满时，会清除下一个分区片段的数据，如果配置的是7个片段，每天打开一个新片段，就会删除一个最老的片段，循环使用所有片段。
+
+3.什么情况会导致kafka运行变慢
+CPU性能瓶颈、磁盘读写瓶颈、网络瓶颈
+ 
+4.使用kafka集群需要注意什么？
+集群的数量不是越多越好，最好不要超过7个，因为节点越多，消息复制需要的时间就越长，整个群组的吞吐量就越低。集群数量最好是单数，因为超过一半故障集群就不能用了，设置为单数容错率更高。
+
+5.数据分区策略
+第一种分区策略：给定了分区号，直接将数据发送到指定的分区里面去。
+第二种分区策略：没有给定分区号，给定数据的key值，通过key取上hashCode进行分区。
+第三种分区策略：既没有给定分区号，也没有给定key值，直接轮循进行分区。
+第四种分区策略：自定义分区。
+
+# 网络
+
+1.HTTP响应码301和302代表的是什么，有什么区别，为什么尽量用301？
+301代表永久性转移(Permanently Moved)，302代表暂时性转移(Temporarily Moved )。
+301和302状态码都表示重定向，就是说浏览器在拿到服务器返回的这个状态码后会自动跳转到一个新的URL地址，这个地址可以从响应的Location首部中获取（用户看到的效果就是他输入的地址A瞬间变成了另一个地址B）——这是它们的共同点。
+它们的不同在于，301表示旧地址A的资源已经被永久地移除了（这个资源不可访问了），搜索引擎在抓取新内容的同时也将旧的网址交换为重定向之后的网址；302表示旧地址A的资源还在（仍然可以访问），这个重定向只是临时地从旧地址A跳转到地址B，搜索引擎会抓取新的内容而保存旧的网址。
+尽量要使用301跳转是为了防止网址劫持，从网址A做一个302重定向到网址B时，主机服务器的隐含意思是网址A随时有可能改主意，重新显示本身的内容或转向其他的地方。大部分的搜索引擎在大部分情况下，当收到302重定向时，一般只要去抓取目标网址就可以了，也就是说网址B。如果搜索引擎在遇到302转向时，百分之百的都抓取目标网址B的话，就不用担心网址URL劫持了。问题就在于，有的时候搜索引擎，尤其是Google，并不能总是抓取目标网址。比如说，有的时候A网址很短，但是它做了一个302重定向到B网址，而B网址是一个很长的乱七八糟的URL网址，甚至还有可能包含一些问号之类的参数。很自然的，A网址更加用户友好，而B网址既难看，又不用户友好。这时Google很有可能会仍然显示网址A。由于搜索引擎排名算法只是程序而不是人，在遇到302重定向的时候，并不能像人一样的去准确判定哪一个网址更适当，这就造成了网址URL劫持的可能性。也就是说，一个不道德的人在他自己的网址A做一个302重定向到你的网址B，出于某种原因，Google搜索结果所显示的仍然是网址A，但是所用的网页内容却是你的网址B上的内容，这种情况就叫做网址URL劫持。
+简单理解是，从网站A（网站比较烂）上做了一个302跳转到网站B（搜索排名很靠前），这时候有时搜索引擎会使用网站B的内容，但却收录了网站A的地址，这样在不知不觉间，网站B在为网站A作贡献，网站A的排名就靠前了。
 
 # 综合参考
 
