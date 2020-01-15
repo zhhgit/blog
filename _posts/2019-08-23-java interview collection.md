@@ -10,6 +10,7 @@ tags: [Resources]
 # Java基础
 
 1.==/equals()/hashCode()
+
 (1)==比较左右两侧是否为同一对象，比较的是对象的地址。如果比较的是阿拉伯数字，则值相等则为true。
 (2)equals()继承自Object对象，默认为==的比较。可Override。
 (3)hashCode()继承自Object对象，用于计算对象散列值。Object对象默认hashCode为调用JVM的JNI方法，根据内存地址得到的值。
@@ -27,6 +28,8 @@ tags: [Resources]
 N.参考
 
 (1)[Java 7 API](https://docs.oracle.com/javase/7/docs/api/)
+
+(2)[廖雪峰Java教程](https://www.liaoxuefeng.com/wiki/1252599548343744)
 
 # IO
 
@@ -80,11 +83,172 @@ listFiles() 返回目录下的文件或者目录对象（File类实例），包�
 list(FilenameFilter filter)返回指定当前目录中符合过滤条件的子文件或子目录。对于文件这样操作会返回null。
 listFiles(FilenameFilter filter)返回指定当前目录中符合过滤条件的子文件或子目录。对于文件这样操作会返回null。
 
+# 容器
+
+1.Java容器
+
+    Collection
+        --Set(继承)
+            --AbstractSet(继承)
+                --HashSet(实现)
+                    --LinkedHashSet(继承)
+            --SortedSet(继承)
+                --TreeSet(实现，同时实现了AbstractSet)
+
+        --List(继承)
+            --AbstractList(继承)
+                --Vector(实现)
+                    --Stack(继承)
+                --ArrayList(实现)
+                --LinkedList(实现，同时实现Queue)
+
+        --Queue(继承)
+            --PriorityQueue(实现)
+            --LinkedList(实现，同时实现List)
+
+    Map
+        --AbstractMap(继承)
+            --HashMap(实现)
+                --LinkedHashMap(继承)
+            --HashTable(实现)
+            --WeakHashMap(实现)
+            --IdentityHashMap(实现)
+        --SortedMap(继承)
+            --TreeMap(实现，同时实现了AbstractMap)
+
+
+2.Collection和Collections有什么区别
+
+Collection 是一个集合接口。它提供了对集合对象进行基本操作的通用接口方法。Collection接口在Java类库中有很多具体的实现。Collection接口的意义是为各种具体的集合提供了最大化的统一操作方式，其直接继承接口有List与Set。
+Collections则是集合类的一个工具类，其中提供了一系列静态方法，用于对集合中元素进行排序、搜索以及线程安全等各种操作。
+常见的函数
+sort(Collection),shuffle(Collection),reverse(Collection),
+fill(Collection,Object),copy(List, List),rotate(Collection,int),swap(List,int,int),
+indexOfSublist(List,List),lastIndexOfSublist(List,List),max(Collection,Comparator),min(Collection,Comparator)
+
+N.参考
+
+(1)[Java容器详解](https://www.jianshu.com/p/8ef342da8732)
+
+(2)[Java容器（接口）](https://cloud.tencent.com/developer/article/1334703)
+
+(3)[Java容器（实现）](https://cloud.tencent.com/developer/article/1334702)
+
+# 反射
+
+1.什么是反射
+在jvm运行阶段，动态的获取类的信息（字节码实例，构造器，方法，字段），动态进行对象的创建，方法执行，字段操作。
+对象有编译类型和运行类型，Object obj = new java.util.Date();编译类型Object，运行类型java.util.Date。如果对象obj调用Date类中的一个方法toLocaleString，编译阶段去编译类型Object中检查是否有该方法，若没有则编译失败。
+
+2.获取Class实例三种方式
+
+在反射操作某一个类之前，应该先获取这个类的字节码实例（同一个类在JVM的字节码实例只有一份），有三种方式
+(1)MyDemo.class
+(2)myDemoObj.getClass()
+(3)Class.forName("somepackage.MyDemo")
+
+3.字节码实例
+bype/char/short/int/long/boolean/float/double.class及void.class
+数组int[].class及String[].class
+对象MyObject.class
+
+4.常用方法
+
+    Class clazz = Class.forName("className"); // className必须为全名，也就是得包含包名
+    Object obj= clazz.newInstance(); //如果类有无参数公共构造函数，直接可以使用类的字节码实例就创建对象的实例。否则用constructor对象调用newInstance(Object... initargs)
+
+    //--------------------------- Class对象的方法（即clazz的方法）---------------------------
+    // 构造器Constructor有newInstance方法
+    Constructor getConstructor(Class[] params) //根据指定参数获得public构造器
+    Constructor[] getConstructors() //获得public的所有构造器
+    Constructor getDeclaredConstructor(Class[] params) //根据指定参数获得public和非public的构造器
+    Constructor[] getDeclaredConstructors() //获得public的所有构造器
+
+    // 方法Method有invoke方法
+    Method getMethod(String name, Class[] params) //根据方法名，参数类型获得方法
+    Method[] getMethods() //获得所有的public方法
+    Method getDeclaredMethod(String name, Class[] params) //根据方法名和参数类型，获得public和非public的方法
+    Method[] getDeclaredMethods() //获得所以的public和非public方法
+
+    // 属性Field有get,set方法
+    Field getField(String name) //根据变量名得到相应的public变量
+    Field[] getFields() //获得类中所以public的方法
+    Field getDeclaredField(String name) //根据方法名获得public和非public变量
+    Field[] getDeclaredFields() //获得类中所有的public和非public方法
+
+N.参考
+
+(1)[什么是反射](https://www.cnblogs.com/abcdjava/p/11146473.html)
+
+# Java Web
+
+1.JSP和Servlet
+
+JSP是Servlet技术的扩展，本质上就是Servlet的简易方式。JSP编译后是“类servlet”。Servlet和JSP最主要的不同点在于，Servlet的应用逻辑是在Java文件中，并且完全从表示层中的HTML里分离开来。而JSP的情况是Java和HTML可以组合成一个扩展名为.jsp的文件。JSP侧重于视图，Servlet主要用于控制逻辑。
+JSP执行过程：当服务器启动后，当Web浏览器端发送过来一个页面请求时，Web服务器先判断是否是JSP页面请求。如果该页面只是一般的HTML/XML页面请求，则直接将HTML/XML页面代码传给Web浏览器端。如果请求的页面是JSP页面，则由JSP引擎检查该JSP页面，如果该页面是第一次被请求、或不是第一次被请求但已被修改，则JSP引擎将此JSP页面代码转换成Servlet代码，然后JSP引擎调用服务器端的Java编译器对Servlet代码进行编译，把它变成字节码(.class)文件，然后再调用JAVA虚拟机执行该字节码文件，然后将执行结果传给Web浏览器端。如果该JSP页面不是第一次被请求，且没有被修改过，则直接由JSP引擎调用JAVA虚拟机执行已编译过的字节码.class文件，然后将结果传送Web浏览器端。
+
+2.JSP的4种作用域
+
+(1)page:代表页面上下文，范围是一个页面及其静态包含的内容
+(2)request:代表请求上下文，范围是一个请求涉及的几个页面，通常是一个页面和其包含的内容以及forward动作转向的页面
+(3)session:代表客户的一次会话上下文，范围是一个用户在会话有效期内多次请求所涉及的页面
+(4)application:全局作用域，代表Web应用程序上下文，范围是整个Web应用中所有请求所涉及的页面
+
+3.JSP内置对象
+
+pageContext:网页的属性在这里管理。
+page：表示从该页面产生的一个servlet实例。
+out：是javax.jsp.JspWriter的一个实例，并提供了几个方法使你能用于向浏览器回送输出结果。
+config：表示一个javax.servlet.ServletConfig对象，该对象用于存取servlet实例的初始化参数。
+request:表示HttpServletRequest对象，它包含了有关浏览器请求的信息，并且提供了几个用于获取cookie,header和session数据的有用方法。
+response:表示HttpServletResponse对象，并提供了几个用于设置送回浏览器的响应的方法（如cookies,头信息等。）
+session：表示一个请求的javax.servlet.http.HttpSession对象，session可以存储用户的状态信息。
+application:表示一个javax.servlet.ServletContext对象，这有助于查找有关servlet引擎和servlet环境的信息。
+exception：针对错误网页，未捕捉的例外。
+
+N.参考
+
+(1)[JSP内置对象——pageContext对象](https://www.jellythink.com/archives/208)
+
+(2)[JSP九大内置对象及其作用域](https://my.oschina.net/hp2017/blog/1932026)
+
 # 异常
 1.throw和throws的区别？
 (1)throws出现在方法函数头；而throw出现在函数体。
 (2)throws表示出现异常的一种可能性，并不一定会发生这些异常；throw则是抛出了异常，执行throw则一定抛出了某种异常对象。
 (3)两者都是消极处理异常的方式（这里的消极并不是说这种方式不好），只是抛出或者可能抛出异常，但是不会由函数去处理异常，真正的处理异常由函数的上层调用处理。
+
+# 多线程
+
+1.并发与并行
+并发，指的是多个事情，在同一时间段内同时发生了。并行，指的是多个事情，在同一时间点上同时发生了。
+并发的多个任务之间是互相抢占资源的。并行的多个任务之间是不互相抢占资源的。只有在多CPU的情况中，才会发生并行。否则，看似同时发生的事情，其实都是并发执行的。
+
+2.线程和进程的区别
+
+进程：计算机中的程序关于某数据集合上的一次运行活动，是系统进行资源分配和调度的基本单位，是操作系统结构的基础。在早期面向进程设计的计算机结构中，进程是程序的基本执行实体；在当代面向线程设计的计算机结构中，进程是线程的容器。程序是指令、数据及其组织形式的描述，进程是程序的实体。
+线程：进程的一个实体，是CPU调度和分派的基本单位，它是比进程更小的能独立运行的基本单位。线程自己基本上不拥有系统资源，只拥有一点在运行中必不可少的资源(如程序计数器，一组寄存器和栈)，但是它可与同属一个进程的其他的线程共享进程所拥有的全部资源。
+
+区别：进程和线程的主要差别在于它们是不同的操作系统资源管理方式。进程有独立的地址空间，一个进程崩溃后，在保护模式下不会对其它进程产生影响，而线程只是一个进程中的不同执行路径。线程有自己的堆栈和局部变量，但线程之间没有单独的地址空间，一个线程死掉就等于整个进程死掉，所以多进程的程序要比多线程的程序健壮，但在进程切换时，耗费资源较大，效率要差一些。但对于一些要求同时进行并且又要共享某些变量的并发操作，只能用线程，不能用进程。
+
+(1)简而言之，一个程序至少有一个进程，一个进程至少有一个线程。
+(2)线程的划分尺度小于进程，使得多线程程序的并发性高。
+(3)另外，进程在执行过程中拥有独立的内存单元，而多个线程共享内存，从而极大地提高了程序的运行效率。
+(4)线程在执行过程中与进程还是有区别的。每个独立的线程有一个程序运行的入口、顺序执行序列和程序的出口。但是线程不能够独立执行，必须依存在应用程序中，由应用程序提供多个线程执行控制。
+(5)从逻辑角度来看，多线程的意义在于一个应用程序中，有多个执行部分可以同时执行。但操作系统并没有将多个线程看做多个独立的应用，来实现进程的调度和管理以及资源分配。这就是进程和线程的重要区别。
+
+3.守护线程
+
+守护线程（即daemon thread），是个服务线程，准确地来说就是服务其他的线程，这是它的作用——而其他的线程只有一种，那就是用户线程。所以java里线程分2种：守护线程，比如垃圾回收线程，就是最典型的守护线程。用户线程，就是应用程序里的自定义线程。
+当JVM中不存在任何一个正在运行的非守护线程时，则JVM进程即会退出。
+
+N.参考
+
+(1)[线程进程区别](https://www.cnblogs.com/toria/p/11123130.html)
+
+(2)[线程与进程的区别](https://www.cnblogs.com/cocoxu1992/p/10468317.html)
+
+(3)[谈谈什么是守护线程以及作用](https://www.jianshu.com/p/3d6f32af5625)
 
 # Spring
 
