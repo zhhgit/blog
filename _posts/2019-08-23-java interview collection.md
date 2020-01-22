@@ -253,11 +253,11 @@ N.参考
 # Spring
 
 1.使用Spring的好处和原因
-(1)低侵入式设计，代码污染极低
-(2)独立于各种应用服务器，基于Spring框架的应用，可以真正实现Write Once,Run Anywhere的承诺
+(1)低侵入式设计，代码污染极低。
+(2)独立于各种应用服务器，基于Spring框架的应用，可以真正实现Write Once,Run Anywhere的承诺。
 (3)Spring的DI机制降低了业务对象替换的复杂性，提高了组件之间的解耦。IOC（控制反转）创建对象不是通过new方式来实现，而是交给Spring配置来创建对象。
-(4)Spring的AOP（面向切面编程）支持允许将一些通用任务如安全、事务、日志等进行集中式管理，从而提供了更好的复用
-(5)Spring的ORM和DAO提供了与第三方持久层框架的良好整合，并简化了底层的数据库访问
+(4)Spring的AOP（面向切面编程）支持允许将一些通用任务如安全、事务、日志等进行集中式管理，从而提供了更好的复用。
+(5)Spring的ORM和DAO提供了与第三方持久层框架的良好整合，并简化了底层的数据库访问。
 (6)Spring并不强制应用完全依赖于Spring，开发者可自由选用Spring框架的部分或全部。Spring是开源的轻量级一站式框架，内部支持对多种优秀开源框架的集成。
 
 N.参考
@@ -286,8 +286,15 @@ N.参考
 Hibernate在批量数据处理时有弱势，针对单一对象简单的增删查改，适合于Hibernate。而对于批量的修改，删除，不适合用Hibernate,这也是ORM框架的弱点。
 
 2.Hibernate的工作原理
-(1)通过Configuration().configure();读取并解析hibernate.cfg.xml配置文件。(2)由hibernate.cfg.xml中的<mapping resource="com/xx/User.hbm.xml"/>读取并解析映射信息。(3)通过config.buildSessionFactory();创建SessionFactory。(4)sessionFactory.openSession();打开Session。
-(5)session.beginTransaction();创建事务Transaction。(6)持久化操作。(7)session.getTransaction().commit();提交事务。(8)关闭Session。(9)关闭SessionFactory。
+(1)通过Configuration().configure();读取并解析hibernate.cfg.xml配置文件。
+(2)由hibernate.cfg.xml中的<mapping resource="com/xx/User.hbm.xml"/>读取并解析映射信息。
+(3)通过config.buildSessionFactory();创建SessionFactory。
+(4)sessionFactory.openSession();打开Session。
+(5)session.beginTransaction();创建事务Transaction。
+(6)持久化操作。
+(7)session.getTransaction().commit();提交事务。
+(8)关闭Session。
+(9)关闭SessionFactory。
 
 3.Hibernate的核心接口
 
@@ -297,6 +304,20 @@ Hibernate在批量数据处理时有弱势，针对单一对象简单的增删�
 (3)Configuration接口:Configuration接口负责配置并启动Hibernate，创建SessionFactory对象。在Hibernate的启动的过程中，Configuration类的实例首先定位映射文档位置、读取配置，然后创建SessionFactory对象。
 (4)Transaction接口:Transaction接口负责事务相关的操作。它是可选的，开发人员也可以设计编写自己的底层事务处理代码。
 (5)Query和Criteria接口:Query和Criteria接口负责执行各种数据库查询。它可以使用HQL语言或SQL语句两种表达方式。
+
+# Mybatis
+
+1.#{}与${}差别
+
+(1)#将传入的数据都当成一个字符串，会对自动传入的数据加一个双引号。$将传入的数据直接显示生成在sql中。
+(2)#方式在很大程度上能够防止sql注入。$方式无法防止sql注入。一般能用#的就别用$。$方式一般用于传入数据库对象，例如传入表名。
+(3)#在预处理时，会把参数部分用一个占位符？代替。$只会做简单的字符串替换，在动态SQL解析阶段将会进行变量替换。
+
+2.Mybatis分页
+(1)数组分页查询所有然后取subList。
+(2)sql的limit语法。
+(3)使用Mybatis的RowBounds(int offset, int limit)，不适合数据量大。
+(4)自己实现拦截器，对执行的sql语句加limit条件。
 
 # JVM
 
@@ -323,26 +344,93 @@ Java虚拟机规范规定，Java堆可以处在物理上不连续的内存空间
 特性：内存共享。异常规定：OutOfMemoryError。当方法无法满足内存分配需求时会抛出OutOfMemoryError异常。
 运行时常量池是方法区的一部分，Class文件中除了有类的版本、字段、方法、接口等描述信息外，还有一项信息是常量池（Constant Pool Table）用于存放编译期生成的各种字面量和符号引用，这部分在类加载后进入方法区的运行时常量池中，如String类的intern()方法。
 
+3.栈和堆的区别
+
+数据结构中的栈和堆：栈（FILO），堆是一种完全二叉树或者近似完全二叉树。
+
+系统中的栈和堆：
+(1)栈：由编译器自动分配释放，存放函数的参数值，局部变量的值等。其操作方式类似于数据结构中的栈。
+堆：是一个可动态申请的内存空间(其记录空闲内存空间的链表由操作系统维护)，在java中,所有使用new xxx()构造出来的对象都在堆中存储一般由程序员分配释放， 若程序员不释放，程序结束时可能由OS回收 。注意它与数据结构中的堆是两回事，分配方式倒是类似于链表。
+
+(2)申请响应
+栈：只要栈的剩余空间大于所申请空间，系统将为程序提供内存，否则将报异常提示栈溢出。
+堆：首先应该知道操作系统有一个记录空闲内存地址的链表，当系统收到程序的申请时，会遍历该链表，寻找第一个空间大于所申请空间的堆结点，然后将该结点从空闲结点链表中删除，并将该结点的空间分配给程序，另外，对于大多数系统，会在这块内存空间中的首地址处记录本次分配的大小，这样，代码中的delete语句才能正确的释放本内存空间。另外，由于找到的堆结点的大小不一定正好等于申请的大小，系统会自动的将多余的那部分重新放入空闲链表中。
+
+(3)申请限制
+栈：在Windows下,栈是向低地址扩展的数据结构，是一块连续的内存的区域。这句话的意思是栈顶的地址和栈的最大容量是系统预先规定好的，在 WINDOWS下，栈的大小是2M（也有的说是1M，总之是一个编译时就确定的常数），如果申请的空间超过栈的剩余空间时，将提示overflow。因此，能从栈获得的空间较小。
+堆：堆是向高地址扩展的数据结构，是不连续的内存区域。这是由于系统是用链表来存储的空闲内存地址的，自然是不连续的，而链表的遍历方向是由低地址向高地址。堆的大小受限于计算机系统中有效的虚拟内存。由此可见，堆获得的空间比较灵活，也比较大。
+
+(4)堆栈缓存方式
+栈使用的是一级缓存， 他们通常都是被调用时处于存储空间中，调用完毕立即释放。
+堆则是存放在二级缓存中，生命周期由虚拟机的垃圾回收算法来决定（并不是一旦成为孤儿对象就能被回收）。所以调用这些对象的速度要相对来得低一些。
+
 N.参考
 
 (1)[讲一讲JVM的组成](https://www.cnblogs.com/vipstone/p/10681211.html)
+
+(2)[java堆、栈、堆栈，常量池的区别，史上最全总结](https://cloud.tencent.com/developer/article/1453511)
+
+(3)[数据结构：堆](https://www.jianshu.com/p/6b526aa481b1)
 
 # MySQL
 
 1.三大范式
 
-(1)1NF：每一列属性都是不可再分的属性值，确保每一列的原子性
-
+(1)1NF：每一列属性都是不可再分的属性值，确保每一列的原子性。
 (2)2NF：满足2NF的前提是必须满足1NF。此外，关系模式需要包含两部分内容，一是必须有一个（及以上）主键；二是没有包含在主键中的列必须全部依赖于全部主键，而不能只依赖于主键的一部分而不依赖全部主键。
 非主键列全部依赖于部分主键，非主键列部分依赖于全部主键，非主键列部分依赖于部分主键都是不符合2NF的。
-
 (3)3NF：满足3NF的前提是必须满足2NF。另外关系模式的非主键列必须直接依赖于主键，不能存在传递依赖。即不能存在：非主键列m既依赖于全部主键，又依赖于非主键列n的情况。
+
+2.limit用法
+
+SELECT * FROM table LIMIT [offset,] rows | rows OFFSET offset。解释：筛选出结果的第offset行后的rows行。如果offset不填也是可以的，默认为0。
+
+    select * from tbl_user limit 1,5; // 跳过1行，从第2行开始的5行
+    select * from tbl_user limit 6; // 从第1行开始的6行
+    select * from tbl_user limit 5 offset 1; // 跳过1行，从第2行开始的5行
+    
+3.数据库版本
+select version();
+
+4.一张自增表里面总共有7条数据，删除了最后2条数据，重启MySQL数据库，又插入了一条数据，此时id是几？
+如果表的类型是InnoDB，不重启mysql的情况下这条记录的id是8。但是如果重启这条记录的ID是6。因为InnoDB表只把自增主键的最大ID记录到内存中，所以重启数据库或者对表OPTIMIZE操作，都会使最大ID丢失。
+如果表的类型是MyISAM，那么这条记录的ID就是8。因为MylSAM表会把自增主键的最大ID记录到数据文件里面，重启MYSQL后，自增主键的最大ID也不会丢失。
+
+5.存储过程
+
+    create procedure insertInnoDb()
+    begin
+    set @i = 1;
+    while @i <= 1000000
+    do
+    insert into testinnodb(name) values(concat("wy", @i));
+    set @i = @i + 1;
+    end while;
+    end
+
+调用存储过程。对于存储引擎为InnoDB的表。默认开启了autocommit = 1。调用存储过程时，需要先关闭，调用存储过程，再开启。
+
+    set autocommit = 0;
+    call insertInnoDb;
+    set autocommit = 1;
+    
+6.数据库事务ACID原则
+原子性(Atomicity)：是指一个事务要么全部执行，要么不执行，也就是说一个事务不可能只执行了一半就停止了。
+一致性(Consistency)：是指事务的运行并不改变数据库中数据的一致性。例如，完整性约束了a+b=10，一个事务改变了a，那么b也应该随之改变。
+独立性(Isolation）：事务的独立性也有称作隔离性，是指两个以上的事务不会出现交错执行的状态。因为这样可能会导致数据不一致。
+持久性(Durability）：事务的持久性是指事务执行成功以后，该事务对数据库所作的更改便是持久的保存在数据库之中，不会无缘无故的回滚。
+
+7.事务隔离级别
+查看事务隔离级别使用select @@tx_isolation
+四个隔离级别：read uncommitted, read committed, repeatable read, serializable
 
 N.参考
 
 (1)[Java面试题之数据库三范式是什么？](https://www.cnblogs.com/marsitman/p/10162231.html)
 
 (2)[三张图搞透第一范式(1NF)、第二范式(2NF)和第三范式(3NF)的区别](https://blog.csdn.net/weixin_43971764/article/details/88677688)
+
+(3)[真正理解Mysql的四种隔离级别](https://www.jianshu.com/p/8d735db9c2c0)
 
 # Redis
 
@@ -380,9 +468,36 @@ N.参考
 (c)zrem key member
 (d)zscore key member
 
+4.Redis与MemCached区别
+
+(1)数据操作不同
+MemCached只支持简单的key-value存储，不支持枚举，不支持持久化和复制等功能。Redis拥有更多的数据结构和并支持更丰富的数据操作，支持list、set、sorted set、hash等众多数据结构，还同时提供了持久化和复制等功能。
+Redis单个value的最大限制是1GB，而MemCached则只能保存1MB内的数据。
+
+(2)内存管理机制不同
+在Redis中，并不是所有的数据都一直存储在内存中的。这是和MemCached相比一个最大的区别。当物理内存用完时，Redis可以将一些很久没用到的value交换到磁盘。
+Redis只会缓存所有的key的信息，如果Redis发现内存的使用量超过了某一个阀值，将触发swap的操作，Redis根据“swappability = age*log(size_in_memory)”计算出哪些key对应的value需要swap到磁盘，然后再将这些key对应的value持久化到磁盘中，同时在内存中清除。这种特性使得Redis可以保持超过其机器本身内存大小的数据。
+MemCached默认使用Slab Allocation机制管理内存，其主要思想是按照预先规定的大小，将分配的内存分割成特定长度的块以存储相应长度的key-value数据记录，以完全解决内存碎片问题。
+
+(3)性能不同
+由于Redis只使用单核，而MemCached可以使用多核，所以平均每一个核上Redis在存储小数据时比MemCached性能更高。而在100k以上的数据中，MemCached性能要高于Redis，虽然Redis也在存储大数据的性能上进行了优化，但是比起MemCached，还是稍有逊色。
+
+(4)集群管理不同
+MemCached本身并不支持分布式，因此只能在客户端通过像一致性哈希这样的分布式算法来实现MemCached的分布式存储。相较于MemCached只能采用客户端实现分布式存储，Redis更偏向于在服务器端构建分布式存储。
+
+5.Redis持久化
+支持快照RDB和写文件AOF两种方式。
+
+6.Redis为什么是单线程的还很快
+(1)Redis是基于内存的，内存的读写速度非常快。
+(2)Redis是单线程的，省去了很多上下文切换线程的时间。
+(3)Redis使用多路复用技术，可以处理并发的连接。
+
 N.参考
 
 (1)[Redis中文官网](http://www.redis.cn/)
+
+(2)[Redis持久化 - RDB和AOF](https://segmentfault.com/a/1190000016021217)
 
 # ZooKeeper
 
