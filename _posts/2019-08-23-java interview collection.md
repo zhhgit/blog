@@ -260,6 +260,13 @@ N.参考
 (5)Spring的ORM和DAO提供了与第三方持久层框架的良好整合，并简化了底层的数据库访问。
 (6)Spring并不强制应用完全依赖于Spring，开发者可自由选用Spring框架的部分或全部。Spring是开源的轻量级一站式框架，内部支持对多种优秀开源框架的集成。
 
+2.Spring，SpringMVC，SpringBoot，SpringCloud的区别和联系
+
+Spring是核心，提供了基础功能。
+Spring MVC是基于Spring的一个MVC框架。
+Spring Boot是为简化Spring配置的快速开发整合包。
+Spring Cloud是构建在Spring Boot之上的服务治理框架。
+
 N.参考
 
 (1)[Spring 官网](https://docs.spring.io/spring/docs/current/spring-framework-reference/index.html)
@@ -552,3 +559,5 @@ CPU性能瓶颈、磁盘读写瓶颈、网络瓶颈
 1.[Java最常见的200+面试题及自己梳理的答案--面试必备（一）](https://www.cnblogs.com/cocoxu1992/p/10460251.html)
 
 2.[久伴_不离](https://www.jianshu.com/u/837b81b0eaa9)	
+
+公众号文章到2。
