@@ -12,9 +12,12 @@ tags: [Resources]
 1.[猎聘网](https://www.liepin.com/)
 2.[前程无忧](http://www.51job.com/default.php)
 3.[智联招聘](http://www.zhaopin.com/)
-4.[Linkedin](https://www.linkedin.com/)
-5.[看准网](http://www.kanzhun.com/)
-6.[拉勾网](https://www.lagou.com/)
+4.[拉勾网](https://www.lagou.com/)
+5.[Linkedin](https://www.linkedin.com/)
+6.[脉脉](https://maimai.cn/)
+7.[Boss直聘](https://www.zhipin.com/shanghai/)
+8.[看准网](http://www.kanzhun.com/)
+
 弃用：[应届生](http://www.yingjiesheng.com/)、[大街网](http://www.dajie.com/)
 
 <hr>
