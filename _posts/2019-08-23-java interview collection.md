@@ -16,14 +16,36 @@ tags: [Resources]
 (3)hashCode()继承自Object对象，用于计算对象散列值。Object对象默认hashCode为调用JVM的JNI方法，根据内存地址得到的值。
 通常如果equals() override了，hashCode()也应该override，即equals相等，散列也应该相等。hashCode是用于散列数据的快速存取，如利用HashSet/HashMap/Hashtable类来存储数据时，都会根据存储对象的hashCode值来进行判断是否相同的。
 
+当不会创建“类对应的散列表”：不会在HashSet, Hashtable, HashMap等等这些本质是散列表的数据结构中用到该类，例如不会创建该类的HashSet集合，在这种情况下，该类的“hashCode()和equals()没有半毛钱关系的。equals()用来比较该类的两个对象是否相等，而hashCode() 则根本没有任何作用。
+当会创建“类对应的散列表”：会在HashSet, Hashtable, HashMap等等这些本质是散列表的数据结构中用到该类。例如会创建该类的HashSet集合。在这种情况下，该类的“hashCode()和equals()”是有关系的，如果两个对象相等，那么它们的hashCode()值一定相同。这里的相等是指，通过equals()比较两个对象时返回true。如果两个对象hashCode()相等，它们并不一定相等。因为在散列表中，hashCode()相等，即两个键值对的哈希值相等。然而哈希值相等，并不一定能得出键值对相等。补充说一句：“两个不同的键值对，哈希值相等”，这就是哈希冲突。此外，在这种情况下。若要判断两个对象是否相等，除了要覆盖equals()之外，也要覆盖hashCode()函数。否则，equals()无效。
+
 2.运算
+
 (1)Math.round()计算方法为先+0.5，然后向下取整。
 
 3.字符串
+
 (1)反转：(a)字符数组反向拼接；(b)递归；(c)StringBuffer的reverse()方法
 
 4.抽象
+
 (1)抽象类中不一定包含抽象方法，但是有抽象方法的类必定是抽象类。
+
+5.Object类的方法
+
+(1)Object():构造方法
+(2)registerNatives():为了使JVM发现本机功能，他们被一定的方式命名。例如，对于java.lang.Object.registerNatives，对应的C函数命名为Java_java_lang_Object_registerNatives。通过使用registerNatives（或者更确切地说，JNI函数RegisterNatives），可以命名任何你想要你的C函数。
+(3)clone():用来另存一个当前存在的对象。只有实现了Cloneable接口才可以调用该方法，否则抛出CloneNotSupportedException异常。
+(4)getClass():final方法，用于获得运行时的类型。该方法返回的是此Object对象的类对象/运行时类对象Class。效果与Object.class相同。
+(5)equals():用来比较两个对象的内容是否相等。默认情况下(继承自Object类)，equals和==是一样的，除非被覆写(override)了。
+(6)hashCode():用来返回其所在对象的物理地址（哈希码值），常会和equals方法同时重写，确保相等的两个对象拥有相等的hashCode。作用是获取哈希码，也称为散列码；它实际上是返回一个int整数。这个哈希码的作用是确定该对象在哈希表中的索引位置。
+(7)toString():返回该对象的字符串表示。
+(8)wait():导致当前的线程等待，直到其他线程调用此对象的notify()方法或notifyAll()方法。
+(9)wait(long timeout):导致当前的线程等待，直到其他线程调用此对象的notify()方法或notifyAll()方法，或者超过指定的时间量。
+(10)wait(long timeout, int nanos):导致当前的线程等待，直到其他线程调用此对象的notify()方法或notifyAll()方法，或者其他某个线程中断当前线程，或者已超过某个实际时间量。
+(11)notify():唤醒在此对象监视器上等待的单个线程。
+(12)notifyAll():唤醒在此对象监视器上等待的所有线程。
+(13)finalize():当垃圾回收器确定不存在对该对象的更多引用时，由对象的垃圾回收器调用此方法。
 
 N.参考
 
@@ -43,15 +65,18 @@ PipedOutputStream是向与其它线程共用的管道中写入数据。
 ObjectOutputStream 和所有FilterOutputStream的子类都是装饰流。
 
 3.BIO/NIO/AIO
+
 (a)BIO：阻塞。如果服务端连接多个客户端，则需要多个线程分别从套接字读取数据。
 (b)NIO：非阻塞。NIO = I/O多路复用 + 非阻塞式I/O
 
 4.NIO线程模型
+
 (a)Reactor单线程模型：由一个线程监听连接事件、读写事件，并完成数据读写。
 (b)Reactor多线程模型：一个Acceptor线程专门监听各种事件，再由专门的线程池负责处理真正的IO数据读写
 (c)主从Reactor多线程模型：一个线程监听连接事件，线程池的多个线程监听已经建立连接的套接字的数据读写事件，另外和多线程模型一样有专门的线程池处理真正的IO操作。
 
 5.File类
+
 (1)创建：
 createNewFile()在指定位置创建一个空文件，成功就返回true，如果已存在就不创建，然后返回false。
 mkdir() 在指定位置创建一个单级文件夹。
@@ -119,12 +144,30 @@ listFiles(FilenameFilter filter)返回指定当前目录中符合过滤条件的
 
 2.Collection和Collections有什么区别
 
-Collection 是一个集合接口。它提供了对集合对象进行基本操作的通用接口方法。Collection接口在Java类库中有很多具体的实现。Collection接口的意义是为各种具体的集合提供了最大化的统一操作方式，其直接继承接口有List与Set。
+Collection是一个集合接口。它提供了对集合对象进行基本操作的通用接口方法。Collection接口在Java类库中有很多具体的实现。Collection接口的意义是为各种具体的集合提供了最大化的统一操作方式，其直接继承接口有List与Set。
 Collections则是集合类的一个工具类，其中提供了一系列静态方法，用于对集合中元素进行排序、搜索以及线程安全等各种操作。
 常见的函数
 sort(Collection),shuffle(Collection),reverse(Collection),
 fill(Collection,Object),copy(List, List),rotate(Collection,int),swap(List,int,int),
 indexOfSublist(List,List),lastIndexOfSublist(List,List),max(Collection,Comparator),min(Collection,Comparator)
+
+3.HashMap与TreeMap
+
+(1)TreeMap<K,V>的Key值是要求实现java.lang.Comparable，所以迭代的时候TreeMap默认是按照Key值升序排序的；TreeMap的实现是基于红黑树结构。适用于按自然顺序或自定义顺序遍历键（key）。添加到SortedMap实现类的元素必须实现Comparable接口，否则必须给它的构造函数提供一个Comparator接口的实现。
+基于红黑树实现。TreeMap没有调优选项，因为该树总处于平衡状态。
+
+(a)TreeMap()：构建一个空的映像树
+(b)TreeMap(Map m): 构建一个映像树，并且添加映像m中所有元素
+(c)TreeMap(Comparator c): 构建一个映像树，并且使用特定的比较器对关键字进行排序
+(d)TreeMap(SortedMap s): 构建一个映像树，添加映像树s中所有映射，并且使用与有序映像s相同的比较器排序
+
+(2)HashMap<K,V>的Key值实现散列hashCode()，分布是散列的、均匀的，不支持排序；数据结构主要是桶(数组)，链表或红黑树。适用于在Map中插入、删除和定位元素。
+HashMap：基于哈希表实现。使用HashMap要求添加的键类明确定义了hashCode()和equals()，可以重写hashCode()和equals()，为了优化HashMap空间的使用，可以调优初始容量和负载因子。
+
+(a)HashMap(): 构建一个空的哈希映像
+(b)HashMap(Map m): 构建一个哈希映像，并且添加映像m的所有映射
+(c)HashMap(int initialCapacity): 构建一个拥有特定容量的空的哈希映像
+(d)HashMap(int initialCapacity, float loadFactor): 构建一个拥有特定容量和加载因子的空的哈希映像
 
 N.参考
 
@@ -137,17 +180,20 @@ N.参考
 # 反射
 
 1.什么是反射
+
 在jvm运行阶段，动态的获取类的信息（字节码实例，构造器，方法，字段），动态进行对象的创建，方法执行，字段操作。
 对象有编译类型和运行类型，Object obj = new java.util.Date();编译类型Object，运行类型java.util.Date。如果对象obj调用Date类中的一个方法toLocaleString，编译阶段去编译类型Object中检查是否有该方法，若没有则编译失败。
 
 2.获取Class实例三种方式
 
 在反射操作某一个类之前，应该先获取这个类的字节码实例（同一个类在JVM的字节码实例只有一份），有三种方式
+
 (1)MyDemo.class
 (2)myDemoObj.getClass()
 (3)Class.forName("somepackage.MyDemo")
 
 3.字节码实例
+
 bype/char/short/int/long/boolean/float/double.class及void.class
 数组int[].class及String[].class
 对象MyObject.class
@@ -213,6 +259,7 @@ N.参考
 (2)[JSP九大内置对象及其作用域](https://my.oschina.net/hp2017/blog/1932026)
 
 # 异常
+
 1.throw和throws的区别？
 (1)throws出现在方法函数头；而throw出现在函数体。
 (2)throws表示出现异常的一种可能性，并不一定会发生这些异常；throw则是抛出了异常，执行throw则一定抛出了某种异常对象。
@@ -266,6 +313,21 @@ Spring是核心，提供了基础功能。
 Spring MVC是基于Spring的一个MVC框架。
 Spring Boot是为简化Spring配置的快速开发整合包。
 Spring Cloud是构建在Spring Boot之上的服务治理框架。
+
+3.Spring Bean的生命周期
+
+(1)实例化一个Bean－－也就是我们常说的new；
+(2)按照Spring上下文对实例化的Bean进行配置－－也就是IOC注入，例如属性；
+(3)如果这个Bean已经实现了BeanNameAware接口，会调用它实现的setBeanName(String)方法，此处传递的就是Spring配置文件中Bean的id值
+(4)如果这个Bean已经实现了BeanFactoryAware接口，会调用它实现的setBeanFactory(setBeanFactory(BeanFactory)传递的是Spring工厂自身（可以用这个方式来获取其它Bean，只需在Spring配置文件中配置一个普通的Bean就可以）；
+(5)如果这个Bean已经实现了ApplicationContextAware接口，会调用setApplicationContext(ApplicationContext)方法，传入Spring上下文（同样这个方式也可以实现步骤4的内容，但比4更好，因为ApplicationContext是BeanFactory的子接口，有更多的实现方法）；
+(6)如果这个Bean关联了BeanPostProcessor接口，将会调用postProcessBeforeInitialization(Object obj, String s)方法，BeanPostProcessor经常被用作是Bean内容的更改，并且由于这个是在Bean初始化结束时调用那个的方法，也可以被应用于内存或缓存技术；
+(7)如果这个Bean实现InitializingBean接口，并且增加afterPropertiesSet()方法。
+(8)如果Bean在Spring配置文件中配置了init-method属性会自动调用其配置的初始化方法。
+(9)如果这个Bean关联了BeanPostProcessor接口，将会调用postProcessAfterInitialization(Object obj, String s)方法。
+注：以上工作完成以后就可以应用这个Bean了，那这个Bean是一个Singleton的，所以一般情况下我们调用同一个id的Bean会是在内容地址相同的实例，当然在Spring配置文件中也可以配置非Singleton。
+(10)当Bean不再需要时，会经过清理阶段，如果Bean实现了DisposableBean这个接口，会调用那个其实现的destroy()方法；
+(11)最后，如果这个Bean的Spring配置中配置了destroy-method属性，会自动调用其配置的销毁方法。
 
 N.参考
 
@@ -379,7 +441,7 @@ N.参考
 
 (3)[数据结构：堆](https://www.jianshu.com/p/6b526aa481b1)
 
-# MySQL
+# 数据库
 
 1.三大范式
 
@@ -397,9 +459,11 @@ SELECT * FROM table LIMIT [offset,] rows | rows OFFSET offset。解释：筛选�
     select * from tbl_user limit 5 offset 1; // 跳过1行，从第2行开始的5行
     
 3.数据库版本
+
 select version();
 
 4.一张自增表里面总共有7条数据，删除了最后2条数据，重启MySQL数据库，又插入了一条数据，此时id是几？
+
 如果表的类型是InnoDB，不重启mysql的情况下这条记录的id是8。但是如果重启这条记录的ID是6。因为InnoDB表只把自增主键的最大ID记录到内存中，所以重启数据库或者对表OPTIMIZE操作，都会使最大ID丢失。
 如果表的类型是MyISAM，那么这条记录的ID就是8。因为MylSAM表会把自增主键的最大ID记录到数据文件里面，重启MYSQL后，自增主键的最大ID也不会丢失。
 
@@ -422,14 +486,22 @@ select version();
     set autocommit = 1;
     
 6.数据库事务ACID原则
+
 原子性(Atomicity)：是指一个事务要么全部执行，要么不执行，也就是说一个事务不可能只执行了一半就停止了。
 一致性(Consistency)：是指事务的运行并不改变数据库中数据的一致性。例如，完整性约束了a+b=10，一个事务改变了a，那么b也应该随之改变。
 独立性(Isolation）：事务的独立性也有称作隔离性，是指两个以上的事务不会出现交错执行的状态。因为这样可能会导致数据不一致。
 持久性(Durability）：事务的持久性是指事务执行成功以后，该事务对数据库所作的更改便是持久的保存在数据库之中，不会无缘无故的回滚。
 
 7.事务隔离级别
+
 查看事务隔离级别使用select @@tx_isolation
 四个隔离级别：read uncommitted, read committed, repeatable read, serializable
+
+8.分库分表后id主键如何处理
+
+(1)自增id，往一个库的一个表里插入一条没什么业务含义的数据，然后获取一个数据库自增的一个id。拿到这个id之后再往对应的分库分表里去写入。不适合高并发场景。
+(2)设置数据库sequence或者表的自增字段步长来进行水平伸缩。比如说，现在有8个服务节点，每个服务节点使用一个sequence功能来产生ID，每个sequence的起始ID不同，并且依次递增，步长都是8。
+(3)snowflake算法:开源的分布式id生成算法，是把一个 64 位的long型的id，1个bit 是不用的，用其中的41bit作为毫秒数，用10bit作为工作机器id，12bit作为序列号。
 
 N.参考
 
@@ -500,11 +572,32 @@ MemCached本身并不支持分布式，因此只能在客户端通过像一致�
 (2)Redis是单线程的，省去了很多上下文切换线程的时间。
 (3)Redis使用多路复用技术，可以处理并发的连接。
 
+7.Redis实现分布式锁
+
+应该满足(a)互斥性:在任意时刻，只有一个客户端能持有锁。(b)不能死锁:客户端在持有锁的期间崩溃而没有主动解锁，也能保证后续其他客户端能加锁。(c)容错性只要大部分的Redis节点正常运行，客户端就可以加锁和解锁。
+
+    //获取锁（unique_value可以是UUID等）
+    SET resource_name unique_value NX PX 30000
+
+    //释放锁（lua脚本中，一定要比较value，防止误解锁）
+    if redis.call("get",KEYS[1]) == ARGV[1] then
+        return redis.call("del",KEYS[1])
+    else
+        return 0
+    end
+    
+set命令要用set key value px milliseconds nx，替代setnx + expire需要分两次执行命令的方式，保证了原子性.
+value要具有唯一性，可以使用UUID.randomUUID().toString()方法生成，用来标识这把锁是属于哪个请求加的，在解锁的时候就可以有依据。
+释放锁时要验证value值，防止误解锁。
+通过Lua脚本来避免Check And Set模型的并发问题，因为在释放锁的时候因为涉及到多个Redis操作（利用了eval命令执行Lua脚本的原子性）；
+
 N.参考
 
 (1)[Redis中文官网](http://www.redis.cn/)
 
 (2)[Redis持久化 - RDB和AOF](https://segmentfault.com/a/1190000016021217)
+
+(3)[Redis分布式锁的正确实现方式（Java版）](https://blog.csdn.net/yb223731/article/details/90349502)
 
 # ZooKeeper
 
@@ -527,37 +620,68 @@ N.参考
 # Kafka
 
 1.kafka可以脱离zookeeper单独使用吗？为什么？
+
 不可以，kafka必须要依赖一个zookeeper集群才能运行。kafka系群里面各个broker都是通过zookeeper来同步topic列表以及其它broker列表的，一旦连不上zookeeper，kafka也就无法工作。
 
 2.kafka有几种数据保留的策略
+
 Kafka Broker默认的消息保留策略是：要么保留一定时间，要么保留到消息达到一定大小的字节数。当消息达到设置的条件上限时，旧消息就会过期并被删除，所以，在任何时刻，可用消息的总量都不会超过配置参数所指定的大小。
 topic可以配置自己的保留策略，可以将消息保留到不再使用他们为止。因为在一个大文件里查找和删除消息是很费时的事，也容易出错，所以，分区被划分为若干个片段。默认情况下，每个片段包含1G或者一周的数据，以较小的那个为准。在broker往leader分区写入消息时，如果达到片段上限，就关闭当前文件，并打开一个新文件。当前正在写入数据的片段叫活跃片段。当所有片段都被写满时，会清除下一个分区片段的数据，如果配置的是7个片段，每天打开一个新片段，就会删除一个最老的片段，循环使用所有片段。
 
 3.什么情况会导致kafka运行变慢
+
 CPU性能瓶颈、磁盘读写瓶颈、网络瓶颈
  
 4.使用kafka集群需要注意什么？
+
 集群的数量不是越多越好，最好不要超过7个，因为节点越多，消息复制需要的时间就越长，整个群组的吞吐量就越低。集群数量最好是单数，因为超过一半故障集群就不能用了，设置为单数容错率更高。
 
 5.数据分区策略
+
 第一种分区策略：给定了分区号，直接将数据发送到指定的分区里面去。
 第二种分区策略：没有给定分区号，给定数据的key值，通过key取上hashCode进行分区。
 第三种分区策略：既没有给定分区号，也没有给定key值，直接轮循进行分区。
 第四种分区策略：自定义分区。
 
+6.消息队列中，如何保证消息的顺序性
+
+错乱场景：
+(1)RabbitMQ:一个queue，多个consumer。比如，生产者向RabbitMQ里发送了三条数据，顺序依次是data1/data2/data3，压入的是RabbitMQ的一个内存队列。有三个消费者分别从MQ中消费这三条数据中的一条，结果消费者2先执行完操作，把data2存入数据库，然后是data1/data3。这不明显乱了。
+(2)Kafka：比如说我们建了一个topic，有三个partition。生产者在写的时候，其实可以指定一个key，比如说我们指定了某个订单id作为key，那么这个订单相关的数据，一定会被分发到同一个partition中去，而且这个partition中的数据一定是有顺序的。消费者从partition中取出来数据的时候，也一定是有顺序的。到这里，顺序还是ok的，没有错乱。接着，我们在消费者里可能会搞多个线程来并发处理消息。因为如果消费者是单线程消费处理，而处理比较耗时的话，比如处理一条消息耗时几十ms，那么1秒钟只能处理几十条消息，这吞吐量太低了。而多个线程并发跑的话，顺序可能就乱掉了。
+
+解决方案:
+(1)RabbitMQ:拆分多个queue，每个queue一个consumer，就是多一些queue而已，确实是麻烦点；或者就一个queue但是对应一个consumer，然后这个consumer内部用内存队列做排队，然后分发给底层不同的worker来处理。
+(2)Kafka:一个topic，一个partition，一个consumer，内部单线程消费，单线程吞吐量太低，一般不会用这个。写 N个内存queue，具有相同key的数据都到同一个内存queue；然后对于N个线程，每个线程分别消费一个内存queue即可，这样就能保证顺序性。
+
 # 网络
 
 1.HTTP响应码301和302代表的是什么，有什么区别，为什么尽量用301？
+
 301代表永久性转移(Permanently Moved)，302代表暂时性转移(Temporarily Moved )。
 301和302状态码都表示重定向，就是说浏览器在拿到服务器返回的这个状态码后会自动跳转到一个新的URL地址，这个地址可以从响应的Location首部中获取（用户看到的效果就是他输入的地址A瞬间变成了另一个地址B）——这是它们的共同点。
 它们的不同在于，301表示旧地址A的资源已经被永久地移除了（这个资源不可访问了），搜索引擎在抓取新内容的同时也将旧的网址交换为重定向之后的网址；302表示旧地址A的资源还在（仍然可以访问），这个重定向只是临时地从旧地址A跳转到地址B，搜索引擎会抓取新的内容而保存旧的网址。
 尽量要使用301跳转是为了防止网址劫持，从网址A做一个302重定向到网址B时，主机服务器的隐含意思是网址A随时有可能改主意，重新显示本身的内容或转向其他的地方。大部分的搜索引擎在大部分情况下，当收到302重定向时，一般只要去抓取目标网址就可以了，也就是说网址B。如果搜索引擎在遇到302转向时，百分之百的都抓取目标网址B的话，就不用担心网址URL劫持了。问题就在于，有的时候搜索引擎，尤其是Google，并不能总是抓取目标网址。比如说，有的时候A网址很短，但是它做了一个302重定向到B网址，而B网址是一个很长的乱七八糟的URL网址，甚至还有可能包含一些问号之类的参数。很自然的，A网址更加用户友好，而B网址既难看，又不用户友好。这时Google很有可能会仍然显示网址A。由于搜索引擎排名算法只是程序而不是人，在遇到302重定向的时候，并不能像人一样的去准确判定哪一个网址更适当，这就造成了网址URL劫持的可能性。也就是说，一个不道德的人在他自己的网址A做一个302重定向到你的网址B，出于某种原因，Google搜索结果所显示的仍然是网址A，但是所用的网页内容却是你的网址B上的内容，这种情况就叫做网址URL劫持。
 简单理解是，从网站A（网站比较烂）上做了一个302跳转到网站B（搜索排名很靠前），这时候有时搜索引擎会使用网站B的内容，但却收录了网站A的地址，这样在不知不觉间，网站B在为网站A作贡献，网站A的排名就靠前了。
 
+# 设计模式
+
+1.单例模式有几种写法
+
+(1)饱汉模式：第一次使用的时候再初始化，即“懒加载”。存在线程不安全问题。
+可能解决方案：
+(a)静态方法getInstance上增加synchronized。
+(b)getInstance方法中外层套了一层check，加上synchronized内层的check，即所谓“双重检查锁”（Double Check Lock，简称DCL）。DCL仍然是线程不安全的，由于指令重排序，你可能会得到“半个对象”，即”部分初始化“问题，一部分域被初始化了。
+(c)DCL 2.0，在instance上增加了volatile关键字。
+(2)饿汉模式：类加载时初始化单例，以后访问时直接返回即可。
+(3)Holder模式：通过静态的Holder类持有真正实例，间接实现了懒加载。
+(4)枚举模式：本质上和饿汉模式相同，区别仅在于公有的静态成员变量。
+
+N.参考
+
+(1)[单例模式有几种写法？](https://mp.weixin.qq.com/s/oltq10YKd_6pm4saqkOthA)
+
 # 综合参考
 
 1.[Java最常见的200+面试题及自己梳理的答案--面试必备（一）](https://www.cnblogs.com/cocoxu1992/p/10460251.html)
 
 2.[久伴_不离](https://www.jianshu.com/u/837b81b0eaa9)	
-
-公众号文章到2。
