@@ -534,6 +534,11 @@ Java虚拟机规范规定，Java堆可以处在物理上不连续的内存空间
 栈使用的是一级缓存， 他们通常都是被调用时处于存储空间中，调用完毕立即释放。
 堆则是存放在二级缓存中，生命周期由虚拟机的垃圾回收算法来决定（并不是一旦成为孤儿对象就能被回收）。所以调用这些对象的速度要相对来得低一些。
 
+4.Minor GC与Full GC
+
+Minor GC:指发生在新生代的垃圾收集动作，主要是由于Eden区域不够分配了。大多数Java对象都是朝生夕灭，所以Minor GC是非常频繁的，一般回收速度也比较快。
+Full GC:主要指新生代、老年代、metaspace上的全部GC。
+
 N.参考
 
 (1)[讲一讲JVM的组成](https://www.cnblogs.com/vipstone/p/10681211.html)
@@ -603,6 +608,47 @@ select version();
 (1)自增id，往一个库的一个表里插入一条没什么业务含义的数据，然后获取一个数据库自增的一个id。拿到这个id之后再往对应的分库分表里去写入。不适合高并发场景。
 (2)设置数据库sequence或者表的自增字段步长来进行水平伸缩。比如说，现在有8个服务节点，每个服务节点使用一个sequence功能来产生ID，每个sequence的起始ID不同，并且依次递增，步长都是8。
 (3)snowflake算法:开源的分布式id生成算法，是把一个 64 位的long型的id，1个bit 是不用的，用其中的41bit作为毫秒数，用10bit作为工作机器id，12bit作为序列号。
+
+9.MySQL查询字段区不区分大小写，如果区分
+
+不区分。区分方法：
+(1)创建表时，直接设置表的collate属性为utf8_general_cs或者utf8_bin；如果已经创建表，则直接修改字段的Collation属性为utf8_general_cs或者utf8_bin。
+(2)修改SQL语句
+
+    -- 在每一个条件前加上binary关键字
+    select * from user where binary username = 'admin' and binary password = 'admin';
+
+    -- 将参数以binary('')包围
+    select * from user where username like binary('admin') and password like binary('admin');
+
+10.MySQL innod有多少种日志
+
+(1)错误日志：记录出错信息，也记录一些警告信息或者正确的信息。
+(2)查询日志：记录所有对数据库请求的信息，不论这些请求是否得到了正确的执行。
+(3)慢查询日志：设置一个阈值，将运行时间超过该值的所有SQL语句都记录到慢查询的日志文件中。
+(4)二进制日志：记录对数据库执行更改的所有操作。
+(5)中继日志：中继日志也是二进制日志，用来给slave库恢复
+(6)事务日志：重做日志redo和回滚日志undo
+
+11.事务是如何通过日志来实现的
+   
+事务日志是通过redo和innodb的存储引擎日志缓冲（Innodb log buffer）来实现的，当开始一个事务的时候，会记录该事务的lsn(log sequence number)号;
+当事务执行时，会往InnoDB存储引擎的日志的日志缓存里面插入事务日志；
+当事务提交时，必须将存储引擎的日志缓冲写入磁盘（通过innodb_flush_log_at_trx_commit来控制），也就是写数据前，需要先写日志。这种方式称为“预写日志方式”
+
+12.MySQL binlog的几种日志录入格式以及区别
+
+(1)Statement：每一条会修改数据的sql都会记录在binlog中。
+优点：不需要记录每一行的变化，减少了binlog日志量，节约了IO，提高性能。相比row能节约多少性能 与日志量，这个取决于应用的SQL情况，正常同一条记录修改或者插入row格式所产生的日志量还小于Statement产生的日志量，但是考虑到如果带条件的update操作，以及整表删除，alter表等操作，ROW格式会产生大量日志，因此在考虑是否使用ROW格式日志时应该根据应用的实际情况，其所产生的日志量会增加多少，以及带来的IO性能问题。
+缺点：由于记录的只是执行语句，为了这些语句能在slave上正确运行，因此还必须记录每条语句在执行的时候的一些相关信息，以保证所有语句能在slave得到和在master端执行时候相同的结果。
+另外mysql的复制,像一些特定函数功能，slave可与master上要保持一致会有很多相关问题(如sleep()函数， last_insert_id()，以及user-defined functions(udf)会出现问题)。
+   
+(2)Row:不记录sql语句上下文相关信息，仅保存哪条记录被修改。
+优点：binlog中可以不记录执行的sql语句的上下文相关的信息，仅需要记录那一条记录被修改成什么了。所以rowlevel的日志内容会非常清楚的记录下每一行数据修改的细节。而且不会出现某些特定情况下的存储过程，或function，以及trigger的调用和触发无法被正确复制的问题
+缺点：所有的执行的语句当记录到日志中的时候，都将以每行记录的修改来记录，这样可能会产生大量的日志内容。比如一条update语句，修改多条记录，则binlog中每一条修改都会有记录，这样造成binlog日志量会很大，特别是当执行alter table之类的语句的时候，由于表结构修改，每条记录都发生改变，那么该表每一条记录都会记录到日志中。
+   
+(3)Mixedlevel: 以上两种level的混合使用。一般的语句修改使用statment格式保存binlog，如一些函数，statement无法完成主从复制的操作，则采用row格式保存binlog,MySQL会根据执行的每一条具体的sql语句来区分对待记录的日志形式，也就是在Statement和Row之间选择一种。
+新版本的MySQL中对row level模式也被做了优化，并不是所有的修改都会以row level来记录，像遇到表结构变更的时候就会以statement模式来记录。至于update或者delete等修改数据的语句，还是会记录所有行的变更。
 
 N.参考
 
@@ -862,4 +908,4 @@ N.参考
 
 2.[久伴_不离](https://www.jianshu.com/u/837b81b0eaa9)	
 
-公众号文章到25
+公众号文章到26
