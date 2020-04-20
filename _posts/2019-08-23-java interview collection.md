@@ -885,81 +885,59 @@ FOLLOWING：leader已经选举出来，当前Server与之同步。
 
 当leader崩溃或者leader失去大多数的follower，这时zk进入恢复模式，恢复模式需要重新选举出一个新的leader，让所有的Server都恢复到一个正确的状态。Zk的选举算法有两种：一种是基于basic paxos实现的，另外一种是基于fast paxos算法实现的。系统默认的选举算法为fast paxos。
 
-basic paxos：
+basic paxos:
 (1)选举线程由当前Server发起选举的线程担任，其主要功能是对投票结果进行统计，并选出推荐的Server；
 (2)选举线程首先向所有Server发起一次询问(包括自己)；
 (3)选举线程收到回复后，验证是否是自己发起的询问(验证zxid是否一致)，然后获取对方的id(myid)，并存储到当前询问对象列表中，最后获取对方提议的leader相关信息(id,zxid)，并将这些信息存储到当次选举的投票记录表中；
 (4)收到所有Server回复以后，就计算出zxid最大的那个Server，并将这个Server相关信息设置成下一次要投票的Server；
 (5)线程将当前zxid最大的Server设置为当前Server要推荐的Leader，如果此时获胜的Server获得n/2 + 1的Server票数，设置当前推荐的leader为获胜的Server，将根据获胜的Server相关信息设置自己的状态，否则，继续这个过程，直到leader被选举出来。通过流程分析我们可以得出：要使Leader获得多数Server的支持，则Server总数必须是奇数2n+1，且存活的Server的数目不得少于n+1. 每个Server启动后都会重复以上流程。在恢复模式下，如果是刚从崩溃状态恢复的或者刚启动的server还会从磁盘快照中恢复数据和会话信息，zk会记录事务日志并定期进行快照，方便在恢复时进行状态恢复。
 
+fast paxos:
+在选举过程中，某Server首先向所有Server提议自己要成为leader，当其它Server收到提议以后，解决epoch和zxid的冲突，并接受对方的提议，然后向对方发送接受提议完成的消息，重复这个流程，最后一定能选举出Leader。
 
-
-2、Zookeeper选主流程(basic paxos)
-
-fast paxos流程是在选举过程中，某Server首先向所有Server提议自己要成为leader，当其它Server收到提议以后，解决epoch和 zxid的冲突，并接受对方的提议，然后向对方发送接受提议完成的消息，重复这个流程，最后一定能选举出Leader。
-
-
-
-18.Zookeeper同步流程
+12.Zookeeper同步流程
 
 选完Leader以后，zk就进入状态同步过程。
 
-Leader等待server连接；
-Follower连接leader，将最大的zxid发送给leader；
-Leader根据follower的zxid确定同步点；
-完成同步后通知follower 已经成为uptodate状态；
-Follower收到uptodate消息后，又可以重新接受client的请求进行服务了。
-19.分布式通知和协调
+(1)Leader等待server连接；
+(2)Follower连接leader，将最大的zxid发送给leader；
+(3)Leader根据follower的zxid确定同步点；
+(4)完成同步后通知follower已经成为uptodate状态；
+(5)Follower收到uptodate消息后，又可以重新接受client的请求进行服务了。
+
+13.分布式通知和协调
 
 对于系统调度来说：操作人员发送通知实际是通过控制台改变某个节点的状态，然后zk将这些变化发送给注册了这个节点的watcher的所有客户端。
-
 对于执行情况汇报：每个工作进程都在某个目录下创建一个临时节点。并携带工作的进度数据，这样汇总的进程可以监控目录子节点的变化获得工作进度的实时的全局情况。
 
-
-
-20.机器中为什么会有leader？
+14.机器中为什么会有leader？
 
 在分布式环境中，有些业务逻辑只需要集群中的某一台机器进行执行，其他的机器可以共享这个结果，这样可以大大减少重复计算，提高性能，于是就需要进行leader选举。
 
-21.zk节点宕机如何处理？
+15.zk节点宕机如何处理？
 
 Zookeeper本身也是集群，推荐配置不少于3个服务器。Zookeeper自身也要保证当一个节点宕机时，其他节点会继续提供服务。
-
 如果是一个Follower宕机，还有2台服务器提供访问，因为Zookeeper上的数据是有多个副本的，数据并不会丢失；
+如果是一个Leader宕机，Zookeeper会选举出新的Leader。ZK集群的机制是只要超过半数的节点正常，集群就能正常提供服务。只有在ZK节点挂得太多，只剩一半或不到一半节点能工作，集群才失效。
+所以3个节点的cluster可以挂掉1个节点(leader可以得到2票>1.5)。2个节点的cluster就不能挂掉任何1个节点了(leader可以得到1票<=1)
 
-如果是一个Leader宕机，Zookeeper会选举出新的Leader。
+16.zookeeper负载均衡和nginx负载均衡区别
 
-ZK集群的机制是只要超过半数的节点正常，集群就能正常提供服务。只有在ZK节点挂得太多，只剩一半或不到一半节点能工作，集群才失效。
+zookeeper:不存在单点问题，zab机制保证单点故障可重新选举一个leader。只负责服务的注册与发现，不负责转发，减少一次数据交换（消费方与服务方直接通信）。需要自己实现相应的负载均衡算法。
+nginx:存在单点问题，单点负载高数据量大。每次负载，都充当一次中间人转发角色，增加网络负载量（消费方与服务方间接通信）。自带负载均衡算法。
 
-所以
+17.zookeeper watch机制
 
-3个节点的cluster可以挂掉1个节点(leader可以得到2票>1.5)
-2个节点的cluster就不能挂掉任何1个节点了(leader可以得到1票<=1)
-22.zookeeper负载均衡和nginx负载均衡区别
+Watch机制官方声明：一个Watch事件是一个一次性的触发器，当被设置了Watch的数据发生了改变的时候，则服务器将这个改变发送给设置了Watch的客户端，以便通知它们。Zookeeper机制的特点：
 
-zk的负载均衡是可以调控，nginx只是能调权重，其他需要可控的都需要自己写插件；但是nginx的吞吐量比zk大很多，应该说按业务选择用哪种方式。
-
-23.zookeeper watch机制
-
-Watch机制官方声明：一个Watch事件是一个一次性的触发器，当被设置了Watch的数据发生了改变的时候，则服务器将这个改变发送给设置了Watch的客户端，以便通知它们。
-
-Zookeeper机制的特点：
-
-1、一次性触发数据发生改变时，一个watcher event会被发送到client，但是client只会收到一次这样的信息。
-
-2、watcher event异步发送watcher的通知事件从server发送到client是异步的，这就存在一个问题，不同的客户端和服务器之间通过socket进行通信，由于网络延迟或其他因素导致客户端在不通的时刻监听到事件，由于Zookeeper本身提供了ordering guarantee，即客户端监听事件后，才会感知它所监视znode发生了变化。所以我们使用Zookeeper不能期望能够监控到节点每次的变化。Zookeeper只能保证最终的一致性，而无法保证强一致性。
-
-3、数据监视Zookeeper有数据监视和子数据监视getdata() and exists()设置数据监视，getchildren()设置了子节点监视。
-
-4、注册watcher getData、exists、getChildren
-
-5、触发watcher create、delete、setData
-
-6、setData()会触发znode上设置的data watch（如果set成功的话）。一个成功的create() 操作会触发被创建的znode上的数据watch，以及其父节点上的child watch。而一个成功的delete()操作将会同时触发一个znode的data watch和child watch（因为这样就没有子节点了），同时也会触发其父节点的child watch。
-
-7、当一个客户端连接到一个新的服务器上时，watch将会被以任意会话事件触发。当与一个服务器失去连接的时候，是无法接收到watch的。而当client重新连接时，如果需要的话，所有先前注册过的watch，都会被重新注册。通常这是完全透明的。只有在一个特殊情况下，watch可能会丢失：对于一个未创建的znode的exist watch，如果在客户端断开连接期间被创建了，并且随后在客户端连接上之前又删除了，这种情况下，这个watch事件可能会被丢失。
-
-8、Watch是轻量级的，其实就是本地JVM的Callback，服务器端只是存了是否有设置了Watcher的布尔类型
+(1)一次性触发数据发生改变时，一个watcher event会被发送到client，但是client只会收到一次这样的信息。
+(2)watcher event异步发送watcher的通知事件从server发送到client是异步的，这就存在一个问题，不同的客户端和服务器之间通过socket进行通信，由于网络延迟或其他因素导致客户端在不通的时刻监听到事件，由于Zookeeper本身提供了ordering guarantee，即客户端监听事件后，才会感知它所监视znode发生了变化。所以我们使用Zookeeper不能期望能够监控到节点每次的变化。Zookeeper只能保证最终的一致性，而无法保证强一致性。
+(3)数据监视Zookeeper有数据监视和子数据监视。getdata() and exists()设置数据监视，getchildren()设置了子节点监视。
+(4)注册watcher getData、exists、getChildren
+(5)触发watcher create、delete、setData
+(6)setData()会触发znode上设置的data watch（如果set成功的话）。一个成功的create() 操作会触发被创建的znode上的数据watch，以及其父节点上的child watch。而一个成功的delete()操作将会同时触发一个znode的data watch和child watch（因为这样就没有子节点了），同时也会触发其父节点的child watch。
+(7)当一个客户端连接到一个新的服务器上时，watch将会被以任意会话事件触发。当与一个服务器失去连接的时候，是无法接收到watch的。而当client重新连接时，如果需要的话，所有先前注册过的watch，都会被重新注册。通常这是完全透明的。只有在一个特殊情况下，watch可能会丢失：对于一个未创建的znode的exist watch，如果在客户端断开连接期间被创建了，并且随后在客户端连接上之前又删除了，这种情况下，这个watch事件可能会被丢失。
+(8)Watch是轻量级的，其实就是本地JVM的Callback，服务器端只是存了是否有设置了Watcher的布尔类型
 
 N.参考
 
