@@ -390,6 +390,43 @@ N.参考
 
 监视器和锁在Java虚拟机中是一块使用的。监视器监视一块同步代码块，确保一次只有一个线程执行同步代码块。每一个监视器都和一个对象引用相关联。线程在获取锁之前不允许执行同步代码。java还提供了显式监视器(Lock)和隐式监视器(synchronized)两种锁方案。
 
+9.线程池的好处
+
+(1)线程池的重用:线程的创建和销毁的开销是巨大的，而通过线程池的重用大大减少了这些不必要的开销，当然既然少了这么多消费内存的开销，其线程执行速度也是突飞猛进的提升。
+(2)控制线程池的并发数:控制线程池的并发数可以有效的避免大量的线程池争夺CPU资源而造成堵塞。
+(3)线程池可以对线程进行管理:线程池可以提供定时、定期、单线程、并发数控制等功能。
+
+10.具体线程池
+
+(1)ThreadPoolExecutor，构造函数如下
+
+    public ThreadPoolExecutor(int corePoolSize,  
+                              int maximumPoolSize,  
+                              long keepAliveTime,  
+                              TimeUnit unit,  
+                              BlockingQueue<Runnable> workQueue,  
+                              ThreadFactory threadFactory,  
+                              RejectedExecutionHandler handler)
+                               
+七个参数的含义：
+corePoolSize 线程池中核心线程的数量；
+maximumPoolSize 线程池中最大线程数量；
+keepAliveTime 非核心线程的超时时长，当系统中非核心线程闲置时间超过keepAliveTime之后，则会被回收。如果ThreadPoolExecutor的allowCoreThreadTimeOut属性设置为true，则该参数也表示核心线程的超时时长；
+unit 第三个参数的单位，有纳秒、微秒、毫秒、秒、分、时、天等；
+workQueue 线程池中的任务队列，该队列主要用来存储已经被提交但是尚未执行的任务。存储在这里的任务是由ThreadPoolExecutor的execute方法提交来的。
+threadFactory 为线程池提供创建新线程的功能，这个我们一般使用默认即可；
+handler 拒绝策略，当线程无法执行新任务时（一般是由于线程池中的线程数量已经达到最大数或者线程池关闭导致的），默认情况下，当线程池无法处理新线程时，会抛出一个RejectedExecutionException。
+
+当currentSize<corePoolSize时，没什么好说的，直接启动一个核心线程并执行任务。
+当currentSize>=corePoolSize、并且workQueue未满时，添加进来的任务会被安排到workQueue中等待执行。
+当workQueue已满，但是currentSize<maximumPoolSize时，会立即开启一个非核心线程来执行任务。
+当currentSize>=corePoolSize、workQueue已满、并且currentSize>maximumPoolSize时，调用handler默认抛出RejectExecutionExpection异常。
+
+(2)FixedThreadPool:Fixed中文解释为固定。结合在一起解释固定的线程池，说的更全面点就是，有固定数量线程的线程池。其corePoolSize=maximumPoolSize，且keepAliveTime为0，适合线程稳定的场所。
+(3)SingleThreadPool:Single中文解释为单一。结合在一起解释单一的线程池，说的更全面点就是，有固定数量线程的线程池，且数量为一，从数学的角度来看SingleThreadPool应该属于FixedThreadPool的子集。其corePoolSize=maximumPoolSize=1,且keepAliveTime为0，适合线程同步操作的场所。
+(4)CachedThreadPool:Cached中文解释为储存。结合在一起解释储存的线程池，说的更通俗易懂，既然要储存，其容量肯定是很大，所以他的corePoolSize=0，maximumPoolSize=Integer.MAX_VALUE(2^32-1一个很大的数字)
+(5)ScheduledThreadPool:Scheduled中文解释为计划。结合在一起解释计划的线程池，顾名思义既然涉及到计划，必然会涉及到时间。所以ScheduledThreadPool是一个具有定时定期执行任务功能的线程池。
+
 N.参考
 
 (1)[线程进程区别](https://www.cnblogs.com/toria/p/11123130.html)
