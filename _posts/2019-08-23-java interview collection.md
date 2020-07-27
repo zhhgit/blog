@@ -467,6 +467,15 @@ Spring Cloud是构建在Spring Boot之上的服务治理框架。
 (10)当Bean不再需要时，会经过清理阶段，如果Bean实现了DisposableBean这个接口，会调用那个其实现的destroy()方法；
 (11)最后，如果这个Bean的Spring配置中配置了destroy-method属性，会自动调用其配置的销毁方法。
 
+4.Spring Boot特征
+
+(1)创建独立的Spring应用。
+(2)嵌入式Tomcat、 Jetty、 Undertow容器（无需部署war文件）。
+(3)提供的starters简化构建配置。
+(4)尽可能自动配置 spring应用。
+(5)提供生产指标,例如指标、健壮检查和外部化配置。
+(6)完全没有代码生成和XML配置要求。
+
 N.参考
 
 (1)[Spring 官网](https://docs.spring.io/spring/docs/current/spring-framework-reference/index.html)
