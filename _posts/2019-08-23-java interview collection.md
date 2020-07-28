@@ -23,6 +23,28 @@ tags: [Resources]
 
 (1)Math.round()计算方法为先+0.5，然后向下取整。
 
+(2)Java中float的精度为6-7位有效数字。double的精度为15-16位。我们在使用BigDecimal时，使用它的BigDecimal(String)构造器创建对象才有意义。其他的如BigDecimal b = new BigDecimal(1)这种，还是会发生精度丢失的问题。
+所以我们一般使用BigDecimal来解决商业运算上丢失精度的问题的时候，声明BigDecimal对象的时候一定要使用它构造参数为String的类型的构造器。
+同时这个原则Effective Java和MySQL 必知必会中也都有提及。float和double只能用来做科学计算和工程计算。商业运算中我们要使用BigDecimal。
+
+    构造器                   描述
+    BigDecimal(int)       创建一个具有参数所指定整数值的对象。
+    BigDecimal(double)    创建一个具有参数所指定双精度值的对象。
+    BigDecimal(long)      创建一个具有参数所指定长整数值的对象。
+    BigDecimal(String)    创建一个具有参数所指定以字符串表示的数值的对象。
+    
+    函数：
+    方法                    描述
+    add(BigDecimal)       BigDecimal对象中的值相加，然后返回这个对象。
+    subtract(BigDecimal)  BigDecimal对象中的值相减，然后返回这个对象。
+    multiply(BigDecimal)  BigDecimal对象中的值相乘，然后返回这个对象。
+    divide(BigDecimal)    BigDecimal对象中的值相除，然后返回这个对象。
+    toString()            将BigDecimal对象的数值转换成字符串。
+    doubleValue()         将BigDecimal对象中的值以双精度数返回。
+    floatValue()          将BigDecimal对象中的值以单精度数返回。
+    longValue()           将BigDecimal对象中的值以长整数返回。
+    intValue()            将BigDecimal对象中的值以整数返回。
+    
 3.字符串
 
 (1)反转：(a)字符数组反向拼接；(b)递归；(c)StringBuffer的reverse()方法
