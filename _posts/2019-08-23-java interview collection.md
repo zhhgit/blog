@@ -741,27 +741,28 @@ N.参考
 
 # Redis
 
-1.key/value单线程非关系型数据库、NoSQL、不支持事务、高并发、内存存储、支持持久化。
+1.key/value单线程非关系型数据库、NoSQL、不支持事务(流水线支持事务！)、高并发、内存存储、支持持久化。
 
-2.应用场景：(1)定时器、计数器；(2)发布、订阅消息系统；
+2.应用场景：(1)定时器、计数器；(2)发布、订阅消息系统；(3)缓存
 
-3.数据结构：
+3.数据结构，常用的共有5种；
 
 (1)字符串string
 (a)存SET key value EX PX NX|XX，EX设置过期时间单位秒，PX设置过期时间单位毫秒，NX只有键key不存在的时候才会设置key的值，XX只有键key存在的时候才会设置key的值。
 (b)取GET key
 
 (2)散列hash
-(a)hgetall key；hget key field；
-(b)hexist key field
-(c)hset key field
-(d)hdel key field
+(a)hgetall key；
+(b)hget key field；
+(c)hexist key field
+(d)hset key field value
+(e)hdel key field
 
 (3)列表list
 (a)lpop key；lpush key value；rpop key；rpush key value；
-(b)lrange start end 返回存储在key的列表里指定范围内的元素。
+(b)lrange start end 返回存储在key的列表里指定范围内的元素。start,end为索引序号。
 (c)lindex key index 返回列表里的元素的索引index存储在key里面。 
-(d)linsert key before|after pivot value 把value插入存于ke 的列表中在基准值pivot的前面或后面。
+(d)linsert key before|after pivot value 把value插入存于key的列表中在基准值pivot的前面或后面。
 
 (4)集合set
 (a)sadd key member
@@ -863,6 +864,8 @@ N.参考
 (2)[Redis持久化 - RDB和AOF](https://segmentfault.com/a/1190000016021217)
 
 (3)[Redis分布式锁的正确实现方式（Java版）](https://blog.csdn.net/yb223731/article/details/90349502)
+
+(4)[【99期】中高级开发面试必问的Redis，看这篇就够了！](https://mp.weixin.qq.com/s?__biz=MzIyNDU2ODA4OQ==&mid=2247484524&idx=1&sn=7ae13d7805f70592245464a7d9512e57&chksm=e80db21adf7a3b0c6b7c8e1367f4c9e772666e1e764a00ad2f4771c87520fdeff68da57f5f07&scene=21#wechat_redirect)
 
 # ZooKeeper
 
