@@ -203,9 +203,10 @@ Asynchronous I/O：用户进程发起read操作之后，立刻就可以开始去
 Collection是一个集合接口。它提供了对集合对象进行基本操作的通用接口方法。Collection接口在Java类库中有很多具体的实现。Collection接口的意义是为各种具体的集合提供了最大化的统一操作方式，其直接继承接口有List与Set。
 Collections则是集合类的一个工具类，其中提供了一系列静态方法，用于对集合中元素进行排序、搜索以及线程安全等各种操作。
 常见的函数
-sort(Collection),shuffle(Collection),reverse(Collection),
-fill(Collection,Object),copy(List, List),rotate(Collection,int),swap(List,int,int),
-indexOfSublist(List,List),lastIndexOfSublist(List,List),max(Collection,Comparator),min(Collection,Comparator)
+
+    sort(Collection),shuffle(Collection),reverse(Collection),
+    fill(Collection,Object),copy(List, List),rotate(Collection,int),swap(List,int,int),
+    indexOfSublist(List,List),lastIndexOfSublist(List,List),max(Collection,Comparator),min(Collection,Comparator)
 
 3.HashMap与TreeMap
 
