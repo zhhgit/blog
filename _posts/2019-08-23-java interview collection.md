@@ -85,7 +85,7 @@ N.参考
 # IO
 
 1.InputStream：
-三种基本的介质流ByteArrayInputStream,StringBufferInputStream,FileInputStream，它们分别从Byte数组、StringBuffer、和本地文件中读取数据。
+三种基本的介质流ByteArrayInputStream，StringBufferInputStream，FileInputStream，它们分别从Byte数组、StringBuffer、和本地文件中读取数据。
 PipedInputStream从与其它线程共用的管道中读取数据。
 ObjectInputStream和所有FilterInputStream的子类都是装饰流。
 FilterInputStream子类包括BufferedInputStream能为输入流提供缓冲区，DataInputStream可以从输入流中读取Java基本类型数据，PushBackInputStream可以把读取到的字节重新推回到InputStream中。
@@ -280,7 +280,8 @@ N.参考
 
 3.字节码实例
 
-bype/char/short/int/long/boolean/float/double.class及void.class
+bype/char/short/int/long
+/boolean/float/double.class及void.class
 数组int[].class及String[].class
 对象MyObject.class
 
