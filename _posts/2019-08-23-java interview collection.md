@@ -349,7 +349,42 @@ N.参考
 1.throw和throws的区别？
 (1)throws出现在方法函数头；而throw出现在函数体。
 (2)throws表示出现异常的一种可能性，并不一定会发生这些异常；throw则是抛出了异常，执行throw则一定抛出了某种异常对象。
-(3)两者都是消极处理异常的方式（这里的消极并不是说这种方式不好），只是抛出或者可能抛出异常，但是不会由函数去处理异常，真正的处理异常由函数的上层调用处理。
+(3)两者都是消极处理异常的方式，只是抛出或者可能抛出异常，但是不会由函数去处理异常，真正的处理异常由函数的上层调用处理。
+
+2.非受检异常和受检异常之间的区别：是否强制要求调用者必须处理此异常，如果强制要求调用者必须进行处理，那么就使用受检异常，否则就选择非受检异常(RuntimeException)。
+函数定义中throwsArithmeticException异常，调用时未try...catch...，能否编译通过？改为IOException能否编译通过？ArithmeticException是继承RuntimeException运行时异常。Java编译器不要求一定要把它捕获或者一定要继续抛出。IOException属于检查异常，对检查异常要求必须要在方法里面捕获或者继续抛出。
+
+3.异常的处理方式：
+(1)捕获并处理：在异常的代码附近用try/catch进行处理,运行时系统捕获后会查询相应的catch处理块，再catch处理块中对该异常进行处理。
+(2)查看发生异常的方法是否有向上声明异常，有向上声明，向上级查询处理语句，如果没有向上声明，JVM中断程序的运行并处理。用throws向外声明。throws可以声明方法可能会抛出一个或多个异常，异常之间用'，'隔开。
+
+1.异常的分类：
+
+Throwable是所有错误与异常的超类。
+
+(1)Error错误：表示运行应用程序中出现了严重的错误。程序人员不用处理。按照Java惯例不应该实现任何新的Error子类的！例如StackOverFlowError, OutOfMemoryError。
+(2)Exception异常：程序本身可以捕获并且可以处理的异常。
+(2-1)RuntimeException:也叫非受检异常(unchecked exception)。这类异常是编程人员的逻辑问题。应该承担责任。
+Java编译器不会检查它，也就是说当程序中可能出现这类异常时，倘若既没有通过throws声明抛出它，也没有用try-catch语句捕获它，还是会编译通过。
+例如NullPointerException,ClassCastException,ArrayIndexsOutOfBoundsException,ArithmeticException(算术异常，除0溢出)。
+(2-2)非RuntimeException:也叫受检异常(checked exception)。这类异常是由一些外部的偶然因素所引起的。
+Java编译器会检查它。如果程序中出现此类异常，要么通过throws进行声明抛出，要么通过try-catch进行捕获处理，否则不能通过编译。
+例如Exception,FileNotFoundException,IOException,SQLException。
+
+6.自定义异常：当需要一些跟特定业务相关的异常信息类时。可以继承继承Exception来定义一个受检异常。也可以继承自RuntimeException或其子类来定义一个非受检异常。
+
+7.finally:即使catch中包含了return语句，finally子句依然会执行。若finally中也包含return语句，finally中的return会覆盖前面的return。
+
+8.JAVA 7提供了更优雅的方式来实现资源的自动释放，自动释放的资源需要是实现了AutoCloseable接口的类。try代码块退出时，会自动调用scanner.close方法，和把scanner.close方法放在finally代码块中不同的是，若scanner.close抛出异常，则会被抑制，抛出的仍然为原始异常。
+
+    private  static void tryWithResourceTest(){
+        try (Scanner scanner = new Scanner(new FileInputStream("c:/abc"),"UTF-8")){
+            // code
+        } catch (IOException e){
+            // handle exception
+        }
+    }
+
 
 # 多线程
 
