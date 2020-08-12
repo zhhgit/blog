@@ -370,7 +370,7 @@ Java编译器不会检查它，也就是说当程序中可能出现这类异常�
 例如NullPointerException，ClassCastException，ArrayIndexsOutOfBoundsException，ArithmeticException(算术异常，除0溢出)。
 (2-2)非RuntimeException:也叫受检异常(checked exception)。这类异常是由一些外部的偶然因素所引起的。
 Java编译器会检查它。如果程序中出现此类异常，要么通过throws进行声明抛出，要么通过try-catch进行捕获处理，否则不能通过编译。
-例如Exception,FileNotFoundException,IOException,SQLException。
+例如Exception，FileNotFoundException，IOException，SQLException。
 
 6.自定义异常：当需要一些跟特定业务相关的异常信息类时。可以继承继承Exception来定义一个受检异常。也可以继承自RuntimeException或其子类来定义一个非受检异常。
 
