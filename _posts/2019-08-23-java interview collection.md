@@ -366,7 +366,7 @@ Throwable是所有错误与异常的超类。
 (2)Exception异常：程序本身可以捕获并且可以处理的异常。
 (2-1)RuntimeException:也叫非受检异常(unchecked exception)。这类异常是编程人员的逻辑问题。应该承担责任。
 Java编译器不会检查它，也就是说当程序中可能出现这类异常时，倘若既没有通过throws声明抛出它，也没有用try-catch语句捕获它，还是会编译通过。
-例如NullPointerException,ClassCastException,ArrayIndexsOutOfBoundsException,ArithmeticException(算术异常，除0溢出)。
+例如NullPointerException，ClassCastException，ArrayIndexsOutOfBoundsException，ArithmeticException(算术异常，除0溢出)。
 (2-2)非RuntimeException:也叫受检异常(checked exception)。这类异常是由一些外部的偶然因素所引起的。
 Java编译器会检查它。如果程序中出现此类异常，要么通过throws进行声明抛出，要么通过try-catch进行捕获处理，否则不能通过编译。
 例如Exception,FileNotFoundException,IOException,SQLException。
