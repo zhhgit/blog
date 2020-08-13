@@ -630,6 +630,7 @@ N.参考
 # Spring
 
 1.使用Spring的好处和原因
+
 (1)低侵入式设计，代码污染极低。
 (2)独立于各种应用服务器，基于Spring框架的应用，可以真正实现Write Once,Run Anywhere的承诺。
 (3)Spring的DI机制降低了业务对象替换的复杂性，提高了组件之间的解耦。IOC（控制反转）创建对象不是通过new方式来实现，而是交给Spring配置来创建对象。
@@ -637,14 +638,7 @@ N.参考
 (5)Spring的ORM和DAO提供了与第三方持久层框架的良好整合，并简化了底层的数据库访问。
 (6)Spring并不强制应用完全依赖于Spring，开发者可自由选用Spring框架的部分或全部。Spring是开源的轻量级一站式框架，内部支持对多种优秀开源框架的集成。
 
-2.Spring，SpringMVC，SpringBoot，SpringCloud的区别和联系
-
-Spring是核心，提供了基础功能。
-Spring MVC是基于Spring的一个MVC框架。
-Spring Boot是为简化Spring配置的快速开发整合包。
-Spring Cloud是构建在Spring Boot之上的服务治理框架。
-
-3.Spring Bean的生命周期
+2.Spring Bean的生命周期
 
 (1)实例化一个Bean－－也就是我们常说的new；
 (2)按照Spring上下文对实例化的Bean进行配置－－也就是IOC注入，例如属性；
@@ -659,15 +653,6 @@ Spring Cloud是构建在Spring Boot之上的服务治理框架。
 (10)当Bean不再需要时，会经过清理阶段，如果Bean实现了DisposableBean这个接口，会调用那个其实现的destroy()方法；
 (11)最后，如果这个Bean的Spring配置中配置了destroy-method属性，会自动调用其配置的销毁方法。
 
-4.Spring Boot特征
-
-(1)创建独立的Spring应用。
-(2)嵌入式Tomcat、 Jetty、 Undertow容器（无需部署war文件）。
-(3)提供的starters简化构建配置。
-(4)尽可能自动配置 spring应用。
-(5)提供生产指标,例如指标、健壮检查和外部化配置。
-(6)完全没有代码生成和XML配置要求。
-
 N.参考
 
 (1)[Spring 官网](https://docs.spring.io/spring/docs/current/spring-framework-reference/index.html)
@@ -679,6 +664,30 @@ N.参考
 (4)[详解AOP](https://www.cnblogs.com/xb1223/p/10169220.html)
 
 (5)[面试题思考：解释一下什么叫AOP](https://www.cnblogs.com/songanwei/p/9417343.html)
+
+# Spring Boot
+
+1.Spring，SpringMVC，SpringBoot，SpringCloud的区别和联系
+
+Spring是核心，提供了基础功能。
+Spring MVC是基于Spring的一个MVC框架。
+Spring Boot是为简化Spring配置的快速开发整合包。
+Spring Cloud是构建在Spring Boot之上的服务治理框架。
+
+2.Spring Boot特征
+
+(1)创建独立的Spring应用。
+(2)嵌入式Tomcat、 Jetty、 Undertow容器（无需部署war文件）。
+(3)提供的starters简化构建配置。
+(4)尽可能自动配置 spring应用。
+(5)提供生产指标,例如指标、健壮检查和外部化配置。
+(6)完全没有代码生成和XML配置要求。
+
+3.Spring Boot自动装配过程
+
+SpringBoot在启动的时候从类路径下的META-INF/spring.factories中获取EnableAutoConfiguration指定的值，将这些值作为自动配置类导入容器，自动配置类就生效，帮我们进行自动配置工作。
+以前我们需要自己配置的东西，自动配置类都帮我们解决了。整个J2EE的整体解决方案和自动配置都在springboot-autoconfigure的jar包中。它将所有需要导入的组件以全类名的方式返回，这些组件就会被添加到容器中。
+它会给容器中导入非常多的自动配置类(xxxAutoConfiguration），就是给容器中导入这个场景需要的所有组件，并配置好这些组件。有了自动配置类，免去了我们手动编写配置注入功能组件等的工作。
 
 # Hibernate
 
