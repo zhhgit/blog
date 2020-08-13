@@ -974,14 +974,45 @@ value要具有唯一性，可以使用UUID.randomUUID().toString()方法生成�
 (3)懒惰删除策略:删除指令del会直接释放对象的内存，大部分情况下，这个指令非常快，没有明显延迟。不过如果删除的key是一个非常大的对象，比如一个包含了千万元素的hash，又或者在使用FLUSHDB和FLUSHALL删除包含大量键的数据库时，那么删除操作就会导致单线程卡顿。
 redis 4.0引入了lazyfree的机制，它可以将删除键或数据库的操作放在后台线程里执行，从而尽可能地避免服务器阻塞。
 指令为：unlink key/flushall async
-(4)内存淘汰机制:Redis的内存占用会越来越高。Redis为了限制最大使用内存，提供了redis.conf中的配置参数maxmemory。当内存超出maxmemory，Redis提供了几种内存淘汰机制让用户选择，配置maxmemory-policy：
-          
-    noeviction：当内存超出 maxmemory，写入请求会报错，但是删除和读请求可以继续。（使用这个策略，疯了吧）
+(4)内存淘汰机制:Redis的内存占用会越来越高。Redis为了限制最大使用内存，提供了redis.conf中的配置参数maxmemory设置占用内存大小，如果不设置最大内存大小或者设置最大内存大小为0，在64位操作系统下不限制内存大小，在32位操作系统下最多使用3GB内存。
+
+    //配置文件redis.conf，设置Redis最大占用内存大小为100M
+    maxmemory 100mb
+    // 通过命令配置，设置Redis最大占用内存大小为100M
+    127.0.0.1:6379> config set maxmemory 100mb
+    //获取设置的Redis能使用的最大内存大小
+    127.0.0.1:6379> config get maxmemory
+    
+当内存超出maxmemory，Redis提供了几种内存淘汰机制让用户选择，配置maxmemory-policy。当使用volatile-lru、volatile-random、volatile-ttl这三种策略时，如果没有key可以被淘汰，则和noeviction一样返回错误
+
+    // 配置文件
+    maxmemory-policy allkeys-lru
+    // 获取当前内存淘汰策略
+    127.0.0.1:6379> config get maxmemory-policy
+    // 通过命令修改淘汰策略
+    127.0.0.1:6379> config set maxmemory-policy allkeys-lru
+
+LRU(Least Recently Used)，即最近最少使用，是一种缓存置换算法。在使用内存作为缓存的时候，缓存的大小一般是固定的。当缓存被占满，这个时候继续往缓存里面添加数据，就需要淘汰一部分老的数据，释放内存空间用来存储新的数据。
+这个时候就可以使用LRU算法了。其核心思想是：如果一个数据在最近一段时间没有被用到，那么将来被使用到的可能性也很小，所以就可以被淘汰掉。
+
+    noeviction：当内存超出 maxmemory，写入请求会报错，但是删除和读请求可以继续。默认策略。
     allkeys-lru：当内存超出 maxmemory，在所有的 key 中，移除最少使用的key。只把 Redis 既当缓存是使用这种策略。（推荐）。
     allkeys-random：当内存超出 maxmemory，在所有的 key 中，随机移除某个 key。（应该没人用吧）
     volatile-lru：当内存超出 maxmemory，在设置了过期时间 key 的字典中，移除最少使用的 key。把 Redis 既当缓存，又做持久化的时候使用这种策略。
     volatile-random：当内存超出 maxmemory，在设置了过期时间 key 的字典中，随机移除某个key。
-    volatile-ttl：当内存超出 maxmemory，在设置了过期时间 key 的字典中，优先移除 ttl 小的。
+    volatile-ttl：当内存超出 maxmemory，在设置了过期时间 key 的字典中，根据key的过期时间进行淘汰，越早过期的越优先被淘汰。
+    
+Redis使用的是近似LRU算法，它跟常规的LRU算法还不太一样。近似LRU算法通过随机采样法淘汰数据，每次随机出5（默认）个key，从里面淘汰掉最近最少使用的key。可以通过maxmemory-samples参数修改采样数量。maxmenory-samples配置的越大，淘汰的结果越接近于严格的LRU算法。
+Redis为了实现近似LRU算法，给每个key增加了一个额外增加了一个24bit的字段，用来存储该key最后一次被访问的时间。
+
+    maxmemory-samples 10
+    
+LFU算法是Redis4.0里面新加的一种淘汰策略。它的全称是Least Frequently Used，它的核心思想是根据key的最近被访问的频率进行淘汰，很少被访问的优先被淘汰，被访问的多的则被留下来。
+LFU算法能更好的表示一个key被访问的热度。假如你使用的是LRU算法，一个key很久没有被访问到，只刚刚是偶尔被访问了一次，那么它就被认为是热点数据，不会被淘汰，而有些key将来是很有可能被访问到的则被淘汰了。如果使用LFU算法则不会出现这种情况，因为使用一次并不会使一个key成为热点数据。
+LFU一共有两种策略：
+
+    volatile-lfu：在设置了过期时间的key中使用LFU算法淘汰key
+    allkeys-lfu：在所有的key中使用LFU算法淘汰数据
     
 10.事务
 
