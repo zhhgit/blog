@@ -117,3 +117,5 @@ tags: [Linux]
 # 三、参考
 
 1.[菜鸟Shell教程](https://www.runoob.com/linux/linux-shell.html)
+
+2.[Shell简明教程](https://www.jianshu.com/p/1417b6aef0b2)
