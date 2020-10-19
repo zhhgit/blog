@@ -25,7 +25,7 @@ tags: [Resources]
 
 (2)Java中float的精度为6-7位有效数字。double的精度为15-16位。我们在使用BigDecimal时，使用它的BigDecimal(String)构造器创建对象才有意义。其他的如BigDecimal b = new BigDecimal(1)这种，还是会发生精度丢失的问题。
 所以我们一般使用BigDecimal来解决商业运算上丢失精度的问题的时候，声明BigDecimal对象的时候一定要使用它构造参数为String的类型的构造器。
-同时这个原则Effective Java和MySQL 必知必会中也都有提及。float和double只能用来做科学计算和工程计算。商业运算中我们要使用BigDecimal。
+同时这个原则Effective Java和MySQL必知必会中也都有提及。float和double只能用来做科学计算和工程计算。商业运算中我们要使用BigDecimal。
 
     构造器                   描述
     BigDecimal(int)       创建一个具有参数所指定整数值的对象。
@@ -47,7 +47,9 @@ tags: [Resources]
     
 3.字符串
 
-(1)反转：(a)字符数组反向拼接；(b)递归；(c)StringBuffer的reverse()方法
+(1)反转：(a)字符数组反向拼接；(b)递归；(c)StringBuffer的reverse()方法。
+
+(2)拼接：String类作为java语言中最常见的字符串类被广泛使用，如果在做大量字符串拼接效率时变得比较低，因为虚拟机需要不断地将对象引用指向新的地址。因此，一般方法内的私有变量推荐使用stringBuilder来完成，如果是多线程需要同步的自然选用stringBuffer。
 
 4.抽象
 
@@ -75,6 +77,9 @@ tags: [Resources]
 实现Comparable接口的方式比实现Comparator接口的耦合性要强一些，如果要修改比较算法，要修改Comparable接口的实现类，而实现Comparator的类是在外部进行比较的，不需要对实现类有任何修改。因此：
 对于一些普通的数据类型（比如 String, Integer, Double…），它们默认实现了Comparable接口，实现了compareTo方法，我们可以直接使用。
 而对于一些自定义类，它们可能在不同情况下需要实现不同的比较策略，我们可以新创建Comparator接口，然后使用特定的Comparator实现进行比较。
+
+7.Integer类型当正整数小于128时是在内存栈中创建值的，并将对象指向这个值，这样当比较两个栈引用时因为是同一地址引用两者则相等。
+当大于127时将会调用new Integer()，两个整数对象地址引用不相等了。这就是为什么当值为128时不相等，当值为100时相等了。
 
 N.参考
 
@@ -252,6 +257,31 @@ HashMap是线程不安全的，其主要体现:在jdk1.7中，在多线程环境
 (4)ArrayList的空间浪费主要体现在在list列表的结尾预留一定的容量空间，而LinkedList的空间花费则体现在它的每一个元素都需要消耗相当的空间。
 
 总结：当操作是在一列数据的后面添加数据而不是在前面或中间,并且需要随机地访问其中的元素时,使用ArrayList会有更好的性能；当操作是在一列数据的前面或中间添加或删除数据,并且按照顺序访问其中的元素时,就应该使用LinkedList了。
+
+6.List中删除元素
+
+(1)倒序循环，因为list删除只会导致当前元素之后的元素位置发生改变，所以采用倒序可以保证前面的元素没有变化；
+
+(2)顺序循环时，删除当前位置的值，下一个值就会补到当前位置，所以需要执行i–操作；
+
+(3)注意必须用迭代器的remove()方法，不要用list的remove，不然会发生java.util.ConcurrentModificationException异常。
+
+    if (null != list && list.size() > 0) {
+        Iterator it = list.iterator();  
+        while(it.hasNext()){
+            Student stu = (Student)it.next(); 
+            if (stu.getStudentId() == studentId) {
+                it.remove(); //移除该对象
+            }
+        }
+    }
+    
+7.Arrays.asList()方法返回的ArrayList不是java.util包下的，而是java.util.Arrays.ArrayList，显然它是Arrays类自己定义的一个内部类！这个内部类没有实现add()、remove()方法，而是直接使用它的父类AbstractList的相应方法，抛出UnsupportedOperationException。
+Arrays.asList()返回的ArrayList继承自AbstractList，它仅支持那些不会改变数组大小的操作，所以任何对底层数据结构的尺寸进行修改的方法都会出现异常，Arrays.asList()返回固定尺寸的List。
+  
+如何才能避免这个错误：thinking in java给的解释是：把Arrays.asList()的结果作为构造器的参数传递给任何Collection。
+
+    List<Integer> list = new ArrayList<>(Arrays.asList(1,2,3)); 
 
 N.参考
 
@@ -456,6 +486,13 @@ Java编译器会检查它。如果程序中出现此类异常，要么通过thro
 (1)继承Thread类
 (2)实现Runnable接口
 (3)应用程序可以使用Executor框架来创建线程池
+(4)实现Callable接口，通过如下方式获取线程执行结果
+
+    FutureTask<Boolean> futureTask = new FutureTask<Boolean>(new SubscribeThreadWithResult(product, config));
+    Thread thread = new Thread(futureTask);
+    thread.start();
+    bollean result = futureTask.get();
+    
 
 实现Runnable接口这种方式更受欢迎，因为这不需要继承Thread类。在应用设计中已经继承了别的对象的情况下，这需要多继承（而Java不支持多继承），只能实现接口。同时，线程池也是非常高效的，很容易实现和使用。
 
