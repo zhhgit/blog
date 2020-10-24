@@ -690,6 +690,37 @@ N.参考
 (10)当Bean不再需要时，会经过清理阶段，如果Bean实现了DisposableBean这个接口，会调用那个其实现的destroy()方法；
 (11)最后，如果这个Bean的Spring配置中配置了destroy-method属性，会自动调用其配置的销毁方法。
 
+3.Spring-bean的循环依赖以及解决方式
+
+循环依赖其实就是循环引用，也就是两个或两个以上的bean互相持有对方，最终形成闭环。比如A依赖于B，B依赖于C，C又依赖于A。注意，这里不是函数的循环调用，是对象的相互依赖关系。循环调用其实就是一个死循环，除非有终结条件。
+Spring中循环依赖场景有： （1）构造器的循环依赖 （2）field属性的循环依赖。
+检测循环依赖相对比较容易，Bean在创建的时候可以给该Bean打标，如果递归调用回来发现正在创建中的话，即说明了循环依赖了。
+Spring的循环依赖的理论依据其实是基于Java的引用传递，当我们获取到对象的引用时，对象的field或属性是可以延后设置的(但是构造器必须是在获取引用之前)。
+
+Spring的单例对象的初始化主要分为三步： 
+（1）createBeanInstance：实例化，其实也就是调用对象的构造方法实例化对象
+（2）populateBean：填充属性，这一步主要是对bean的依赖属性进行填充
+（3）initializeBean：调用spring xml中的init方法。
+
+循环依赖主要发生在第一、第二步。也就是构造器循环依赖和field循环依赖。那么我们要解决循环引用也应该从初始化过程着手，对于单例来说，在Spring容器整个生命周期内，有且只有一个对象，所以很容易想到这个对象应该存在Cache中，Spring为了解决单例的循环依赖问题，使用了三级缓存。
+三级缓存主要指：
+
+    //  Cache of singleton objects: bean name --> bean instance 单例对象的cache
+    private final Map<String, Object> singletonObjects = new ConcurrentHashMap<String, Object>(256);
+    
+    //  Cache of early singleton objects: bean name --> bean instance 提前曝光的单例对象的Cache 
+    private final Map<String, Object> earlySingletonObjects = new HashMap<String, Object>(16);
+    
+    // Cache of singleton factories: bean name --> ObjectFactory 单例对象工厂的cache 
+    private final Map<String, ObjectFactory<?>> singletonFactories = new HashMap<String, ObjectFactory<?>>(16);
+    
+分析getSingleton()的整个过程，Spring首先从一级缓存singletonObjects中获取。如果获取不到，并且对象正在创建中，就再从二级缓存earlySingletonObjects中获取。如果还是获取不到且允许singletonFactories通过getObject()获取，就从三级缓存singletonFactory.getObject()(三级缓存)获取。
+如果获取到了则从singletonFactories中移除，并放入earlySingletonObjects中。其实也就是从三级缓存移动到了二级缓存。
+从上面三级缓存的分析，我们可以知道，Spring解决循环依赖的诀窍就在于singletonFactories这个三级cache。这个cache的类型是ObjectFactory。
+这里就是解决循环依赖的关键，这段代码发生在createBeanInstance之后，也就是说单例对象此时已经被创建出来(调用了构造器)。这个对象已经被生产出来了，虽然还不完美（还没有进行初始化的第二步和第三步），但是已经能被人认出来了（根据对象引用能定位到堆中的对象），所以Spring此时将这个对象提前曝光出来让大家认识，让大家使用。
+这样做有什么好处呢？让我们来分析一下。A的某个field或者setter依赖了B的实例对象，同时B的某个field或者setter依赖了A的实例对象”这种循环依赖的情况。A首先完成了初始化的第一步，并且将自己提前曝光到singletonFactories中，此时进行初始化的第二步，发现自己依赖对象B，此时就尝试去get(B)，发现B还没有被create，所以走create流程，B在初始化第一步的时候发现自己依赖了对象A，于是尝试get(A)，尝试一级缓存singletonObjects(肯定没有，因为A还没初始化完全)，尝试二级缓存earlySingletonObjects（也没有），尝试三级缓存singletonFactories，由于A通过ObjectFactory将自己提前曝光了，所以B能够通过ObjectFactory.getObject拿到A对象(虽然A还没有初始化完全，但是总比没有好呀)，B拿到A对象后顺利完成了初始化阶段1、2、3，完全初始化之后将自己放入到一级缓存singletonObjects中。此时返回A中，A此时能拿到B的对象顺利完成自己的初始化阶段2、3，最终A也完成了初始化，进去了一级缓存singletonObjects中，而且更加幸运的是，由于B拿到了A的对象引用，所以B现在hold住的A对象完成了初始化。
+知道了这个原理时候，肯定就知道为啥Spring不能解决“A的构造方法中依赖了B的实例对象，同时B的构造方法中依赖了A的实例对象”这类问题了！因为加入singletonFactories三级缓存的前提是执行了构造器，所以构造器的循环依赖没法解决。
+
 N.参考
 
 (1)[Spring 官网](https://docs.spring.io/spring/docs/current/spring-framework-reference/index.html)
@@ -701,6 +732,8 @@ N.参考
 (4)[详解AOP](https://www.cnblogs.com/xb1223/p/10169220.html)
 
 (5)[面试题思考：解释一下什么叫AOP](https://www.cnblogs.com/songanwei/p/9417343.html)
+
+(6)[Spring-bean的循环依赖以及解决方式](https://blog.csdn.net/u010853261/article/details/77940767)
 
 # Spring Boot
 
@@ -876,6 +909,76 @@ select version();
 (3)Mixedlevel: 以上两种level的混合使用。一般的语句修改使用statment格式保存binlog，如一些函数，statement无法完成主从复制的操作，则采用row格式保存binlog,MySQL会根据执行的每一条具体的sql语句来区分对待记录的日志形式，也就是在Statement和Row之间选择一种。
 新版本的MySQL中对row level模式也被做了优化，并不是所有的修改都会以row level来记录，像遇到表结构变更的时候就会以statement模式来记录。至于update或者delete等修改数据的语句，还是会记录所有行的变更。
 
+13.MySQL全表扫描
+
+全表扫描是数据库搜寻表的每一条记录的过程，直到所有符合给定条件的记录返回为止。通常在数据库中，对无索引的表进行查询一般称为全表扫描；然而有时候我们即便添加了索引，但当我们的SQL语句写的不合理的时候也会造成全表扫描。
+当不规范的写法造成全表扫描时，会造成CPU和内存的额外消耗，甚至会导致服务器崩溃。
+
+14.如何进行SQL优化
+
+(1)对查询进行优化，应尽量避免全表扫描，首先应考虑在where及order by涉及的列上建立索引。使用null做为判断条件，如：select account from member where nickname is null。
+建议在设计字段时尽量将字段的默认值设为0，改为select account where nickname = 0; 
+
+(2)左模糊查询Like %XXX%。 如：select account from member where nickname like ‘%XXX%’ 或者 select account from member where nickname like ‘%XXX’ 
+建议使用select account from member where nickname like ‘XXX%’，如果必须要用到做查询，需要评估对当前表全表扫描造成的后果。
+
+(3)使用or做为连接条件。如：select account from member where id = 1 or id = 2; 
+建议使用union all,改为 select account from member where id = 1 union all select account from member where id = 2; 
+
+(4)使用in和not in时， 如：select account from member where id in (1,2,3)。使用not in时，如select account where id not in (1,2,3)。
+如果是连续数据，可以改为select account where id between 1 and 3;当数据较少时也可以参考union用法； 
+或者：select account from member where id in (select accountid from department where id = 3 )，可以改为select account from member where id exsits (select accountid from department where id = 3)。
+not in 可以对应 not exists; 
+
+(5)使用!=或<>时，建议使用 <,<=,=,>,>=,between等； 
+
+(6)不要在where子句中的“=”左边进行函数、算术运算或其他表达式运算，否则系统将不能正确使用索引。对字段有操作时也会引起全表扫描， 如select account where salary * 0.8 = 1000 或者 select account where sustring(nickname,1,3) = 'aaa'; 
+
+(7)使用count(*)时，如select count(*) from member。
+建议使用select count(1) from member。
+
+(8)使用参数做为查询条件时，如select account from member where nickname = @name；
+由于SQL语句在编译执行时并不确定参数，这将无法通过索引进行数据查询，所以尽量避免。
+
+(9)在使用索引字段作为条件时，如果该索引是复合索引，那么必须使用到该索引中的第一个字段作为条件时才能保证系统使用该索引，否则该索引将不会被使用，并且应尽可能的让字段顺序与索引顺序相一致。
+
+(10)并不是所有索引对查询都有效，SQL是根据表中数据来进行查询优化的，当索引列有大量数据重复时，SQL查询可能不会去利用索引，如一表中有字段sex，male、female几乎各一半，那么即使在sex上建了索引也对查询效率起不了作用。
+
+(11)索引并不是越多越好，索引固然可以提高相应的select的效率，但同时也降低了insert及update的效率，因为insert或update时有可能会重建索引，所以怎样建索引需要慎重考虑，视具体情况而定。一个表的索引数最好不要超过6个，若太多则应考虑一些不常使用到的列上建的索引是否有必要。
+
+(12)应尽可能的避免更新clustered索引数据列，因为clustered索引数据列的顺序就是表记录的物理存储顺序，一旦该列值改变将导致整个表记录的顺序的调整，会耗费相当大的资源。若应用系统需要频繁更新clustered索引数据列，那么需要考虑是否应将该索引建为clustered索引。
+
+(13)尽量使用数字型字段，若只含数值信息的字段尽量不要设计为字符型，这会降低查询和连接的性能，并会增加存储开销。这是因为引擎在处理查询和连接时会逐个比较字符串中每一个字符，而对于数字型而言只需要比较一次就够了。
+
+(14)尽可能的使用varchar/nvarchar 代替 char/nchar ，因为首先变长字段存储空间小，可以节省存储空间，其次对于查询来说，在一个相对较小的字段内搜索效率显然要高些。
+
+(15)任何地方都不要使用select * from t ，用具体的字段列表代替“*”，不要返回用不到的任何字段。
+
+(16)避免频繁创建和删除临时表，以减少系统表资源的消耗。
+临时表并不是不可使用，适当地使用它们可以使某些例程更有效，例如，当需要重复引用大型表或常用表中的某个数据集时。但是，对于一次性事件，最好使用导出表。
+在新建临时表时，如果一次性插入数据量很大，那么可以使用select into代替create table，避免造成大量log，以提高速度；如果数据量不大，为了缓和系统表的资源，应先create table，然后insert。
+如果使用到了临时表，在存储过程的最后务必将所有的临时表显式删除，先truncate table ，然后drop table ，这样可以避免系统表的较长时间锁定。
+
+(17)在所有的存储过程和触发器的开始处设置SET NOCOUNT ON ，在结束时设置SET NOCOUNT OFF 。无需在执行存储过程和触发器的每个语句后向客户端发送DONE_IN_PROC消息。
+
+(18)尽量避免向客户端返回大数据量，若数据量过大，应该考虑相应需求是否合理。
+
+(19)尽量避免大事务操作，提高系统并发能力。
+
+15.MySQL的S锁和X锁的区别
+
+MySQL的锁系统：shared lock和exclusive lock（共享锁和排他锁，也叫读锁和写锁，即read lock和write lock）。读锁是共享的，或者说是相互不阻塞的。写锁是排他的，一个写锁会阻塞其他的写锁和读锁。
+共享锁【S锁】，又称读锁，若事务T对数据对象A加上S锁，则事务T可以读A但不能修改A，其他事务只能再对A加S锁，而不能加X锁，直到T释放A上的S锁。这保证了其他事务可以读A，但在T释放A上的S锁之前不能对A做任何修改。
+排他锁【X锁】，又称写锁。若事务T对数据对象A加上X锁，事务T可以读A也可以修改A，其他事务不能再对A加任何锁，直到T释放A上的锁。这保证了其他事务在T释放A上的锁之前不能再读取和修改A。
+   
+16.锁的粒度和锁的策略
+MySQL有三种锁的级别：页级、表级、行级。
+MyISAM和MEMORY存储引擎采用的是表级锁（table-level locking）；BDB存储引擎采用的是页面锁（page-level locking），但也支持表级锁；InnoDB存储引擎既支持行级锁（row-level locking），也支持表级锁，但默认情况下是采用行级锁。
+MySQL这3种锁的特性可大致归纳如下：
+表级锁：开销小，加锁快；不会出现死锁；锁定粒度大，发生锁冲突的概率最高,并发度最低。
+行级锁：开销大，加锁慢；会出现死锁；锁定粒度最小，发生锁冲突的概率最低,并发度也最高。
+页面锁：开销和加锁时间界于表锁和行锁之间；会出现死锁；锁定粒度界于表锁和行锁之间，并发度一般。
+
 N.参考
 
 (1)[Java面试题之数据库三范式是什么？](https://www.cnblogs.com/marsitman/p/10162231.html)
@@ -883,6 +986,12 @@ N.参考
 (2)[三张图搞透第一范式(1NF)、第二范式(2NF)和第三范式(3NF)的区别](https://blog.csdn.net/weixin_43971764/article/details/88677688)
 
 (3)[真正理解Mysql的四种隔离级别](https://www.jianshu.com/p/8d735db9c2c0)
+
+(4)[【178期】面试官：谈谈在做项目过程中，你是是如何进行SQL优化的](https://mp.weixin.qq.com/s?__biz=MzIyNDU2ODA4OQ==&mid=2247486029&idx=1&sn=a2ae60fb8a326fded471dfa8411d5d52&chksm=e80dbc3bdf7a352d5875b6f82668e5e3a9bb37cb72167a8fbbce70bd47d8bcd917fd28deb5f5&scene=21#wechat_redirect)
+
+(5)[MySQL幻读的详解、实例及解决办法](https://segmentfault.com/a/1190000016566788?utm_source=tag-newest)
+
+(6)[聊聊MVCC和Next-key Locks](https://juejin.im/post/6844903842505555981)
 
 # Redis
 
@@ -986,6 +1095,86 @@ set命令要用set key value px milliseconds nx，替代setnx + expire需要分�
 value要具有唯一性，可以使用UUID.randomUUID().toString()方法生成，用来标识这把锁是属于哪个请求加的，在解锁的时候就可以有依据。
 释放锁时要验证value值，防止误解锁。
 通过Lua脚本来避免Check And Set模型的并发问题，因为在释放锁的时候因为涉及到多个Redis操作（利用了eval命令执行Lua脚本的原子性）；
+
+Java实现：
+
+    @Override
+    public boolean lock(String key, String uuid) {
+ 
+        Jedis jedis = null;
+        long start = System.currentTimeMillis();
+        try {
+            jedis = jedisPool.getResource();
+            while (true) {
+                //使用setnx是为了保持原子性
+                String result = jedis.set(key, uuid, "NX", "PX", expireTime);
+ 
+                //OK标示获得锁，null标示其他任务已经持有锁
+                if (LOCK_SUCCESS.equals(result)) {
+                    return true;
+                }
+                //在timeout时间内仍未获取到锁，则获取失败
+                long time = System.currentTimeMillis() - start;
+                if (time >= timeout) {
+                    return false;
+                }
+                //增加睡眠时间可能导致结果分散不均匀，测试时可以不用睡眠
+                Thread.sleep(1);
+            }
+        }catch (InterruptedException e1) {
+            log.error("redis竞争锁，线程sleep异常");
+            return false;
+        } catch (Exception e) {
+            log.error("redis竞争锁失败");
+            throw e;
+        } finally {
+            if (jedis != null) {
+                jedis.close();
+            }
+        }
+    }
+ 
+    @Override
+    public boolean unlock(String key, String uuid) {
+        Jedis jedis = null;
+        try {
+            jedis = jedisPool.getResource();
+            //lua脚本，使用lua脚本是为了保持原子性
+            String script = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
+            Object result = jedis.eval(script, Collections.singletonList(key), Collections.singletonList(uuid));
+ 
+            if (RELEASE_SUCCESS.equals(result)) {
+                return true;
+            }
+            return false;
+        } catch (Exception e) {
+            log.error("redis解锁失败");
+            throw e;
+        } finally {
+            if (jedis != null) {
+                jedis.close();
+            }
+        }
+    }
+
+也可以考虑基于Redission框架实现。
+redisson所有指令都通过lua脚本执行，redis支持lua脚本原子性执行。
+redisson设置一个key的默认过期时间为30s,如果某个客户端持有一个锁超过了30s怎么办？
+redisson中有一个watchdog的概念，翻译过来就是看门狗，它会在你获取锁之后，每隔10秒帮你把key的超时时间设为30s。这样的话，就算一直持有锁也不会出现key过期了，其他线程获取到锁的问题了。redisson的“看门狗”逻辑保证了没有死锁发生。如果机器宕机了，看门狗也就没了。此时就不会延长key的过期时间，到了30s之后就会自动过期了，其他线程可以获取到锁。
+
+    Config config = new Config();
+    config.useClusterServers()
+    .addNodeAddress("redis://192.168.31.101:7001")
+    .addNodeAddress("redis://192.168.31.101:7002")
+    .addNodeAddress("redis://192.168.31.101:7003")
+    .addNodeAddress("redis://192.168.31.102:7001")
+    .addNodeAddress("redis://192.168.31.102:7002")
+    .addNodeAddress("redis://192.168.31.102:7003");
+    
+    RedissonClient redisson = Redisson.create(config);
+    RLock lock = redisson.getLock("anyLock");
+    lock.lock();
+    lock.unlock();
 
 8.缓存雪崩/缓存穿透/缓存并发竞争/缓存和数据库双写不一致
 
@@ -1095,6 +1284,8 @@ N.参考
 (3)[Redis分布式锁的正确实现方式（Java版）](https://blog.csdn.net/yb223731/article/details/90349502)
 
 (4)[【99期】中高级开发面试必问的Redis，看这篇就够了！](https://mp.weixin.qq.com/s?__biz=MzIyNDU2ODA4OQ==&mid=2247484524&idx=1&sn=7ae13d7805f70592245464a7d9512e57&chksm=e80db21adf7a3b0c6b7c8e1367f4c9e772666e1e764a00ad2f4771c87520fdeff68da57f5f07&scene=21#wechat_redirect)
+
+(5)[Redis分布式锁实例](https://blog.csdn.net/weixin_43841693/article/details/99677422)
 
 # ZooKeeper
 
@@ -1238,6 +1429,16 @@ Watch机制官方声明：一个Watch事件是一个一次性的触发器，当�
 (6)setData()会触发znode上设置的data watch（如果set成功的话）。一个成功的create() 操作会触发被创建的znode上的数据watch，以及其父节点上的child watch。而一个成功的delete()操作将会同时触发一个znode的data watch和child watch（因为这样就没有子节点了），同时也会触发其父节点的child watch。
 (7)当一个客户端连接到一个新的服务器上时，watch将会被以任意会话事件触发。当与一个服务器失去连接的时候，是无法接收到watch的。而当client重新连接时，如果需要的话，所有先前注册过的watch，都会被重新注册。通常这是完全透明的。只有在一个特殊情况下，watch可能会丢失：对于一个未创建的znode的exist watch，如果在客户端断开连接期间被创建了，并且随后在客户端连接上之前又删除了，这种情况下，这个watch事件可能会被丢失。
 (8)Watch是轻量级的，其实就是本地JVM的Callback，服务器端只是存了是否有设置了Watcher的布尔类型
+
+18.ZK分布式锁
+
+使用zk的临时节点和有序节点，每个线程获取锁就是在zk创建一个临时有序的节点，比如在/lock/目录下。
+创建节点成功后，获取/lock目录下的所有临时节点，再判断当前线程创建的节点是否是所有的节点的序号最小的节点。
+如果当前线程创建的节点是所有节点序号最小的节点，则认为获取锁成功。
+如果当前线程创建的节点不是所有节点序号最小的节点，则对节点序号的前一个节点添加一个事件监听。
+比如当前线程获取到的节点序号为/lock/003,然后所有的节点列表为/lock/001,/lock/002,/lock/003,则对/lock/002这个节点添加一个事件监听器。
+如果锁释放了，会唤醒下一个序号的节点，然后重新执行第3步，判断是否自己的节点序号是最小。
+比如/lock/001释放了，/lock/002监听到事件，此时节点集合为[/lock/002,/lock/003],则/lock/002为最小序号节点，获取到锁。
 
 N.参考
 
@@ -1390,7 +1591,8 @@ N.参考
 
 # 分布式
 
-1.幂等性:系统对某接口的多次请求，都应该返回同样的结果！避免因为各种原因，重复请求导致的业务重复处理
+1.幂等性:系统对某接口的多次请求，都应该返回同样的结果！避免因为各种原因，重复请求导致的业务重复处理。
+
 场景案例:(a)客户端第一次请求后，网络异常导致收到请求执行逻辑但是没有返回给客户端，客户端的重新发起请求。(b)客户端迅速点击按钮提交，导致同一逻辑被多次发送到服务器。
 对于查询，内部不包含其他操作，属于只读性质的那种业务必然符合幂等性要求的。
 对于删除，重复做删除请求至少不会造成数据杂乱，不过也有些场景更希望重复点击提示的是删除成功，而不是目标不存在的提示。
@@ -1444,6 +1646,20 @@ mq会自动定时轮询所有prepared消息回调你的接口，问你这个消�
 这里会有个专门消费MQ的最大努力通知服务，这个服务会消费MQ然后写入数据库中记录下来，或者是放入个内存队列也可以，接着调用系统B的接口；
 要是系统B执行成功就ok了；要是系统B执行失败了，那么最大努力通知服务就定时尝试重新调用系统B，反复N次，最后还是不行就放弃。
 
+3.Redis分布式锁与ZK分布式锁的优缺点比较
+
+Redis：
+缺点：它获取锁的方式简单粗暴，获取不到锁直接不断尝试获取锁，比较消耗性能。另外来说的话，redis的设计定位决定了它的数据并不是强一致性的，在某些极端情况下，可能会出现问题。锁的模型不够健壮。
+优点：使用redis实现分布式锁在很多企业中非常常见，而且大部分情况下都不会遇到所谓的“极端复杂场景”。所以使用redis作为分布式锁也不失为一种好的方案，最重要的一点是redis的性能很高，可以支撑高并发的获取、释放锁操作。
+  
+ZK：
+缺点：如果有较多的客户端频繁的申请加锁、释放锁，对于zk集群的压力会比较大。
+优点：zookeeper天生设计定位就是分布式协调，强一致性。锁的模型健壮、简单易用、适合做分布式锁。如果获取不到锁，只需要添加一个监听器就可以了，不用一直轮询，性能消耗较小。
+
+# Linux
+
+N.[【179期】这些最常用的Linux命令都不会，你怎么敢去面试？](https://mp.weixin.qq.com/s?__biz=MzIyNDU2ODA4OQ==&mid=2247486062&idx=1&sn=fa33b0f42303ab221f376dc5d72f0676&chksm=e80dbc18df7a350e3454b424ee7ff551dcb3ef9d489ff1affbaf717104758af72054003420ed&scene=21#wechat_redirect)
+
 # 其他
 
 1.单点登录
@@ -1460,6 +1676,4 @@ mq会自动定时轮询所有prepared消息回调你的接口，问你这个消�
 
 1.[Java最常见的200+面试题及自己梳理的答案--面试必备（一）](https://www.cnblogs.com/cocoxu1992/p/10460251.html)
 
-2.[久伴_不离](https://www.jianshu.com/u/837b81b0eaa9)	
-
-公众号文章到28
+2.[久伴_不离](https://www.jianshu.com/u/837b81b0eaa9)
