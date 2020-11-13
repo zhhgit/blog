@@ -457,7 +457,7 @@ Java编译器会检查它。如果程序中出现此类异常，要么通过thro
     }
 
 
-# 多线程
+# 并发与多线程
 
 1.并发与并行
 并发，指的是多个事情，在同一时间段内同时发生了。并行，指的是多个事情，在同一时间点上同时发生了。
@@ -563,6 +563,63 @@ handler 拒绝策略，当线程无法执行新任务时（一般是由于线程
 (3)SingleThreadPool:Single中文解释为单一。结合在一起解释单一的线程池，说的更全面点就是，有固定数量线程的线程池，且数量为一，从数学的角度来看SingleThreadPool应该属于FixedThreadPool的子集。其corePoolSize=maximumPoolSize=1,且keepAliveTime为0，适合线程同步操作的场所。
 (4)CachedThreadPool:Cached中文解释为储存。结合在一起解释储存的线程池，说的更通俗易懂，既然要储存，其容量肯定是很大，所以他的corePoolSize=0，maximumPoolSize=Integer.MAX_VALUE(2^32-1一个很大的数字)
 (5)ScheduledThreadPool:Scheduled中文解释为计划。结合在一起解释计划的线程池，顾名思义既然涉及到计划，必然会涉及到时间。所以ScheduledThreadPool是一个具有定时定期执行任务功能的线程池。
+
+11.锁的分类与区别
+
+(1)公平锁/非公平锁：
+公平锁是指多个线程按照申请锁的顺序来获取锁。
+非公平锁是指多个线程获取锁的顺序并不是按照申请锁的顺序，有可能后申请的线程比先申请的线程优先获取锁。有可能会造成优先级反转或者饥饿现象。
+对于Java ReentrantLock而言，通过构造函数指定该锁是否是公平锁，默认是非公平锁。非公平锁的优点在于吞吐量比公平锁大。
+对于Synchronized而言，也是一种非公平锁。由于其并不像ReentrantLock是通过AQS的来实现线程调度，所以并没有任何办法使其变成公平锁。
+
+(2)可重入锁：可重入锁又名递归锁，是指在同一个线程在外层方法获取锁的时候，在进入内层方法会自动获取锁。
+对于Java ReentrantLock而言, 从名字就可以看出是一个可重入锁，其名字是Re entrant Lock重新进入锁。
+对于Synchronized而言，也是一个可重入锁。可重入锁的一个好处是可一定程度避免死锁。下面的代码就是一个可重入锁的一个特点，如果不是可重入锁的话，setB可能不会被当前线程执行，可能造成死锁。
+
+    synchronized void setA() throws Exception{
+        Thread.sleep(1000);
+        setB();
+    }
+    
+    synchronized void setB() throws Exception{
+        Thread.sleep(1000);
+    }
+
+(3)独享锁/共享锁：
+独享锁是指该锁一次只能被一个线程所持有。共享锁是指该锁可被多个线程所持有。
+对于Java ReentrantLock而言，其是独享锁。但是对于Lock的另一个实现类ReadWriteLock，其读锁是共享锁，其写锁是独享锁。读锁的共享锁可保证并发读是非常高效的，读写，写读 ，写写的过程是互斥的。
+独享锁与共享锁也是通过AQS来实现的，通过实现不同的方法，来实现独享或者共享。
+对于Synchronized而言，当然是独享锁。
+
+(4)互斥锁/读写锁
+上面讲的独享锁/共享锁就是一种广义的说法，互斥锁/读写锁就是具体的实现。
+互斥锁在Java中的具体实现就是ReentrantLock。
+读写锁在Java中的具体实现就是ReadWriteLock。
+
+(5)乐观锁/悲观锁
+乐观锁与悲观锁不是指具体的什么类型的锁，而是指看待并发同步的角度。
+悲观锁认为对于同一个数据的并发操作，一定是会发生修改的，哪怕没有修改，也会认为修改。因此对于同一个数据的并发操作，悲观锁采取加锁的形式。悲观的认为，不加锁的并发操作一定会出问题。
+乐观锁则认为对于同一个数据的并发操作，是不会发生修改的。在更新数据的时候，会采用尝试更新，不断重试的方式更新数据。乐观的认为，不加锁的并发操作是没有事情的。
+从上面的描述我们可以看出，悲观锁适合写操作非常多的场景，乐观锁适合读操作非常多的场景，不加锁会带来大量的性能提升。
+悲观锁在Java中的使用，就是利用各种锁。
+乐观锁在Java中的使用，是无锁编程，常常采用的是CAS算法，典型的例子就是原子类，通过CAS自旋实现原子操作的更新。
+
+(6)分段锁
+分段锁其实是一种锁的设计，并不是具体的一种锁，对于ConcurrentHashMap而言，其并发的实现就是通过分段锁的形式来实现高效的并发操作。
+我们以ConcurrentHashMap来说一下分段锁的含义以及设计思想，ConcurrentHashMap中的分段锁称为Segment，它即类似于HashMap（JDK7与JDK8中HashMap的实现）的结构，即内部拥有一个Entry数组，数组中的每个元素又是一个链表；同时又是一个ReentrantLock（Segment继承了ReentrantLock)。
+当需要put元素的时候，并不是对整个hashmap进行加锁，而是先通过hashcode来知道他要放在那一个分段中，然后对这个分段进行加锁，所以当多线程put的时候，只要不是放在一个分段中，就实现了真正的并行的插入。
+但是，在统计size的时候，可就是获取hashmap全局信息的时候，就需要获取所有的分段锁才能统计。
+分段锁的设计目的是细化锁的粒度，当操作不需要更新整个数组的时候，就仅仅针对数组中的一项进行加锁操作。
+
+(7)偏向锁/轻量级锁/重量级锁
+这三种锁是指锁的状态，并且是针对Synchronized。
+在Java 5通过引入锁升级的机制来实现高效Synchronized。这三种锁的状态是通过对象监视器在对象头中的字段来表明的。
+偏向锁是指一段同步代码一直被一个线程所访问，那么该线程会自动获取锁。降低获取锁的代价。
+轻量级锁是指当锁是偏向锁的时候，被另一个线程所访问，偏向锁就会升级为轻量级锁，其他线程会通过自旋的形式尝试获取锁，不会阻塞，提高性能。
+重量级锁是指当锁为轻量级锁的时候，另一个线程虽然是自旋，但自旋不会一直持续下去，当自旋一定次数的时候，还没有获取到锁，就会进入阻塞，该锁膨胀为重量级锁。重量级锁会让其他申请的线程进入阻塞，性能降低。
+
+(8)自旋锁
+在Java中，自旋锁是指尝试获取锁的线程不会立即阻塞，而是采用循环的方式去尝试获取锁，这样的好处是减少线程上下文切换的消耗，缺点是循环会消耗CPU。
 
 N.参考
 
@@ -721,6 +778,84 @@ Spring的单例对象的初始化主要分为三步：
 这样做有什么好处呢？让我们来分析一下。A的某个field或者setter依赖了B的实例对象，同时B的某个field或者setter依赖了A的实例对象”这种循环依赖的情况。A首先完成了初始化的第一步，并且将自己提前曝光到singletonFactories中，此时进行初始化的第二步，发现自己依赖对象B，此时就尝试去get(B)，发现B还没有被create，所以走create流程，B在初始化第一步的时候发现自己依赖了对象A，于是尝试get(A)，尝试一级缓存singletonObjects(肯定没有，因为A还没初始化完全)，尝试二级缓存earlySingletonObjects（也没有），尝试三级缓存singletonFactories，由于A通过ObjectFactory将自己提前曝光了，所以B能够通过ObjectFactory.getObject拿到A对象(虽然A还没有初始化完全，但是总比没有好呀)，B拿到A对象后顺利完成了初始化阶段1、2、3，完全初始化之后将自己放入到一级缓存singletonObjects中。此时返回A中，A此时能拿到B的对象顺利完成自己的初始化阶段2、3，最终A也完成了初始化，进去了一级缓存singletonObjects中，而且更加幸运的是，由于B拿到了A的对象引用，所以B现在hold住的A对象完成了初始化。
 知道了这个原理时候，肯定就知道为啥Spring不能解决“A的构造方法中依赖了B的实例对象，同时B的构造方法中依赖了A的实例对象”这类问题了！因为加入singletonFactories三级缓存的前提是执行了构造器，所以构造器的循环依赖没法解决。
 
+4.SpringMVC执行原理
+
+HelloController这个类需要实现Controller这个接口，并且覆写handleRequest这个方法。
+
+    public class HelloController implements Controller {
+        @Override　　public ModelAndView handleRequest(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws Exception {
+            ModelAndView mv = new ModelAndView();
+            String msg="HelloSpringmvc!";
+            mv.addObject("msg",msg);
+            mv.setViewName("test");
+            return mv;
+        }
+    }
+    
+在资源路径下创建springmvc的配置文件。
+
+    <?xml version="1.0" encoding="UTF-8"?>
+    <beans xmlns="http://www.springframework.org/schema/beans"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://www.springframework.org/schema/beans
+           https://www.springframework.org/schema/beans/spring-beans.xsd">
+    <!--        配置处理器映射器-->
+           <bean id="beanNameUrlHandlerMapping" class="org.springframework.web.servlet.handler.BeanNameUrlHandlerMapping"/>
+    <!--        配置处理器适配器-->
+           <bean id="controllerHandlerAdapter" class="org.springframework.web.servlet.mvc.SimpleControllerHandlerAdapter"/>
+    <!--        配置视图解析器-->
+           <bean id="internalResourceViewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+    <!--           路径前缀-->
+               <property name="prefix" value="/WEB-INF/jsp/"/>
+    <!--           路径后缀-->
+               <property name="suffix" value=".jsp"/>
+           </bean>
+    <!--    BeanNameUrlHandlerMapping这个类会自动找到与请求一致的benaid-->
+           <bean id="/hello" class="com.zhang.controller.HelloController"/>
+    </beans>
+    
+在web.xml中配置springmvc的核心控制器DispatchServlet。
+
+    <?xml version="1.0" encoding="UTF-8"?>
+    <web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd"
+             version="4.0">
+    <!--    配置前端控制器-->
+        <servlet>
+            <servlet-name>dispatcherServlet</servlet-name>
+            <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+    <!--        初始化时加载配置文件-->
+            <init-param>
+                <param-name>contextConfigLocation</param-name>
+                <param-value>classpath:springmvc.xml</param-value>
+            </init-param>
+    <!--        开启服务器时启动-->
+            <load-on-startup>1</load-on-startup>
+        </servlet>
+        <servlet-mapping>
+            <servlet-name>dispatcherServlet</servlet-name>
+    <!--/和/*的区别
+        /:只会去匹配请求,不会匹配jsp页面
+        /*:会匹配所有请求
+    -->
+            <url-pattern>/</url-pattern>
+        </servlet-mapping>
+    </web-app>
+
+执行原理：
+
+(1)DispatcherServlet：前端控制器，作为整个SpringMVC的控制中心。用户发出请求，DispatcherServlet接收请求并拦截请求。
+(2)HandlerMapping：处理器映射器，DispatcherServlet调用HandlerMapping,HandlerMapping根据请求url去查找对应的处理。
+(3)HandlerExecution：具体的handler(处理)，将解析后的url传递给DispatcherServlet。
+(4)HandlerAdapter：处理器适配器，将DispatcherServlet传递的信息去执行相应的controller。
+(5)Controller层中调用service层，获得数据放在ModelAndView对象中，并给ModelAndView设置页面信息。
+(6)HandlerAdapter将视图名传递给DispatcherServlet。
+(7)DispatcherServlet调用视图解析器来解析HandlerAdapter传递的视图名。
+(8)视图解析器将解析的视图名传给DispatcherServlet。
+(9)DispatcherServlet根据视图解析器返回的视图名调用具体的视图。
+(10)用户获得视图。
+
 N.参考
 
 (1)[Spring 官网](https://docs.spring.io/spring/docs/current/spring-framework-reference/index.html)
@@ -866,7 +1001,7 @@ select version();
 
 (1)自增id，往一个库的一个表里插入一条没什么业务含义的数据，然后获取一个数据库自增的一个id。拿到这个id之后再往对应的分库分表里去写入。不适合高并发场景。
 (2)设置数据库sequence或者表的自增字段步长来进行水平伸缩。比如说，现在有8个服务节点，每个服务节点使用一个sequence功能来产生ID，每个sequence的起始ID不同，并且依次递增，步长都是8。
-(3)snowflake算法:开源的分布式id生成算法，是把一个 64 位的long型的id，1个bit 是不用的，用其中的41bit作为毫秒数，用10bit作为工作机器id，12bit作为序列号。
+(3)snowflake算法:开源的分布式id生成算法，是把一个64 位的long型的id，1个bit是不用的，用其中的41bit作为毫秒数，用10bit作为工作机器id，12bit作为序列号。
 
 9.MySQL查询字段区不区分大小写，如果区分
 
@@ -914,10 +1049,10 @@ select version();
 全表扫描是数据库搜寻表的每一条记录的过程，直到所有符合给定条件的记录返回为止。通常在数据库中，对无索引的表进行查询一般称为全表扫描；然而有时候我们即便添加了索引，但当我们的SQL语句写的不合理的时候也会造成全表扫描。
 当不规范的写法造成全表扫描时，会造成CPU和内存的额外消耗，甚至会导致服务器崩溃。
 
-14.如何进行SQL优化
+14.如何进行SQL优化，哪些SQL可能导致全表扫描 
 
-(1)对查询进行优化，应尽量避免全表扫描，首先应考虑在where及order by涉及的列上建立索引。使用null做为判断条件，如：select account from member where nickname is null。
-建议在设计字段时尽量将字段的默认值设为0，改为select account where nickname = 0; 
+(1)对查询进行优化，应尽量避免全表扫描，首先应考虑在where及order by涉及的列上建立索引。
+避免使用null做为判断条件，如：select account from member where nickname is null。建议在设计字段时尽量将字段的默认值设为0，改为select account where nickname = 0; 
 
 (2)左模糊查询Like %XXX%。 如：select account from member where nickname like ‘%XXX%’ 或者 select account from member where nickname like ‘%XXX’ 
 建议使用select account from member where nickname like ‘XXX%’，如果必须要用到做查询，需要评估对当前表全表扫描造成的后果。
@@ -979,6 +1114,41 @@ MySQL这3种锁的特性可大致归纳如下：
 行级锁：开销大，加锁慢；会出现死锁；锁定粒度最小，发生锁冲突的概率最低,并发度也最高。
 页面锁：开销和加锁时间界于表锁和行锁之间；会出现死锁；锁定粒度界于表锁和行锁之间，并发度一般。
 
+17.联合索引生效和失效的条件
+
+联合索引又叫复合索引。两个或更多个列上的索引被称作复合索引。对于复合索引，Mysql从左到右的使用索引中的字段，一个查询可以只使用索引中的一部分，但只能是最左侧部分。例如索引是key index（a,b,c）。可以支持a | a,b| a,b,c 3种组合进行查找，但不支持b,c进行查找。当最左侧字段是常量引用时，索引就十分有效。
+利用索引中的附加列，可以缩小搜索的范围，但使用一个具有两列的索引不同于使用两个单独的索引。复合索引的结构与电话簿类似，人名由姓和名构成，电话簿首先按姓氏对进行排序，然后按名字对有相同姓氏的人进行排序。如果您知道姓，电话簿将非常有用；如果您知道姓和名，电话簿则更为有用，但如果您只知道名不姓，电话簿将没有用处。
+所以说创建复合索引时，应该仔细考虑列的顺序。对索引中的所有列执行搜索或仅对前几列执行搜索时，复合索引非常有用；仅对后面的任意列执行搜索时，复合索引则没有用处。如：建立 姓名、年龄、性别的复合索引。
+
+    create table myTest(
+         a int,
+         b int,
+         c int,
+         KEY a(a,b,c)
+    );
+
+以下示例：
+
+    select * from myTest  where a=3 and b=5 and c=4; --abc三个索引都在where条件里面用到了，而且都发挥了作用
+    select * from myTest  where  c=4 and b=6 and a=3; --where里面的条件顺序在查询之前会被mysql自动优化，效果跟上一句一样
+    select * from myTest  where a=3 and c=7;  --a用到索引，b没有用，所以c是没有用到索引效果的
+    select * from myTest  where a=3 and b>7 and c=3;  --a用到了，b也用到了，c没有用到，这个地方b是范围值，也算断点，只不过自身用到了索引
+    select * from myTest  where b=3 and c=4;   ---因为a索引没有使用，所以这里bc都没有用上索引效果
+    select * from myTest  where a>4 and b=7 and c=9;  --a用到了 b没有使用，c没有使用
+    select * from myTest  where a=3 order by b;  --a用到了索引，b在结果排序中也用到了索引的效果，a下面任意一段的b是排好序的
+    select * from myTest  where a=3 order by c;  --a用到了索引，但是这个地方c没有发挥排序效果，因为中间断点了，使用 explain 可以看到 filesort
+    select * from mytable where b=3 order by a;  --b没有用到索引，排序中a也没有发挥索引效果
+
+索引失效的条件：
+
+不在索引列上做任何操作（计算、函数、（自动or手动）类型转换），会导致索引失效而转向全表扫描。
+存储引擎不能使用索引范围条件的右边的列。
+尽量使用覆盖索引（只访问索引的查询（索引列和查询列一致）），减少select *。即如果select的列都在索引列中，就算是覆盖索引，like '%abc'也能使用索引。
+mysql在使用不等于（！=或者<>）的时候无法使用索引会导致全表扫描。
+is null,is not null也无法使用索引。
+like以通配符开头like '%abc'，mysql索引失效会变成全表扫描的操作。
+字符串不加单引号索引失效，SELECT * from staffs where name=2000;  -- 未使用索引，因为mysql会在底层对其进行隐式的类型转换 
+
 N.参考
 
 (1)[Java面试题之数据库三范式是什么？](https://www.cnblogs.com/marsitman/p/10162231.html)
@@ -992,6 +1162,12 @@ N.参考
 (5)[MySQL幻读的详解、实例及解决办法](https://segmentfault.com/a/1190000016566788?utm_source=tag-newest)
 
 (6)[聊聊MVCC和Next-key Locks](https://juejin.im/post/6844903842505555981)
+
+(7)[【57期】面试官问，MySQL建索引需要遵循哪些原则呢？](https://mp.weixin.qq.com/s?__biz=MzIyNDU2ODA4OQ==&mid=2247484196&idx=1&sn=d1a082c4eaa6ca9c35bfb220f2f9d0a0&chksm=e80db552df7a3c44fcca59444fc6246ab169d165634fbe3b2f9e2465093a96e662c01a62a91e&scene=21#wechat_redirect)
+
+(8)[MySQL索引与查询优化](https://juejin.im/post/6844903818056974350)
+
+(9)[最官方的mysql explain type字段解读](https://mengkang.net/1124.html)
 
 # Redis
 
@@ -1448,7 +1624,7 @@ N.参考
 
 (3)[【28期】ZooKeeper面试那些事儿](https://mp.weixin.qq.com/s/nLVovl0EdfbfqnyC53nr4w)
 
-# Kafka
+# 消息中间件
 
 1.kafka可以脱离zookeeper单独使用吗？为什么？
 
@@ -1467,28 +1643,111 @@ CPU性能瓶颈、磁盘读写瓶颈、网络瓶颈
 
 集群的数量不是越多越好，最好不要超过7个，因为节点越多，消息复制需要的时间就越长，整个群组的吞吐量就越低。集群数量最好是单数，因为超过一半故障集群就不能用了，设置为单数容错率更高。
 
-5.数据分区策略
+5.kafka数据分区策略
 
 第一种分区策略：给定了分区号，直接将数据发送到指定的分区里面去。
 第二种分区策略：没有给定分区号，给定数据的key值，通过key取上hashCode进行分区。
 第三种分区策略：既没有给定分区号，也没有给定key值，直接轮循进行分区。
 第四种分区策略：自定义分区。
 
-6.消息队列中，如何保证消息的顺序性
+6.为什么使用消息队列，使用消息队列的优点，缺点？
 
-错乱场景：
-(1)RabbitMQ:一个queue，多个consumer。比如，生产者向RabbitMQ里发送了三条数据，顺序依次是data1/data2/data3，压入的是RabbitMQ的一个内存队列。有三个消费者分别从MQ中消费这三条数据中的一条，结果消费者2先执行完操作，把data2存入数据库，然后是data1/data3。这不明显乱了。
-(2)Kafka：比如说我们建了一个topic，有三个partition。生产者在写的时候，其实可以指定一个key，比如说我们指定了某个订单id作为key，那么这个订单相关的数据，一定会被分发到同一个partition中去，而且这个partition中的数据一定是有顺序的。消费者从partition中取出来数据的时候，也一定是有顺序的。到这里，顺序还是ok的，没有错乱。接着，我们在消费者里可能会搞多个线程来并发处理消息。因为如果消费者是单线程消费处理，而处理比较耗时的话，比如处理一条消息耗时几十ms，那么1秒钟只能处理几十条消息，这吞吐量太低了。而多个线程并发跑的话，顺序可能就乱掉了。
+(1)解耦，A系统发送个数据到BCD三个系统，接口调用发送，那如果E系统也要这个数据呢？那如果C系统现在不需要了呢？现在A系统又要发送第二种数据了呢？A系统要时时刻刻考虑BCDE四个系统如果挂了怎么办？那要不要重发？
+使用了MQ之后的解耦场景：一个系统或者一个模块，调用了多个系统或者模块，相互之间的调用很复杂，维护起来很麻烦。但是其实这个调用是不需要直接同步调用接口的，如果MQ给他异步化解耦也是可以的，你就需要去考虑在你的项目里是不是可以运用这个MQ去进行系统解耦 。
 
-解决方案:
-(1)RabbitMQ:拆分多个queue，每个queue一个consumer，就是多一些queue而已，确实是麻烦点；或者就一个queue但是对应一个consumer，然后这个consumer内部用内存队列做排队，然后分发给底层不同的worker来处理。
-(2)Kafka:一个topic，一个partition，一个consumer，内部单线程消费，单线程吞吐量太低，一般不会用这个。写 N个内存queue，具有相同key的数据都到同一个内存queue；然后对于N个线程，每个线程分别消费一个内存queue即可，这样就能保证顺序性。
+(2)异步，场景描述：系统A接受一个请求，需要在自己本地写库，还需要在系统BCD三个系统写库，自己本地写库需要3ms。BCD分别需要300ms、450ms、200ms。最终总好时长：953ms，接近1s。给用户的体验感觉一点也不好。
+使用MQ异步化之后的接口性能优化，提高系统响应速度，使用了消息队列，生产者一方，把消息往队列里一扔，就可以立马返回，响应用户了。无需等待处理结果。处理结果可以让用户稍后自己来取，如医院取化验单。
+如果用mq来传递非常核心的消息，比如说计费，扣费的一些消息，计费系统是很重的一个业务，操作是很耗时的，将计费做成异步化的，然后中间就是加了一个MQ。
 
-7.使用消息队列的好处
+(3)削峰，场景描述：有突发流量，使用MQ来进行削峰。
 
-(1)提高系统响应速度:使用了消息队列，生产者一方，把消息往队列里一扔，就可以立马返回，响应用户了。无需等待处理结果。处理结果可以让用户稍后自己来取，如医院取化验单。也可以让生产者订阅（如：留下手机号码或让生产者实现listener接口、加入监听队列），有结果了通知。获得约定将结果放在某处，无需通知。
-(2)提高系统稳定性:考虑电商系统下订单，发送数据给生产系统的情况。电商系统和生产系统之间的网络有可能掉线，生产系统可能会因维护等原因暂停服务。如果不使用消息队列，电商系统数据发布出去，顾客无法下单，影响业务开展。两个系统间不应该如此紧密耦合。应该通过消息队列解耦。同时让系统更健壮、稳定。
-(3)异步化、解耦、消除峰值。
+缺点：
+系统可用性降低：系统引入的外部依赖越多，越容易挂掉，本来你就是A系统调用BCD三个系统的接口就好了，人ABCD四个系统好好的没什么问题，你偏加个MQ进来，万一MQ挂了怎么办，整套系统崩溃了，就完蛋了。
+系统复杂性提高：硬生生加个MQ进来，你怎么保证消息没有重复消费？怎么处理消息丢失的情况？怎么保证消息传递的顺序性？
+一致性问题：系统A处理完了直接返回成功了，人家都认为你这个请求成功了；但问题是，要是BCD三个系统哪里BD系统成功了，结果C系统写库失败了，咋整？数据就不一致了，
+
+7.kafka、activemq、rabbitmq、rocketmq都有什么优缺点？
+
+(1)ActiveMQ：单机吞吐量万级，吞吐量比RocketMQ和Kafka要低了一个数量级。时效性ms级。可用性高，基于主从架构实现高可用性。消息可靠性有较低的概率丢失数据。功能支持MQ领域的功能极其完备。
+非常成熟，功能强大，在业内大量的公司以及项目中都有应用。偶尔会有较低概率丢失消息。而且现在社区以及国内应用都越来越少，官方社区现在对ActiveMQ 5.x维护越来越少，几个月才发布一个版本。而且确实主要是基于解耦和异步来用的，较少在大规模吞吐的场景中使用。
+
+(2)RabbitMQ：单机吞吐量万级，吞吐量比RocketMQ和Kafka要低了一个数量级。时效性微秒级，这是rabbitmq的一大特点，延迟是最低的。可用性高，基于主从架构实现高可用性。功能支持基于erlang开发，所以并发能力很强，性能极其好，延时很低。
+erlang语言开发，性能极其好，延时很低，吞吐量到万级，MQ功能比较完备，而且开源提供的管理界面非常棒，用起来很好用，社区相对比较活跃，几乎每个月都发布几个版本。在国内一些互联网公司近几年用rabbitmq也比较多一些。但是问题也是显而易见的，RabbitMQ确实吞吐量会低一些，这是因为他做的实现机制比较重。而且erlang开发，国内有几个公司有实力做erlang源码级别的研究和定制？如果说你没这个实力的话，确实偶尔会有一些问题，你很难去看懂源码，你公司对这个东西的掌控很弱，基本职能依赖于开源社区的快速维护和修复bug。而且rabbitmq集群动态扩展会很麻烦。其实主要是erlang语言本身带来的问题。很难读源码，很难定制和掌控。
+
+(3)RocketMQ：单机吞吐量10万级，RocketMQ也是可以支撑高吞吐的一种MQ。topic可以达到几百，几千个的级别，吞吐量会有较小幅度的下降，这是RocketMQ的一大优势，在同等机器下，可以支撑大量的topic。时效性ms级。可用性非常高，分布式架构。消息可靠性经过参数优化配置，可以做到0丢失。功能支持MQ功能较为完善，还是分布式的，扩展性好。
+接口简单易用，而且毕竟在阿里大规模应用过，有阿里品牌保障，日处理消息上百亿之多，可以做到大规模吞吐，性能也非常好，分布式扩展也很方便，社区维护还可以，可靠性和可用性都是ok的，还可以支撑大规模的topic数量，支持复杂MQ业务场景，而且一个很大的优势在于，阿里出品都是java系的，我们可以自己阅读源码，定制自己公司的MQ，可以掌控，社区活跃度相对较为一般，不过也还可以，文档相对来说简单一些，然后接口这块不是按照标准JMS规范走的有些系统要迁移需要修改大量代码，还有就是阿里出台的技术，你得做好这个技术万一被抛弃，社区黄掉的风险，那如果你们公司有技术实力我觉得用RocketMQ挺好的。
+
+(4)Kafka：单机吞吐量10万级别，这是kafka最大的优点，就是吞吐量高。topic从几十个到几百个的时候，吞吐量会大幅度下降。所以在同等机器下，kafka尽量保证topic数量不要过多。如果要支撑大规模topic，需要增加更多的机器资源。时效性延迟在ms级以内。可用性非常高，kafka是分布式的，一个数据多个副本，少数机器宕机，不会丢失数据，不会导致不可用。消息可靠性经过参数优化配置，消息可以做到0丢失。功能支持功能较为简单，主要支持简单的MQ功能，在大数据领域的实时计算以及日志采集被大规模使用，是事实上的标准。
+kafka的特点其实很明显，就是仅仅提供较少的核心功能，但是提供超高的吞吐量，ms级的延迟，极高的可用性以及可靠性，而且分布式可以任意扩展。同时kafka最好是支撑较少的topic数量即可，保证其超高吞吐量。而且kafka唯一的一点劣势是有可能消息重复消费，那么对数据准确性会造成极其轻微的影响，在大数据领域中以及日志采集中，这点轻微影响可以忽略。这个特性天然适合大数据实时计算以及日志收集。
+
+8.kafka如何保证其高可用性
+
+kafka一个最基本的架构认识：多个broker组成，每个broker是一个节点；你创建一个topic，这个topic可以划分为多个partition，每个partition可以存在于不同的broker上，每个partition就放一部分数据。这就是天然的分布式消息队列，就是说一个topic的数据，是分散放在多个机器上的，每个机器就放一部分数据。
+实际上rabbitmq之类的，并不是分布式消息队列，就是传统的消息队列，只不过提供了一些集群、HA的机制而已，因为无论怎么玩儿，rabbitmq一个queue的数据都是放在一个节点里的，镜像集群下，也是每个节点都放这个queue的完整数据。
+kafka 0.8以前，是没有HA机制的，就是任何一个broker宕机了，那个broker上的partition就废了，没法写也没法读，没有什么高可用性可言。
+kafka 0.8以后，提供了HA机制，就是replica副本机制。每个partition的数据都会同步到其他机器上，形成自己的多个replica副本。然后所有replica会选举一个leader出来，那么生产和消费都跟这个leader打交道，然后其他replica就是follower。写的时候，leader会负责把数据同步到所有follower上去，读的时候就直接读leader上数据即可。只能读写leader？很简单，要是你可以随意读写每个follower，那么就要care数据一致性的问题，系统复杂度太高，很容易出问题。kafka会均匀的将一个partition的所有replica分布在不同的机器上，这样才可以提高容错性。
+这么搞，就有所谓的高可用性了，因为如果某个broker宕机了，没事儿，那个broker上面的partition在其他机器上都有副本的，如果这上面有某个partition的leader，那么此时会重新选举一个新的leader出来，大家继续读写那个新的leader即可。这就有所谓的高可用性了。
+写数据的时候，生产者就写leader，然后leader将数据落地写本地磁盘，接着其他follower自己主动从leader来pull数据。一旦所有follower同步好数据了，就会发送ack给leader，leader收到所有follower的ack之后，就会返回写成功的消息给生产者。（当然，这只是其中一种模式，还可以适当调整这个行为）
+消费的时候，只会从leader去读，但是只有一个消息已经被所有follower都同步成功返回ack的时候，这个消息才会被消费者读到。
+
+9.如何保证消息不被重复消费（如何保证消息消费时的幂等性）
+
+kafka实际上有个offset的概念，就是每个消息写进去，都有一个offset，代表他的序号，然后consumer消费了数据之后，每隔一段时间，会把自己消费过的消息的offset提交一下，代表我已经消费过了，下次我要是重启啥的，你就让我继续从上次消费到的offset来继续消费吧。
+但是凡事总有意外，比如我们之前生产经常遇到的，就是你有时候重启系统，看你怎么重启了，如果碰到点着急的，直接kill进程了，再重启。这会导致consumer有些消息处理了，但是没来得及提交offset，尴尬了。重启之后，少数消息会再次消费一次。
+幂等性，通俗点说，就一个数据，或者一个请求，给你重复来多次，你得确保对应的数据是不会改变的，不能出错。
+比如你拿个数据要写库，你先根据主键查一下，如果这数据都有了，你就别插入了，update一下好吧。
+比如你是写redis，那没问题了，反正每次都是set，天然幂等性。
+比如你不是上面两个场景，那做的稍微复杂一点，你需要让生产者发送每条数据的时候，里面加一个全局唯一的id，类似订单id之类的东西，然后你这里消费到了之后，先根据这个id去比如redis里查一下，之前消费过吗？如果没有消费过，你就处理，然后这个id写redis。如果消费过了，那你就别处理了，保证别重复处理相同的消息即可。
+如何保证MQ的消费是幂等性的，需要结合具体的业务来看。
+
+10.如何保证消息的可靠传输（如何处理消息丢失的问题）？
+
+(1)消费端弄丢了数据。
+唯一可能导致消费者弄丢数据的情况，就是说消费到了这个消息，然后消费者那边自动提交了offset，让kafka以为你已经消费好了这个消息，其实你刚准备处理这个消息，你还没处理，你自己就挂了，此时这条消息就丢咯。
+这不是一样么，大家都知道kafka会自动提交offset，那么只要关闭自动提交offset，在处理完之后自己手动提交offset，就可以保证数据不会丢。但是此时确实还是会重复消费，比如你刚处理完，还没提交offset，结果自己挂了，此时肯定会重复消费一次，自己保证幂等性就好了。
+生产环境碰到的一个问题，就是说我们的kafka消费者消费到了数据之后是写到一个内存的queue里先缓冲一下，结果有的时候，你刚把消息写入内存queue，然后消费者会自动提交offset。然后此时我们重启了系统，就会导致内存queue里还没来得及处理的数据就丢失了。
+
+(2)kafka弄丢了数据
+这是比较常见的一个场景，就是kafka某个broker宕机，然后重新选举partiton的leader时。大家想想，要是此时其他的follower刚好还有些数据没有同步，结果此时leader挂了，然后选举某个follower成leader之后，不就少了一些数据？这就丢了一些数据啊。
+生产环境也遇到过，我们也是，之前kafka的leader机器宕机了，将follower切换为leader之后，就会发现说这个数据就丢了。所以此时一般是要求起码设置如下4个参数：
+给这个topic设置replication.factor参数：这个值必须大于1，要求每个partition必须有至少2个副本
+在kafka服务端设置min.insync.replicas参数：这个值必须大于1，这个是要求一个leader至少感知到有至少一个follower还跟自己保持联系，没掉队，这样才能确保leader挂了还有一个follower吧。
+在producer端设置acks=all：这个是要求每条数据，必须是写入所有replica之后，才能认为是写成功了。
+在producer端设置retries=MAX（很大很大很大的一个值，无限次重试的意思）：这个是要求一旦写入失败，就无限重试，卡在这里了。
+我们生产环境就是按照上述要求配置的，这样配置之后，至少在kafka broker端就可以保证在leader所在broker发生故障，进行leader切换时，数据不会丢失
+
+(3)生产者会不会弄丢数据
+如果按照上述的思路设置了ack=all，一定不会丢，要求是，你的leader接收到消息，所有的follower都同步到了消息之后，才认为本次写成功了。如果没满足这个条件，生产者会自动不断的重试，重试无限次。
+
+11.消息队列中，如何保证消息的顺序性
+
+错乱场景：Kafka，mysql里增删改一条数据，对应出来了增删改3条binlog，接着这三条binlog发送到MQ里面，到消费出来依次执行，起码得保证人家是按照顺序来的吧？不然本来是：增加、修改、删除；你楞是换了顺序给执行成删除、修改、增加，不全错了么。一个topic，一个partition，一个consumer，内部多线程，这不也明显乱了。
+解决方案：Kafka，一个topic，一个partition，一个consumer，内部单线程消费，单线程吞吐量太低，一般不会用这个。写N个内存queue，具有相同key的数据都到同一个内存queue；然后对于N个线程，每个线程分别消费一个内存queue即可，这样就能保证顺序性。
+
+12.如何解决消息队列的延时以及过期失效问题？消息队列满了以后该怎么处理？有几百万消息持续积压几小时，说说怎么解决？
+
+(1)大量消息在mq里积压
+这个是我们真实遇到过的一个场景，确实是线上故障了，这个时候要不然就是修复consumer的问题，让它恢复消费速度，然后傻傻的等待几个小时消费完毕。一个消费者一秒是1000条，一秒3个消费者是3000条，一分钟是18万条，1000多万条。所以如果你积压了几百万到上千万的数据，即使消费者恢复了，也需要大概1小时的时间才能恢复过来。
+一般这个时候，只能操作临时紧急扩容了，具体操作步骤和思路如下：
+1）先修复consumer的问题，确保其恢复消费速度，然后将现有consumer都停掉。
+2）新建一个topic，partition是原来的10倍，临时建立好原先10倍或者20倍的queue数量。
+3）然后写一个临时的分发数据的consumer程序，这个程序部署上去消费积压的数据，消费之后不做耗时的处理，直接均匀轮询写入临时建立好的10倍数量的queue。
+4）接着临时征用10倍的机器来部署consumer，每一批consumer消费一个临时queue的数据。
+5）这种做法相当于是临时将queue资源和consumer资源扩大10倍，以正常的10倍速度来消费数据。
+6）等快速消费完积压数据之后，得恢复原先部署架构，重新用原先的consumer机器来消费消息。
+
+(2)大量消息丢失
+假设你用的是rabbitmq，rabbitmq是可以设置过期时间的，就是TTL，如果消息在queue中积压超过一定的时间就会被rabbitmq给清理掉，这个数据就没了。那这就是第二个坑了。这就不是说数据会大量积压在mq里，而是大量的数据会直接搞丢。
+这个情况下，就不是说要增加consumer消费积压的消息，因为实际上没啥积压，而是丢了大量的消息。我们可以采取一个方案，就是批量重导。这个时候我们就开始写程序，将丢失的那批数据，写个临时程序，一点一点的查出来，然后重新灌入mq里面去，把白天丢的数据给他补回来。也只能是这样了。
+
+(3)如果消息积压在mq里很长时间都没处理掉，此时导致mq都快写满了
+临时写程序，接入数据来消费，消费一个丢弃一个，都不要了，快速消费掉所有的消息。后期再补数据吧。
+
+13.如果让你写一个消息队列，该如何进行架构设计
+
+参照一下kafka的设计理念，broker -> topic -> partition，每个partition放一个机器，就存一部分数据。如果现在资源不够了，简单啊，给topic增加partition，然后做数据迁移，增加机器，不就可以存放更多数据，提供更高的吞吐量了。
+其次你得考虑一下这个mq的数据要不要落地磁盘吧？那肯定要了，落磁盘，才能保证别进程挂了数据就丢了。那落磁盘的时候怎么落啊？顺序写，这样就没有磁盘随机读写的寻址开销，磁盘顺序读写的性能是很高的，这就是kafka的思路。
+其次你考虑一下你的mq的可用性啊？具体参考我们之前可用性那个环节讲解的kafka的高可用保障机制。多副本 -> leader & follower -> broker挂了重新选举leader即可对外服务。
 
 # Dubbo
 
@@ -1655,6 +1914,24 @@ Redis：
 ZK：
 缺点：如果有较多的客户端频繁的申请加锁、释放锁，对于zk集群的压力会比较大。
 优点：zookeeper天生设计定位就是分布式协调，强一致性。锁的模型健壮、简单易用、适合做分布式锁。如果获取不到锁，只需要添加一个监听器就可以了，不用一直轮询，性能消耗较小。
+
+# 架构
+
+1.SOA架构与微服务架构
+
+SOA（Service Oriented Architecture）“面向服务的架构”是一种设计方法，其中包含多个服务，服务之间通过相互依赖最终提供一系列的功能。一个服务通常以独立的形式存在与操作系统进程中。各个服务之间通过网络调用。
+SOA架构特点：系统集成，站在系统的角度，解决企业系统间的通信问题，把原先散乱、无规划的系统间的网状结构，梳理成规整、可治理的系统间星形结构，这一步往往需要引入一些产品，比如ESB（企业服务总线）、以及技术规范、服务管理规范；这一步解决的核心问题是【有序】。
+
+微服务架构其实和SOA架构类似，微服务是在SOA上做的升华，微服务架构强调的一个重点是“业务需要彻底的组件化和服务化”，原有的单个业务系统会拆分为多个可以独立开发、设计、运行的小应用。这些小应用之间通过服务完成交互和集成。
+微服务架构特点：通过服务实现组件化，开发者不再需要协调其它服务部署对本服务的影响。
+按业务能力来划分服务和开发团队，开发者可以自由选择开发技术，提供API服务。
+去中心化，每个微服务有自己私有的数据库持久化业务数据，每个微服务只能访问自己的数据库，而不能访问其它服务的数据库，某些业务场景下，需要在一个事务中更新多个数据库。这种情况也不能直接访问其它微服务的数据库，而是通过对于微服务进行操作。数据的去中心化，进一步降低了微服务之间的耦合度，不同服务可以采用不同的数据库技术（SQL、NoSQL等）。在复杂的业务场景下，如果包含多个微服务，通常在客户端或者中间层（网关）处理。
+基础设施自动化（devops、自动化部署），Java EE部署架构，通过展现层打包WARs，业务层划分到JARs最后部署为EAR一个大包，而微服务则打开了这个黑盒子，把应用拆分成为一个一个的单个服务，应用Docker技术，不依赖任何服务器和数据模型，是一个全栈应用，可以通过自动化方式独立部署，每个服务运行在自己的进程中，通过轻量的通讯机制联系，经常是基于HTTP资源API，这些服务基于业务能力构建，能实现集中化管理。
+
+区别：
+
+SOA：大块业务逻辑、通常松耦合、公司架构任何类型、着重中央管理、目标确保应用能够交互操作。
+微服务：单独任务或小块业务逻辑、总是松耦合、公司架构小型专注于功能交叉团队、着重分散管理、目标执行新功能快速拓展开发团队。
 
 # Linux
 
