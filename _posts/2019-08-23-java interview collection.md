@@ -51,6 +51,11 @@ tags: [Resources]
 
 (2)拼接：String类作为java语言中最常见的字符串类被广泛使用，如果在做大量字符串拼接效率时变得比较低，因为虚拟机需要不断地将对象引用指向新的地址。因此，一般方法内的私有变量推荐使用stringBuilder来完成，如果是多线程需要同步的自然选用stringBuffer。
 
+(3)String有长度限制吗？
+首先字符串的内容是由一个字符数组char[]来存储的，由于数组的长度及索引是整数，且String类中返回字符串长度的方法length()的返回值也是int，所以通过查看java源码中的类Integer我们可以看到Integer的最大范围是2^31-1,由于数组是从0开始的，所以数组的最大长度可以使【0~2^31】通过计算是大概4GB。
+但是通过翻阅java虚拟机手册对class文件格式的定义以及常量池中对String类型的结构体定义我们可以知道对于索引定义了u2，就是无符号占2个字节，2个字节可以表示的最大范围是2^16-1=65535。
+其实是65535，但是由于JVM需要1个字节表示结束指令，所以这个范围就为65534了。超出这个范围在编译时期是会报错的，但是运行时拼接或者赋值的话范围是在整形的最大范围。
+
 4.抽象
 
 (1)抽象类中不一定包含抽象方法，但是有抽象方法的类必定是抽象类。
@@ -783,7 +788,8 @@ Spring的单例对象的初始化主要分为三步：
 HelloController这个类需要实现Controller这个接口，并且覆写handleRequest这个方法。
 
     public class HelloController implements Controller {
-        @Override　　public ModelAndView handleRequest(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws Exception {
+        @Override 
+        public ModelAndView handleRequest(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws Exception {
             ModelAndView mv = new ModelAndView();
             String msg="HelloSpringmvc!";
             mv.addObject("msg",msg);
@@ -799,18 +805,18 @@ HelloController这个类需要实现Controller这个接口，并且覆写handleR
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xsi:schemaLocation="http://www.springframework.org/schema/beans
            https://www.springframework.org/schema/beans/spring-beans.xsd">
-    <!--        配置处理器映射器-->
+           <!-- 配置处理器映射器-->
            <bean id="beanNameUrlHandlerMapping" class="org.springframework.web.servlet.handler.BeanNameUrlHandlerMapping"/>
-    <!--        配置处理器适配器-->
+           <!-- 配置处理器适配器-->
            <bean id="controllerHandlerAdapter" class="org.springframework.web.servlet.mvc.SimpleControllerHandlerAdapter"/>
-    <!--        配置视图解析器-->
+            <!--配置视图解析器-->
            <bean id="internalResourceViewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver">
-    <!--           路径前缀-->
+                <!--路径前缀-->
                <property name="prefix" value="/WEB-INF/jsp/"/>
-    <!--           路径后缀-->
+                <!--路径后缀-->
                <property name="suffix" value=".jsp"/>
            </bean>
-    <!--    BeanNameUrlHandlerMapping这个类会自动找到与请求一致的benaid-->
+            <!--BeanNameUrlHandlerMapping这个类会自动找到与请求一致的类-->
            <bean id="/hello" class="com.zhang.controller.HelloController"/>
     </beans>
     
@@ -821,24 +827,24 @@ HelloController这个类需要实现Controller这个接口，并且覆写handleR
              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
              xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd"
              version="4.0">
-    <!--    配置前端控制器-->
+        <!--配置前端控制器-->
         <servlet>
             <servlet-name>dispatcherServlet</servlet-name>
             <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
-    <!--        初始化时加载配置文件-->
+            <!--初始化时加载配置文件-->
             <init-param>
                 <param-name>contextConfigLocation</param-name>
                 <param-value>classpath:springmvc.xml</param-value>
             </init-param>
-    <!--        开启服务器时启动-->
+            <!--开启服务器时启动-->
             <load-on-startup>1</load-on-startup>
         </servlet>
         <servlet-mapping>
             <servlet-name>dispatcherServlet</servlet-name>
-    <!--/和/*的区别
-        /:只会去匹配请求,不会匹配jsp页面
-        /*:会匹配所有请求
-    -->
+            <!--/和/*的区别
+                /:只会去匹配请求,不会匹配jsp页面
+                /*:会匹配所有请求
+            -->
             <url-pattern>/</url-pattern>
         </servlet-mapping>
     </web-app>
@@ -936,10 +942,73 @@ Hibernate在批量数据处理时有弱势，针对单一对象简单的增删�
 (3)#在预处理时，会把参数部分用一个占位符？代替。$只会做简单的字符串替换，在动态SQL解析阶段将会进行变量替换。
 
 2.Mybatis分页
+
 (1)数组分页查询所有然后取subList。
 (2)sql的limit语法。
 (3)使用Mybatis的RowBounds(int offset, int limit)，不适合数据量大。
 (4)自己实现拦截器，对执行的sql语句加limit条件。
+
+3.流式查询
+
+流式查询指的是查询成功后不是返回一个集合而是返回一个迭代器，应用每次从迭代器取一条查询结果。流式查询的好处是能够降低内存使用。
+如果没有流式查询，我们想要从数据库取1000万条记录而又没有足够的内存时，就不得不分页查询，而分页查询效率取决于表设计，如果设计的不好，就无法执行高效的分页查询。因此流式查询是一个数据库访问框架必须具备的功能。
+流式查询的过程当中，数据库连接是保持打开状态的，因此要注意的是：执行一个流式查询后，数据库访问框架就不负责关闭数据库连接了，需要应用在取完数据后自己关闭。
+MyBatis提供了一个叫org.apache.ibatis.cursor.Cursor的接口类用于流式查询，这个接口继承了java.io.Closeable和java.lang.Iterable接口，由此可知：Cursor是可关闭的；Cursor是可遍历的。
+除此之外，Cursor 还提供了三个方法：
+isOpen()：用于在取数据之前判断Cursor对象是否是打开状态。只有当打开时Cursor才能取数据；
+isConsumed()：用于判断查询结果是否全部取完。
+getCurrentIndex()：返回已经获取了多少条数据。
+
+错误示例，执行scanFoo0()时会报错：java.lang.IllegalStateException: A Cursor is already closed。这是因为我们前面说了在取数据的过程中需要保持数据库连接，而Mapper方法通常在执行完后连接就关闭了，因此Cursor也一并关闭了。
+
+    @Mapper
+    public interface FooMapper {
+        @Select("select * from foo limit #{limit}")
+        Cursor<Foo> scan(@Param("limit") int limit);
+    }
+    
+    @GetMapping("foo/scan/0/{limit}")
+    public void scanFoo0(@PathVariable("limit") int limit) throws Exception {
+        try (Cursor<Foo> cursor = fooMapper.scan(limit)) {  // 1
+            cursor.forEach(foo -> {});                      // 2
+        }
+    }
+
+解决方案：
+
+    //方案一：SqlSessionFactory我们可以用SqlSessionFactory来手工打开数据库连接，1处我们开启了一个SqlSession（实际上也代表了一个数据库连接），并保证它最后能关闭；2处我们使用SqlSession来获得Mapper对象。这样才能保证得到的Cursor对象是打开状态的。
+    @GetMapping("foo/scan/1/{limit}")
+    public void scanFoo1(@PathVariable("limit") int limit) throws Exception {
+        try (
+            SqlSession sqlSession = sqlSessionFactory.openSession();  // 1
+            Cursor<Foo> cursor = sqlSession.getMapper(FooMapper.class).scan(limit)   // 2
+        ) {
+            cursor.forEach(foo -> { });
+        }
+    }
+    
+    //方案二：可以用TransactionTemplate来执行一个数据库事务，这个过程中数据库连接同样是打开的。1处我们创建了一个TransactionTemplate对象，2处执行数据库事务，而数据库事务的内容则是调用Mapper对象的流式查询。注意这里的Mapper对象无需通过SqlSession创建。
+    @GetMapping("foo/scan/2/{limit}")
+    public void scanFoo2(@PathVariable("limit") int limit) throws Exception {
+        TransactionTemplate transactionTemplate =  new TransactionTemplate(transactionManager);  // 1
+        transactionTemplate.execute(status -> {               // 2
+            try (Cursor<Foo> cursor = fooMapper.scan(limit)) {
+                cursor.forEach(foo -> { });
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        });
+    }
+    
+    //方案三：@Transactional注解，它仅仅是在原来方法上面加了个@Transactional注解。这个方案看上去最简洁，但请注意Spring框架当中注解使用的坑：只在外部调用时生效。在当前类中调用这个方法，依旧会报错。
+    @GetMapping("foo/scan/3/{limit}")
+    @Transactional
+    public void scanFoo3(@PathVariable("limit") int limit) throws Exception {
+        try (Cursor<Foo> cursor = fooMapper.scan(limit)) {
+            cursor.forEach(foo -> { });
+        }
+    }
 
 # 数据库
 
@@ -1818,8 +1887,54 @@ dubbo的注册中心可以选择zk,redis等多种，springcloud的注册中心�
 301代表永久性转移(Permanently Moved)，302代表暂时性转移(Temporarily Moved )。
 301和302状态码都表示重定向，就是说浏览器在拿到服务器返回的这个状态码后会自动跳转到一个新的URL地址，这个地址可以从响应的Location首部中获取（用户看到的效果就是他输入的地址A瞬间变成了另一个地址B）——这是它们的共同点。
 它们的不同在于，301表示旧地址A的资源已经被永久地移除了（这个资源不可访问了），搜索引擎在抓取新内容的同时也将旧的网址交换为重定向之后的网址；302表示旧地址A的资源还在（仍然可以访问），这个重定向只是临时地从旧地址A跳转到地址B，搜索引擎会抓取新的内容而保存旧的网址。
-尽量要使用301跳转是为了防止网址劫持，从网址A做一个302重定向到网址B时，主机服务器的隐含意思是网址A随时有可能改主意，重新显示本身的内容或转向其他的地方。大部分的搜索引擎在大部分情况下，当收到302重定向时，一般只要去抓取目标网址就可以了，也就是说网址B。如果搜索引擎在遇到302转向时，百分之百的都抓取目标网址B的话，就不用担心网址URL劫持了。问题就在于，有的时候搜索引擎，尤其是Google，并不能总是抓取目标网址。比如说，有的时候A网址很短，但是它做了一个302重定向到B网址，而B网址是一个很长的乱七八糟的URL网址，甚至还有可能包含一些问号之类的参数。很自然的，A网址更加用户友好，而B网址既难看，又不用户友好。这时Google很有可能会仍然显示网址A。由于搜索引擎排名算法只是程序而不是人，在遇到302重定向的时候，并不能像人一样的去准确判定哪一个网址更适当，这就造成了网址URL劫持的可能性。也就是说，一个不道德的人在他自己的网址A做一个302重定向到你的网址B，出于某种原因，Google搜索结果所显示的仍然是网址A，但是所用的网页内容却是你的网址B上的内容，这种情况就叫做网址URL劫持。
+尽量要使用301跳转是为了防止网址劫持，从网址A做一个302重定向到网址B时，主机服务器的隐含意思是网址A随时有可能改主意，重新显示本身的内容或转向其他的地方。大部分的搜索引擎在大部分情况下，当收到302重定向时，一般只要去抓取目标网址就可以了，也就是说网址B。如果搜索引擎在遇到302转向时，百分之百的都抓取目标网址B的话，就不用担心网址URL劫持了。问题就在于，有的时候搜索引擎，尤其是Google，并不能总是抓取目标网址。
+比如说，有的时候A网址很短，但是它做了一个302重定向到B网址，而B网址是一个很长的乱七八糟的URL网址，甚至还有可能包含一些问号之类的参数。很自然的，A网址更加用户友好，而B网址既难看，又不用户友好。这时Google很有可能会仍然显示网址A。由于搜索引擎排名算法只是程序而不是人，在遇到302重定向的时候，并不能像人一样的去准确判定哪一个网址更适当，这就造成了网址URL劫持的可能性。也就是说，一个不道德的人在他自己的网址A做一个302重定向到你的网址B，出于某种原因，Google搜索结果所显示的仍然是网址A，但是所用的网页内容却是你的网址B上的内容，这种情况就叫做网址URL劫持。
 简单理解是，从网站A（网站比较烂）上做了一个302跳转到网站B（搜索排名很靠前），这时候有时搜索引擎会使用网站B的内容，但却收录了网站A的地址，这样在不知不觉间，网站B在为网站A作贡献，网站A的排名就靠前了。
+
+2.HTTPS为什么是安全的？
+
+HTTP协议存在一个致命的缺点：不安全，中间人攻击篡改报文。
+HTTPS其实是SSL+HTTP的简称，当然现在SSL基本已经被TLS取代了，不过接下来我们还是统一以SSL作为简称，SSL协议其实不止是应用在HTTP协议上，还在应用在各种应用层协议上，例如：FTP、WebSocket。
+其实SSL协议大致就和上一节非对称加密的性质一样，握手的过程中主要也是为了交换秘钥，然后再通讯过程中使用对称加密进行通讯。
+服务器是通过SSL证书来传递公钥，客户端会对SSL证书进行验证，其中证书认证体系就是确保SSL安全的关键。
+在CA认证体系中，所有的证书都是由权威机构来颁发，而权威机构的CA证书都是已经在操作系统中内置的，我们把这些证书称之为CA根证书。
+我们的应用服务器如果想要使用SSL的话，需要通过权威认证机构来签发CA证书，我们将服务器生成的公钥和站点相关信息发送给CA签发机构，再由CA签发机构通过服务器发送的相关信息用CA签发机构进行加签，由此得到我们应用服务器的证书，证书会对应的生成证书内容的签名，并将该签名使用CA签发机构的私钥进行加密得到证书指纹，并且与上级证书生成关系链。
+当客户端(浏览器)做证书校验时，会一级一级的向上做检查，直到最后的根证书，如果没有问题说明服务器证书是可以被信任的。那么客户端(浏览器)又是如何对服务器证书做校验的呢，首先会通过层级关系找到上级证书，通过上级证书里的公钥来对服务器的证书指纹进行解密得到签名(sign1)，再通过签名算法算出服务器证书的签名(sign2)，通过对比sign1和sign2，如果相等就说明证书是没有被篡改也不是伪造的。
+
+3.SSL证书生成
+
+root.crt:根证书，server.key:服务证书私钥，server.crt:服务证书
+
+根证书生成
+
+    # 生成一个RSA私钥
+    openssl genrsa -out root.key 2048
+    # 通过私钥生成一个根证书
+    openssl req -sha256 -new -x509 -days 365 -key root.key -out root.crt \
+        -subj "/C=CN/ST=GD/L=SZ/O=lee/OU=work/CN=fakerRoot"
+        
+服务器证书生成
+
+    # 生成一个RSA私钥
+    openssl genrsa -out server.key 2048
+    # 生成一个带SAN扩展的证书签名请求文件
+    openssl req -new \
+        -sha256 \
+        -key server.key \
+        -subj "/C=CN/ST=GD/L=SZ/O=lee/OU=work/CN=xxx.com" \
+        -reqexts SAN \
+        -config <(cat /etc/pki/tls/openssl.cnf \
+            <(printf "[SAN]\nsubjectAltName=DNS:*.xxx.com,DNS:*.test.xxx.com")) \
+        -out server.csr
+    # 使用之前生成的根证书做签发
+    openssl ca -in server.csr \
+        -md sha256 \
+        -keyfile root.key \
+        -cert root.crt \
+        -extensions SAN \
+        -config <(cat /etc/pki/tls/openssl.cnf \
+            <(printf "[SAN]\nsubjectAltName=DNS:xxx.com,DNS:*.test.xxx.com")) \
+        -out server.crt
 
 # 设计模式
 
@@ -1917,11 +2032,17 @@ ZK：
 
 # 架构
 
-1.SOA架构与微服务架构
+1.架构发展
 
+单体架构：可理解为传统的前后端未分离的架构
+
+垂直架构：可理解为前后端分离架构
+
+SOA架构：可理解为按服务类别，业务流量，服务间依赖关系等服务化的架构，如以前的单体架构ERP项目，划分为订单服务，采购服务，物料服务和销售服务等。
 SOA（Service Oriented Architecture）“面向服务的架构”是一种设计方法，其中包含多个服务，服务之间通过相互依赖最终提供一系列的功能。一个服务通常以独立的形式存在与操作系统进程中。各个服务之间通过网络调用。
 SOA架构特点：系统集成，站在系统的角度，解决企业系统间的通信问题，把原先散乱、无规划的系统间的网状结构，梳理成规整、可治理的系统间星形结构，这一步往往需要引入一些产品，比如ESB（企业服务总线）、以及技术规范、服务管理规范；这一步解决的核心问题是【有序】。
 
+微服务：可理解为一个个小型的项目，如之前的ERP大型项目，划分为订单服务(订单项目)，采购服务(采购项目)，物料服务(物料项目)和销售服务(销售项目)，以及服务之间调用。
 微服务架构其实和SOA架构类似，微服务是在SOA上做的升华，微服务架构强调的一个重点是“业务需要彻底的组件化和服务化”，原有的单个业务系统会拆分为多个可以独立开发、设计、运行的小应用。这些小应用之间通过服务完成交互和集成。
 微服务架构特点：通过服务实现组件化，开发者不再需要协调其它服务部署对本服务的影响。
 按业务能力来划分服务和开发团队，开发者可以自由选择开发技术，提供API服务。
@@ -1936,6 +2057,32 @@ SOA：大块业务逻辑、通常松耦合、公司架构任何类型、着重�
 # Linux
 
 N.[【179期】这些最常用的Linux命令都不会，你怎么敢去面试？](https://mp.weixin.qq.com/s?__biz=MzIyNDU2ODA4OQ==&mid=2247486062&idx=1&sn=fa33b0f42303ab221f376dc5d72f0676&chksm=e80dbc18df7a350e3454b424ee7ff551dcb3ef9d489ff1affbaf717104758af72054003420ed&scene=21#wechat_redirect)
+
+# 问题排查与调优
+
+1.常用命令
+
+    请求数
+    natstat -na | wc -l
+    
+    CPU
+    top
+    
+    内存
+    free
+    
+    查看GC
+    
+    jstat -gc PID
+    
+    查看堆栈
+    
+    jstat -l PID
+    jstack -l PID
+
+N.参考
+
+1.[记一次线上商城系统高并发的优化](https://www.cnblogs.com/wangjiming/p/13225544.html)
 
 # 其他
 
