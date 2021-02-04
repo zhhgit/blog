@@ -16,21 +16,29 @@ tags: [Docker]
     docker pull hub.c.163.com/library/nginx
     // 查看镜像
     docker images
-    // 运行镜像
-    docker run hub.c.163.com/library/hello-world
-    // 后台运行Nginx
-    docker run -d hub.c.163.com/library/nginx
-    // 指定Nginx本地端口为8080，容器中端口80，-P是容器内部端口随机映射到主机的高端口。-p是容器内部端口绑定到指定的主机端口。
-    docker run -d -p 8080:80 hub.c.163.com/library/nginx
     // 删除镜像
     docker rmi xxxx(镜像ID)
     // 搜索镜像
     docker search httpd
     // 为镜像添加一个新的标签。
     docker tag xxxx(镜像ID) test/ubuntu:v2
+    // 查看指定镜像的创建历史
+    docker history hub.c.163.com/library/nginx
+    // 将指定镜像保存成tar归档文件
+    docker save -o my_ubuntu_v3.tar test/ubuntu:v3
+    // 从归档文件中创建镜像
+    docker import my_ubuntu_v3.tar test/ubuntu:v4
 
 容器相关命令：
-    
+
+    // 创建但是不启动容器，使用docker镜像nginx:latest创建一个容器,并将容器命名为test
+    docker create --name test nginx:latest
+    // 运行镜像
+    docker run hub.c.163.com/library/hello-world
+    // 后台运行Nginx
+    docker run -d hub.c.163.com/library/nginx
+    // 指定Nginx本地端口为8080，容器中端口80，-P是容器内部端口随机映射到主机的高端口。-p是容器内部端口绑定到指定的主机端口。
+    docker run -d -p 8080:80 hub.c.163.com/library/nginx
     // 进入容器，其中xxxx代表run之后看到的容器id
     docker exec -it xxxx bash
     // 查看容器运行情况
@@ -59,6 +67,14 @@ tags: [Docker]
     docker inspect xxxx
     // 拷贝文件进容器
     docker cp /users/zhanghao/localdir xxxx:/users/containerUser/
+    // 杀掉一个运行中的容器
+    docker kill xxxx
+    // 暂停容器中所有的进程
+    docker pause xxxx
+    // 恢复容器中所有的进程
+    docker unpause xxxx
+    // 从服务器获取实时事件
+    docker events --since="2016-07-01"
 
 容器状态有7种：
 
@@ -114,7 +130,42 @@ tags: [Docker]
     USER 用于指定执行后续命令的用户和用户组，这边只是切换后续命令执行的用户（用户和用户组必须提前已经存在）。
     ONBUILD 用于延迟构建命令的执行。简单的说，就是Dockerfile里用ONBUILD指定的命令，在本次构建镜像的过程中不会执行（假设镜像为test-build）。当有新的Dockerfile使用了之前构建的镜像FROM test-build，这是执行新镜像的Dockerfile构建时候，会执行test-build的Dockerfile里的ONBUILD指定的命令。
 
-# 四、参考
+# 四、Docker Swarm
+
+    // 创建swarm集群管理节点（manager）
+    docker-machine create -d virtualbox swarm-manager
+    // 创建2个worker节点
+    docker-machine create -d virtualbox swarm-worker1
+    docker-machine create -d virtualbox swarm-worker2
+    // 查看节点
+    docker-machine ls
+    // 登录并初始化swarm集群
+    docker-machine ssh swarm-manager
+    （swarm-manager中）docker swarm init --advertise-addr 192.168.99.107
+    // 分别进入两个机器里，指定添加至上一步中创建的集群
+    docker-machine --native-ssh ssh swarm-worker1 "docker swarm join --token SWMTKN-1-3p8yil4ufeun3cctk0m1ip14caei2tykmv79sdp18u3yphz66r-5v2lfqmy1925s0eo5sf6jfvw6 192.168.99.100:2377"
+    docker-machine --native-ssh ssh swarm-worker2 "docker swarm join --token SWMTKN-1-3p8yil4ufeun3cctk0m1ip14caei2tykmv79sdp18u3yphz66r-5v2lfqmy1925s0eo5sf6jfvw6 192.168.99.100:2377"
+    // 查看当前集群的信息
+    （swarm-manager中）docker info
+    // 查看节点信息
+    （swarm-manager中）docker node ls
+    // 拉取镜像
+    （swarm-manager中）docker pull hub.c.163.com/library/nginx:latest
+    // 部署服务到集群中
+    （swarm-manager中）docker service create --replicas 3 -p 8088:80 --name nginx hub.c.163.com/library/nginx:latest
+    // 查看服务
+    （swarm-manager中）docker service ls
+    （swarm-manager中）docker service ps nginx
+    （swarm-manager中）docker service inspect --pretty nginx
+    // 调整服务节点个数
+    （swarm-manager中）docker service scale nginx=2
+    // 删除服务
+    （swarm-manager中）docker service rm nginx
+    // 停止、重新激活节点接收任务
+    （swarm-manager中）docker node update --availability drain swarm-worker1
+    （swarm-manager中）docker node update --availability active swarm-worker1
+
+# 五、参考
 
 1.[网易云镜像中心](https://c.163yun.com/hub#/m/home/)
 
@@ -125,3 +176,7 @@ tags: [Docker]
 4.[阿里云容器镜像服务](https://help.aliyun.com/document_detail/60743.html)
 
 5.[docker命令大全](https://www.runoob.com/docker/docker-command-manual.html)
+
+6.[Swarm集群管理](https://www.runoob.com/docker/docker-swarm.html)
+
+7.[Docker Swarm从入门到放弃](https://www.cnblogs.com/sword-successful/p/12267163.html)
