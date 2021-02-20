@@ -56,6 +56,9 @@ tags: [Resources]
 (3)获取长度：nums.size()
 (4)获取某元素：nums[3]
 (5)插入，末尾插入ret.push_back(1);
+(6)排序，sort(nums.begin(), nums.end());其中begin()、end()分别返回容器中起始、结束元素的迭代器。
+(7)累加，accumulate(nums.begin(), nums.end(),init);返回将范围中的所有值累加[first,last)到init的结果。
+(8)判空，nums.empty();
 
 10.unordered_map：
 (1)初始化；unordered_map<int,int> map;

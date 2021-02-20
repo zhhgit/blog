@@ -36,7 +36,7 @@ tags: [Resources]
     x = bytearray(5)
     x = memoryview(bytes(5))
     
-    # 制定具体的数据类型
+    # 指定具体的数据类型
     x = str("Hello World")
     x = int(29)
     x = float(29.5)
@@ -64,7 +64,7 @@ tags: [Resources]
         do something3
         
     # 评估任何值返回True或者False，除空值（例如 ()、[]、{}、""、数字 0 和值 None），其他返True
-    bool()
+    bool(var)
 
 (3)循环
 
@@ -138,9 +138,41 @@ tags: [Resources]
     x = lambda a, b, c : a + b + c
     print(x(5, 6, 2))
     
-(7)对于字典和列表是传递的对象引用，即可以修改原对象，对于数字、字符串、元组是传递的值。
+(7)迭代器
 
-(8)global变量
+列表、元组、字典和集合都是可迭代的对象。它们是可迭代的容器，您可以从中获取迭代器（Iterator）。
+
+    class MyNumbers:
+      # 返回可迭代对象本身
+      def __iter__(self):
+        self.a = 1
+        return self
+    
+      def __next__(self):
+        if self.a <= 20:
+          x = self.a
+          self.a += 1
+          return x
+        else:
+          # 为了防止迭代永远进行，可以使用StopIteration语句。
+          raise StopIteration
+    
+    myclass = MyNumbers()
+    myiter = iter(myclass)
+    
+    for x in myiter:
+      print(x)
+    
+    # 或者
+    print(next(myiter))
+    print(next(myiter))
+    print(next(myiter))
+    print(next(myiter))
+    print(next(myiter))
+    
+(8)对于字典和列表是传递的对象引用，即可以修改原对象，对于数字、字符串、元组是传递的值。
+
+(9)global变量
 
 通常在函数内部创建变量时，该变量是局部变量，只能在该函数内部使用。要在函数内部创建全局变量，可以使用global关键字。
 
@@ -189,8 +221,7 @@ tags: [Resources]
 (2)类方法：@staticmethod，方法参数中没有self
 (3)引入：from src.session1.common.PrintUtil import PrintUtil
 (4)调用：类中的某个方法调用其他方法self.another_method()
-(5)私有属性：self.__attr
-
+(5)私有属性：self.__attr_name
 
 3.IO
 (1)print(list)
@@ -222,8 +253,8 @@ tags: [Resources]
     ccccc
     ''' 
     
-    # 分割，其中-1表示分割所有
-    str.split("/",-1)
+    # 分割，其中max为-1表示分割所有，表示最大分割次数，返回列表。
+    str.split("/",max)
 
     # 拼接
     "".join(list)
