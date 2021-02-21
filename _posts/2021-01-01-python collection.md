@@ -7,7 +7,7 @@ category: Resources
 tags: [Resources]
 ---
 
-# Python基础
+# 一、Python基础
 
 1.面向过程
 
@@ -216,18 +216,16 @@ tags: [Resources]
         self.graduationyear = year
     
     x = Student("Elon", "Musk", 2019)
-    
 
-(2)类方法：@staticmethod，方法参数中没有self
-(3)引入：from src.session1.common.PrintUtil import PrintUtil
-(4)调用：类中的某个方法调用其他方法self.another_method()
-(5)私有属性：self.__attr_name
+(3)类方法：@staticmethod，方法参数中没有self
 
-3.IO
-(1)print(list)
-(2)输出不换行print("something",end=' '),自定义输出末尾是什么
+(4)引入：from src.session1.common.PrintUtil import PrintUtil
 
-4.字符串
+(5)调用：类中的某个方法调用其他方法self.another_method()
+
+(6)私有属性：self.__attr_name
+
+3.字符串
 
     # 字符串长度
     len(str)
@@ -296,7 +294,7 @@ tags: [Resources]
     a = str[i]
     b = str[i:j]
 
-5.列表
+4.列表
 
     # 访问项目
     item = thislist[3]
@@ -359,7 +357,7 @@ tags: [Resources]
     # 二维列表初始化
     initMatrix = [[0 for i in range(m)] for j in range(n)]
 
-6.集合
+5.集合
     
     # 添加
     thisset.add("orange")
@@ -377,7 +375,7 @@ tags: [Resources]
     set3 = set1.union(set2)
     set1.update(set2)
     
-7.字典
+6.字典
 
     # 访问
     x = thisdict["model"]
@@ -418,5 +416,225 @@ tags: [Resources]
     # 判断是否存在key
     if key in dict
 
-8.队列：from collections import deque，有append(),popleft()方法
+7.队列：from collections import deque，有append(),popleft()方法
 
+8.模块
+
+    # 导入模块中的函数
+    import mymodule
+    mymodule.greeting("Bill")
+
+    # 导入模块中的对象
+    import mymodule
+    a = mymodule.person1["age"]
+    print(a)
+
+    # 列出模块中的所有函数名（或变量名），可用于所有模块，也可用于您自己创建的模块。
+    dir()
+
+    # 选择仅从模块导入部件，在使用from关键字导入时，请勿在引用模块中的元素时使用模块名称。示例：person1["age"]，而不是 mymodule.person1["age"]
+    from mymodule import person1
+    print (person1["age"])
+
+9.日期
+
+    import datetime
+
+    # 2019-08-14 12:52:55.817273
+    x = datetime.datetime.now()
+
+    # 2020-05-17 00:00:00
+    x = datetime.datetime(2020, 5, 17)
+
+    # 格式化输出日期
+    x.strftime("%Y")
+
+10.JSON处理
+
+    import json
+    
+    # 字符串转化为字典对象
+    x =  '{ "name":"Bill", "age":63, "city":"Seatle"}'
+    y = json.loads(x)
+    print(y["age"])
+
+    # 对象转化为JSON字符串,indent定义缩进的字符数
+    x = {
+        "name": "Bill",
+        "age": 63,
+        "married": True,
+        "divorced": False,
+        "children": ("Jennifer","Rory","Phoebe"),
+        "pets": None,
+        "cars": [
+            {"model": "Porsche", "mpg": 38.2},
+            {"model": "BMW M5", "mpg": 26.9}
+        ]
+    }
+    
+    print(json.dumps(x，indent=4))
+
+    '''
+    输出结果为：
+    {"name": "Bill", "age": 63, "married": true, "divorced": false, "children": ["Jennifer", "Rory", "Phoebe"], "pets": null, "cars": [{"model": "Porsche", "mpg": 38.2}, {"model": "BMW M5", "mpg": 26.9}]}
+    '''
+
+11.正则表达式
+
+    import re
+    
+    str = "China is a great country"
+    # 返回包含所有匹配项的列表
+    x = re.findall("a", str)
+    
+    # 搜索字符串中的匹配项，如果存在匹配则返回Match对象。如果有多个匹配，则仅返回首个匹配项。如果未找到匹配，则返回值None
+    # Match 对象提供了用于取回有关搜索及结果信息的属性和方法：span()返回的元组包含了匹配的开始和结束位置。.string返回传入函数的字符串。group()返回匹配的字符串部分
+    x = re.search("\s", str)
+
+    # 返回一个列表，其中字符串在每次匹配时被拆分
+    x = re.split("\s", str)
+    
+    # 把匹配替换为您选择的文本9
+    x = re.sub("\s", "9", str)
+
+12.包管理
+
+    pip --version
+    pip install camelcase
+    pip uninstall camelcase
+    pip list
+
+13.异常处理
+
+    try:
+        x = "demofile.txt"
+        f = open(x)
+        f.write("something")
+        raise Exception("Sorry")
+    except NameError:
+        print("Variable x is not defined")
+    except:
+        print("Something went wrong when writing to the file")
+    else:
+        print("Nothing went wrong")
+    finally:
+        f.close()
+
+14.IO
+
+    # 直接打印列表 
+    print(list)
+
+    # 输出不换行，自定义输出末尾是空格
+    print("something",end=' ')
+
+    # 输入
+    x = input()
+
+    # 文件打开个参数文件名称，模式。
+    '''
+    "r" - 读取，默认值，打开文件进行读取，如果文件不存在则报错。
+    "a" - 追加 - 打开供追加的文件，如果不存在则创建该文件。
+    "w" - 写入 - 打开文件进行写入，如果文件不存在则创建该文件。会覆盖任何已有的内容。
+    "x" - 创建 - 创建指定的文件，如果文件存在则返回错误。
+    "t" - 文本 - 默认值。文本模式。
+    "b" - 二进制 - 二进制模式（例如图像）。
+    '''
+    f = open("demofile.txt", "rt")
+
+    # 文件读取
+    # 读取全部文本
+    print(f.read())
+    # 读取5个字符
+    print(f.read(5))
+    # 读取一行
+    print(f.readline())
+    # 遍历所有行
+    for x in f:
+        print(x)
+
+    # 关闭文件
+    f.close()
+
+    # 写入文件
+    f = open("demofile3.txt", "w")
+    f.write("something")
+    
+    # 删除，注意必须导入os
+    import os
+    if os.path.exists("demofile.txt"):
+        os.remove("demofile.txt")
+    else:
+        print("The file does not exist")
+    # 删除空目录
+    import os
+    os.rmdir("myfolder")
+
+# 二、NumPy
+
+    # 数组创建
+    import numpy as np
+    # NumPy数组提供了ndim属性，该属性返回一个整数，该整数会告诉我们数组有多少维
+    a = np.array(42)
+    b = np.array([1, 2, 3, 4, 5])
+    c = np.array([[1, 2, 3], [4, 5, 6]])
+    d = np.array([[[1, 2, 3], [4, 5, 6]], [[1, 2, 3], [4, 5, 6]]])
+    print(d.ndim)
+
+    # 数组元素访问，访问第一个数组的第二个数组的第三个元素
+    arr[0, 1, 2]
+
+    # 数组截取
+    arr = np.array([[1, 2, 3, 4, 5], [6, 7, 8, 9, 10]])
+    print(arr[0:2, 1:4])
+
+    '''
+    NumPy中所有数据类型的列表以及用于表示它们的字符。
+    i - 整数
+    b - 布尔
+    u - 无符号整数
+    f - 浮点
+    c - 复合浮点数
+    m - timedelta
+    M - datetime
+    O - 对象
+    S - 字符串
+    U - unicode 字符串
+    V - 固定的其他类型的内存块 ( void )
+    '''
+
+    # 返回数组中的数据类型
+    arr = np.array([1, 2, 3, 4])
+    print(arr.dtype)
+    # 创建时指定数据类型
+    arr = np.array([1, 2, 3, 4], dtype='i4')
+    print(arr)
+    print(arr.dtype)
+    # 转化数据类型，创建副本
+    arr = np.array([1.1, 2.1, 3.1])
+    newarr = arr.astype(int)
+    print(newarr)
+    print(newarr.dtype)
+
+    '''
+    副本和数组视图之间的主要区别在于副本是一个新数组，而这个视图只是原始数组的视图。
+    副本拥有数据，对副本所做的任何更改都不会影响原始数组，对原始数组所做的任何更改也不会影响副本。 
+    视图不拥有数据，对视图所做的任何更改都会影响原始数组，而对原始数组所做的任何更改都会影响视图。
+    '''
+    import numpy as np
+    arr = np.array([1, 2, 3, 4, 5])
+    # 创建副本
+    x = arr.copy()
+    # 创建视图
+    y = arr.view()
+    # 每个NumPy数组都有一个属性 base，如果该数组拥有数据，返回None。否则base属性将引用原始对象。副本返回None。视图返回原始数组。
+    print(x.base)
+    print(y.base)
+
+# 三、Python Web
+
+# 四、参考
+
+1.[w3school Python教程](https://www.w3school.com.cn/python/index.asp)
+
+2.[菜鸟 Python教程](https://www.runoob.com/python3/python3-tutorial.html)
