@@ -3,8 +3,8 @@ layout: post
 title: "Python知识整理"
 description: Python知识整理
 modified: 2021-01-01
-category: Resources
-tags: [Resources]
+category: Python
+tags: [Python]
 ---
 
 # 一、Python基础
@@ -574,17 +574,18 @@ tags: [Resources]
 
     # 数组创建
     import numpy as np
-    # NumPy数组提供了ndim属性，该属性返回一个整数，该整数会告诉我们数组有多少维
     a = np.array(42)
     b = np.array([1, 2, 3, 4, 5])
     c = np.array([[1, 2, 3], [4, 5, 6]])
     d = np.array([[[1, 2, 3], [4, 5, 6]], [[1, 2, 3], [4, 5, 6]]])
+    # NumPy数组提供了ndim属性，该属性返回一个整数，该整数会告诉我们数组有多少维
     print(d.ndim)
 
     # 数组元素访问，访问第一个数组的第二个数组的第三个元素
     arr[0, 1, 2]
 
-    # 数组截取
+    # 数组截取，像这样传递切片[start：end]。还可以定义步长[start：end：step]
+    # 从两个元素裁切索引1到索引4（不包括）
     arr = np.array([[1, 2, 3, 4, 5], [6, 7, 8, 9, 10]])
     print(arr[0:2, 1:4])
 
@@ -631,10 +632,238 @@ tags: [Resources]
     print(x.base)
     print(y.base)
 
+    # 显示数组形状
+    arr = np.array([[1, 2, 3, 4], [5, 6, 7, 8]])
+    # 为（2，4）
+    print(arr.shape)
+    arr = np.array([1, 2, 3, 4], ndmin=5)
+    # 数组为[[[[[1 2 3 4]]]]]，形状为(1, 1, 1, 1, 4)
+    print(arr)
+    print('shape of array :', arr.shape)
+
+    # 数组重塑，重塑后得到的是视图，不是副本
+    # 将输出[[[ 1  2] [ 3  4] [ 5  6]]  [[ 7  8] [ 9 10] [11 12]]]
+    import numpy as np
+    arr = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
+    newarr = arr.reshape(2, 3, 2)
+    print(newarr)
+    # 可以使用未知维度，NumPy将计算该数字
+    newarr = arr.reshape(2, 2, -1)
+    # 将多维数组展平为一维数组
+    arr = np.array([[1, 2, 3], [4, 5, 6]])
+    newarr = arr.reshape(-1)
+
+    # 数组迭代访问
+    import numpy as np
+    arr = np.array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]])
+    for x in arr:
+        for y in x:
+            for z in y:
+                print(z)
+
+    arr = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])
+    for x in np.nditer(arr):
+        print(x)
+    
+    # 枚举迭代
+    '''
+    一维
+    (0,) 1
+    (1,) 2
+    (2,) 3
+    '''
+    arr = np.array([1, 2, 3])
+    for idx, x in np.ndenumerate(arr):
+        print(idx, x)
+    '''
+    二维
+    (0, 0) 1
+    (0, 1) 2
+    (0, 2) 3
+    (0, 3) 4
+    (1, 0) 5
+    (1, 1) 6
+    (1, 2) 7
+    (1, 3) 8
+    '''
+    arr = np.array([[1, 2, 3, 4], [5, 6, 7, 8]])
+    for idx, x in np.ndenumerate(arr):
+        print(idx, x)
+
+    # 数组连接
+    import numpy as np
+    arr1 = np.array([[1, 2], [3, 4]])
+    arr2 = np.array([[5, 6], [7, 8]])
+    # 默认axis为0，连接后为[[1 2] [3 4] [5 6] [7 8]]
+    arr = np.concatenate((arr1, arr2), axis=0)
+    print(arr)
+    # 连接后为[[1 2 5 6] [3 4 7 8]]
+    arr = np.concatenate((arr1, arr2), axis=1)
+    print(arr)
+
+    # 数组堆叠
+    import numpy as np
+    arr1 = np.array([1, 2, 3])
+    arr2 = np.array([4, 5, 6])
+    # 沿行堆叠，为[1 2 3 4 5 6]
+    arr = np.hstack((arr1, arr2))
+    print(arr)
+    # 沿列堆叠，为[[1 2 3] [4 5 6]]
+    arr = np.vstack((arr1, arr2))
+    print(arr)
+    # 沿高度堆叠，为[[[1 4] [2 5] [3 6]]]
+    arr = np.dstack((arr1, arr2))
+    print(arr)
+
+    # 数组拆分
+    import numpy as np
+    arr = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9], [10, 11, 12], [13, 14, 15], [16, 17, 18]])
+    # 被拆分为三个二维数组，默认沿列拆分，[array([[1, 2, 3],[4, 5, 6]]), array([[ 7,  8,  9],[10, 11, 12]]), array([[13, 14, 15],[16, 17, 18]])]
+    newarr = np.array_split(arr, 3)
+    print(newarr)
+    # 沿行拆分为三个二维数组，结果为[array([[1],[4],[7],[10],[13],[16]]), array([[2],[5],[8],[11],[14],[17]]), array([[3],[6],[9],[12],[15],[18]])]
+    newarr = np.array_split(arr, 3, axis=1)
+    print(newarr)
+    # 或者使用与hstack相反的hsplit
+    newarr = np.hsplit(arr, 3)
+    print(newarr)
+
+    # 数组搜素，返回值为偶数的索引，(array([1, 3, 5, 7], dtype=int64),)
+    import numpy as np
+    arr = np.array([1, 2, 3, 4, 5, 6, 7, 8])
+    x = np.where(arr%2 == 0)
+    print(x)
+    
+    # 在已排序数组中执行二进制搜索，并返回将在其中插入指定值以维持搜索顺序的索引，返回的是插入的位置索引
+    import numpy as np
+    arr = np.array([1, 3, 5, 7])
+    # 这里返回[1 2 3]
+    x = np.searchsorted(arr, [2, 4, 6])
+    print(x)
+
+    # 数组排序，此方法返回数组的副本，而原始数组保持不变。
+    import numpy as np
+    arr = np.array([3, 2, 0, 1])
+    print(np.sort(arr))
+    # 二维数组排序，返回[[2 3 4] [0 1 5]]
+    import numpy as np
+    arr = np.array([[3, 2, 4], [5, 0, 1]])
+    print(np.sort(arr))
+
+    # 数组过滤
+    import numpy as np
+    arr = np.array([61, 62, 63, 64, 65])
+    # 创建一个空列表
+    filter_arr = []
+    # 遍历 arr 中的每个元素
+    for element in arr:
+        # 如果元素大于 62，则将值设置为 True，否则为 False：
+        if element > 62:
+            filter_arr.append(True)
+        else:
+            filter_arr.append(False)
+    newarr = arr[filter_arr]
+    print(filter_arr)
+    print(newarr)
+
+    #或者直接从数组创建过滤器
+    import numpy as np
+    arr = np.array([61, 62, 63, 64, 65])
+    filter_arr = arr > 62
+    newarr = arr[filter_arr]
+    print(filter_arr)
+    print(newarr)
+    
+    # 生成3*5的0-100间的随机整数
+    from numpy import random
+    x = random.randint(100, size=(3, 5))
+    print(x)
+    # 生成3*5的0-1间的随机浮点数
+    from numpy import random
+    x = random.rand(3, 5)
+    print(x)
+    # 生成3*5的指定数组参数（3、5、7 和 9）中的值组成的二维数组
+    from numpy import random
+    x = random.choice([3, 5, 7, 9], size=(3, 5))
+    print(x)
+
 # 三、Python Web
+
+1.数据库访问
+
+    import mysql.connector
+    mydb = mysql.connector.connect(
+      host="localhost",
+      user="yourusername",
+      passwd="yourpassword",
+      database="mydatabase"
+    )
+    
+    # 新增一条数据
+    mycursor = mydb.cursor()
+    sql = "INSERT INTO customers (name, address) VALUES (%s, %s)"
+    val = ("John", "Highway 21")
+    mycursor.execute(sql, val)
+    mydb.commit()
+    # 获取刚插入的行的id
+    print(mycursor.rowcount, "record inserted. ID: ", mycursor.lastrowid)
+    
+    # 新增多条数据
+    mycursor = mydb.cursor()
+    sql = "INSERT INTO customers (name, address) VALUES (%s, %s)"
+    val = [
+      ('Peter', 'Lowstreet 4'),
+      ('Amy', 'Apple st 652')
+    ]
+    mycursor.executemany(sql, val)
+    mydb.commit()
+    print(mycursor.rowcount, "was inserted.")
+    
+    # 查询
+    import mysql.connector
+    mydb = mysql.connector.connect(
+      host="localhost",
+      user="yourusername",
+      passwd="yourpassword",
+      database="mydatabase"
+    )
+    mycursor = mydb.cursor()
+    mycursor.execute("SELECT name, address FROM customers")
+    # 返回所有行
+    myresult = mycursor.fetchall()
+    for x in myresult:
+      print(x)
+      
+    # 返回结果的第一行
+    myresult = mycursor.fetchone()
+    print(myresult)
+    
+    # 带条件查询
+    sql = "SELECT * FROM customers WHERE address = %s"
+    adr = ("some address", )
+    mycursor.execute(sql, adr)
+    myresult = mycursor.fetchall()
+    for x in myresult:
+      print(x)
+      
+    # 删除
+    sql = "DELETE FROM customers WHERE address = %s"
+    adr = ("some address", )
+    mycursor.execute(sql, adr)
+    mydb.commit()
+    print(mycursor.rowcount, "record(s) deleted")
+    
+    # 修改
+    sql = "UPDATE customers SET address = %s WHERE address = %s"
+    val = ("Valley 345", "Canyon 123")
+    mycursor.execute(sql, val)
+    mydb.commit()
+    print(mycursor.rowcount, "record(s) affected")
 
 # 四、参考
 
-1.[w3school Python教程](https://www.w3school.com.cn/python/index.asp)
+1.[W3school Python教程](https://www.w3school.com.cn/python/index.asp)
 
-2.[菜鸟 Python教程](https://www.runoob.com/python3/python3-tutorial.html)
+2.[菜鸟Python教程](https://www.runoob.com/python3/python3-tutorial.html)
+
+3.[廖雪峰Python教程](https://www.liaoxuefeng.com/wiki/1016959663602400)
