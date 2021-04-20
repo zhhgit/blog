@@ -180,3 +180,5 @@ tags: [Docker]
 6.[Swarm集群管理](https://www.runoob.com/docker/docker-swarm.html)
 
 7.[Docker Swarm从入门到放弃](https://www.cnblogs.com/sword-successful/p/12267163.html)
+
+8.[【253期】面试官：熟悉Docker操作吗？说几个常用的Docker命令吧](https://mp.weixin.qq.com/s?__biz=MzIyNDU2ODA4OQ==&mid=2247489173&idx=1&sn=2882d3378130c3f3c95d835778fa4214&chksm=e80da0e3df7a29f5ffb21ab68cd578d320309355ac9d6af3de8878f6ae8a8869d5a4aa75a53f&scene=21#wechat_redirect)
