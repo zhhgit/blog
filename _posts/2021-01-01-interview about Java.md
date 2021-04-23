@@ -94,7 +94,7 @@ tags: [Interview]
 5.Object类的方法
 
 (1)Object():构造方法
-(2)registerNatives():为了使JVM发现本机功能，他们被一定的方式命名。例如，对于java.lang.Object.registerNatives，对应的C函数命名为Java_java_lang_Object_registerNatives。通过使用registerNatives（或者更确切地说，JNI函数RegisterNatives），可以命名任何你想要你的C函数。
+(2)registerNatives():为了使JVM发现本机功能，它们被一定的方式命名。例如，对于java.lang.Object.registerNatives，对应的C函数命名为Java_java_lang_Object_registerNatives。通过使用registerNatives（或者更确切地说，JNI函数RegisterNatives），可以命名任何你想要你的C函数。
 (3)clone():用来另存一个当前存在的对象。只有实现了Cloneable接口才可以调用该方法，否则抛出CloneNotSupportedException异常。
 (4)getClass():final方法，用于获得运行时的类型。该方法返回的是此Object对象的类对象/运行时类对象Class。效果与Object.class相同。
 (5)equals():用来比较两个对象的内容是否相等。默认情况下(继承自Object类)，equals和==是一样的，除非被覆写(override)了。
@@ -162,6 +162,56 @@ DTO（Data Transfer Object），数据传输对象，顾名思义就是用于传
 controller层：public List<UserVO> getUsers(UserDTO userDto);
 Service层：List<UserDTO> getUsers(UserDTO userDto);
 DAO层：List<UserDTO> getUsers(UserDO userDo);
+
+10.Java8中Stream对列表去重
+
+distinct()是Java8中Stream提供的方法，返回的是由该流中不同元素组成的流。distinct()使用hashCode()和eqauls()方法来获取不同的元素。
+因此，需要去重的类必须实现 hashCode() 和 equals() 方法。换句话讲，我们可以通过重写定制的hashCode()和equals()方法来达到某些特殊需求的去重。
+
+对于String列表的去重
+
+    @Test
+    public void listDistinctByStreamDistinct() {
+      // 1. 对于 String 列表去重
+      List<String> stringList = new ArrayList<String>() {{
+        add("A");
+        add("A");
+        add("B");
+        add("B");
+        add("C");
+      }};
+      out.print("去重前：");
+      for (String s : stringList) {
+        out.print(s);
+      }
+      out.println();
+      stringList = stringList.stream().distinct().collect(Collectors.toList());
+      out.print("去重后：");
+      for (String s : stringList) {
+        out.print(s);
+      }
+      out.println();
+    }
+
+实体类列表的去重，代码中我们使用了 Lombok 插件的 @Data注解，可自动覆写equals()以及hashCode()方法。
+
+    @Data
+    public class Student {
+      private String stuNo;
+      private String name;
+    }
+    
+    @Test
+    public void listDistinctByStreamDistinct() throws JsonProcessingException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        // 1. 对于 Student 列表去重
+        List<Student> studentList = getStudentList();
+        out.print("去重前：");
+        out.println(objectMapper.writeValueAsString(studentList));
+        studentList = studentList.stream().distinct().collect(Collectors.toList());
+        out.print("去重后：");
+        out.println(objectMapper.writeValueAsString(studentList));
+     }
 
 N.参考
 
@@ -512,30 +562,49 @@ N.参考
 
 # 异常
 
-1.throw和throws的区别？
-(1)throws出现在方法函数头；而throw出现在函数体。
-(2)throws表示出现异常的一种可能性，并不一定会发生这些异常；throw则是抛出了异常，执行throw则一定抛出了某种异常对象。
-(3)两者都是消极处理异常的方式，只是抛出或者可能抛出异常，但是不会由函数去处理异常，真正的处理异常由函数的上层调用处理。
+1.异常的分类：
 
-2.非受检异常和受检异常之间的区别：是否强制要求调用者必须处理此异常，如果强制要求调用者必须进行处理，那么就使用受检异常，否则就选择非受检异常(RuntimeException)。
-函数定义中throwsArithmeticException异常，调用时未try...catch...，能否编译通过？改为IOException能否编译通过？ArithmeticException是继承RuntimeException运行时异常。Java编译器不要求一定要把它捕获或者一定要继续抛出。IOException属于检查异常，对检查异常要求必须要在方法里面捕获或者继续抛出。
+(1)Throwable：
+所有错误与异常的超类。两个子类：Error（错误）和 Exception（异常），包含了其线程创建时线程执行堆栈的快照，它提供了printStackTrace()等接口用于获取堆栈跟踪数据等信息。
+
+(2)Error：
+程序中无法处理的错误，表示运行应用程序中出现了严重的错误。
+此类错误一般表示代码运行时JVM出现问题。通常有VirtualMachineError（虚拟机运行错误）（比如 OutOfMemoryError：内存不足错误；StackOverflowError：栈溢出错误）、NoClassDefFoundError（类定义错误）等。此类错误发生时，JVM将终止线程。
+这些错误是不受检异常，非代码性错误。因此，当此类错误发生时，应用程序不应该去处理此类错误。按照Java惯例，我们是不应该实现任何新的Error子类的！
+
+(3)Exception：
+程序本身可以捕获并且可以处理的异常。分为两类：运行时异常和编译时异常。
+
+RuntimeException：运行时异常表示JVM在运行期间可能出现的异常。这类异常是编程人员的逻辑问题。
+Java编译器不会检查它，也就是说当程序中可能出现这类异常时，倘若既没有通过throws声明抛出它，也没有用try-catch语句捕获它，还是会编译通过。（可写可不写）
+比如NullPointerException空指针异常、ArrayIndexOutBoundException数组下标越界异常、ClassCastException类型转换异常、ArithmeticExecption算术异常。
+RuntimeException异常会由Java虚拟机自动抛出并自动捕获（就算我们没写异常捕获语句运行时也会抛出错误！！），此类异常的出现绝大数情况是代码本身有问题应该从逻辑上去解决并改进代码。
+
+非RuntimeException：编译时异常，除RuntimeException及其子类之外的异常。这类异常是由一些外部的偶然因素所引起的。
+Java编译器会检查它。如果程序中出现此类异常，要么通过throws进行声明抛出，要么通过try-catch进行捕获处理，否则不能通过编译。在程序中，通常不会自定义该类异常，而是直接使用系统提供的异常类。该异常我们必须手动在代码里添加捕获语句来处理该异常。
+例如Exception，FileNotFoundException，IOException，SQLException。
+
+(4)受检异常与非受检异常
+Java 的所有异常可以分为受检异常（checked exception）和非受检异常（unchecked exception）。
+
+受检异常：编译器要求必须处理的异常。正确的程序在运行过程中，经常容易出现的、符合预期的异常情况。一旦发生此类异常，就必须采用某种方式进行处理。除RuntimeException及其子类外，其他的Exception异常都属于受检异常。编译器会检查此类异常，也就是说当编译器检查到应用中的某处可能会此类异常时，将会提示你处理本异常——要么使用try-catch捕获，要么使用方法签名中用throws关键字抛出，否则编译不通过。
+非受检异常：编译器不会进行检查并且不要求必须处理的异常，也就说当程序中出现此类异常时，即使我们没有try-catch捕获它，也没有使用throws抛出该异常，编译也会正常通过。该类异常包括运行时异常（RuntimeException极其子类）和错误（Error）。
+
+2.异常相关关键字
+
+try – 用于监听。将要被监听的代码(可能抛出异常的代码)放在try语句块之内，当try语句块内发生异常时，异常就被抛出。
+catch – 用于捕获异常。catch用来捕获try语句块中发生的异常。
+finally – finally语句块总是会被执行。它主要用于回收在try块里打开的物力资源(如数据库连接、网络连接和磁盘文件)。只有finally块，执行完成之后，才会回来执行try或者catch块中的return或者throw语句，如果finally中使用了return或者throw等终止方法的语句，则就不会跳回执行，直接停止。
+throw – 用于抛出异常。
+throws – 用在方法签名中，用于声明该方法可能抛出的异常。
+
+throw和throws都是消极处理异常的方式，只是抛出或者可能抛出异常，但是不会由函数去处理异常，真正的处理异常由函数的上层调用处理。
 
 3.异常的处理方式：
 (1)捕获并处理：在异常的代码附近用try/catch进行处理,运行时系统捕获后会查询相应的catch处理块，再catch处理块中对该异常进行处理。
 (2)查看发生异常的方法是否有向上声明异常，有向上声明，向上级查询处理语句，如果没有向上声明，JVM中断程序的运行并处理。用throws向外声明。throws可以声明方法可能会抛出一个或多个异常，异常之间用'，'隔开。
 
-1.异常的分类：
 
-Throwable是所有错误与异常的超类。
-
-(1)Error错误：表示运行应用程序中出现了严重的错误。程序人员不用处理。按照Java惯例不应该实现任何新的Error子类的！例如StackOverFlowError, OutOfMemoryError。
-(2)Exception异常：程序本身可以捕获并且可以处理的异常。
-(2-1)RuntimeException:也叫非受检异常(unchecked exception)。这类异常是编程人员的逻辑问题。应该承担责任。
-Java编译器不会检查它，也就是说当程序中可能出现这类异常时，倘若既没有通过throws声明抛出它，也没有用try-catch语句捕获它，还是会编译通过。
-例如NullPointerException，ClassCastException，ArrayIndexsOutOfBoundsException，ArithmeticException(算术异常，除0溢出)。
-(2-2)非RuntimeException:也叫受检异常(checked exception)。这类异常是由一些外部的偶然因素所引起的。
-Java编译器会检查它。如果程序中出现此类异常，要么通过throws进行声明抛出，要么通过try-catch进行捕获处理，否则不能通过编译。
-例如Exception，FileNotFoundException，IOException，SQLException。
 
 6.自定义异常：当需要一些跟特定业务相关的异常信息类时。可以继承继承Exception来定义一个受检异常。也可以继承自RuntimeException或其子类来定义一个非受检异常。
 
@@ -661,15 +730,14 @@ Java编译器会检查它。如果程序中出现此类异常，要么通过thro
 
 监视器和锁在Java虚拟机中是一块使用的。监视器监视一块同步代码块，确保一次只有一个线程执行同步代码块。每一个监视器都和一个对象引用相关联。线程在获取锁之前不允许执行同步代码。java还提供了显式监视器(Lock)和隐式监视器(synchronized)两种锁方案。
 
-9.线程池的好处
+9.线程池
 
-(1)线程池的重用:线程的创建和销毁的开销是巨大的，而通过线程池的重用大大减少了这些不必要的开销，当然既然少了这么多消费内存的开销，其线程执行速度也是突飞猛进的提升。
-(2)控制线程池的并发数:控制线程池的并发数可以有效的避免大量的线程池争夺CPU资源而造成堵塞。
-(3)线程池可以对线程进行管理:线程池可以提供定时、定期、单线程、并发数控制等功能。
+(1)线程池优点：
+(a)线程池的重用:线程的创建和销毁的开销是巨大的，而通过线程池的重用大大减少了这些不必要的开销，当然既然少了这么多消费内存的开销，其线程执行速度也是突飞猛进的提升。
+(b)控制线程池的并发数:控制线程池的并发数可以有效的避免大量的线程池争夺CPU资源而造成堵塞。
+(c)线程池可以对线程进行管理：线程池可以提供定时、定期、单线程、并发数控制等功能。
 
-10.具体线程池
-
-(1)ThreadPoolExecutor，构造函数如下
+(2)ThreadPoolExecutor，构造函数如下
 
     public ThreadPoolExecutor(int corePoolSize,  
                               int maximumPoolSize,  
@@ -688,15 +756,33 @@ workQueue 线程池中的任务队列，该队列主要用来存储已经被提�
 threadFactory 为线程池提供创建新线程的功能，这个我们一般使用默认即可；
 handler 拒绝策略，当线程无法执行新任务时（一般是由于线程池中的线程数量已经达到最大数或者线程池关闭导致的），默认情况下，当线程池无法处理新线程时，会抛出一个RejectedExecutionException。
 
+执行流程：
 当currentSize<corePoolSize时，没什么好说的，直接启动一个核心线程并执行任务。
 当currentSize>=corePoolSize、并且workQueue未满时，添加进来的任务会被安排到workQueue中等待执行。
 当workQueue已满，但是currentSize<maximumPoolSize时，会立即开启一个非核心线程来执行任务。
-当currentSize>=corePoolSize、workQueue已满、并且currentSize>maximumPoolSize时，调用handler默认抛出RejectExecutionExpection异常。
+当currentSize>=corePoolSize、workQueue已满、并且currentSize>maximumPoolSize时，调用handler，执行线程池饱和策略，默认抛出RejectExecutionExpection异常。
 
-(2)FixedThreadPool:Fixed中文解释为固定。结合在一起解释固定的线程池，说的更全面点就是，有固定数量线程的线程池。其corePoolSize=maximumPoolSize，且keepAliveTime为0，适合线程稳定的场所。
-(3)SingleThreadPool:Single中文解释为单一。结合在一起解释单一的线程池，说的更全面点就是，有固定数量线程的线程池，且数量为一，从数学的角度来看SingleThreadPool应该属于FixedThreadPool的子集。其corePoolSize=maximumPoolSize=1,且keepAliveTime为0，适合线程同步操作的场所。
-(4)CachedThreadPool:Cached中文解释为储存。结合在一起解释储存的线程池，说的更通俗易懂，既然要储存，其容量肯定是很大，所以他的corePoolSize=0，maximumPoolSize=Integer.MAX_VALUE(2^32-1一个很大的数字)
-(5)ScheduledThreadPool:Scheduled中文解释为计划。结合在一起解释计划的线程池，顾名思义既然涉及到计划，必然会涉及到时间。所以ScheduledThreadPool是一个具有定时定期执行任务功能的线程池。
+线程池饱和策略分为以下几种：
+AbortPolicy:直接抛出一个异常，默认策略
+DiscardPolicy: 直接丢弃任务
+DiscardOldestPolicy:抛弃下一个将要被执行的任务(最旧任务)
+CallerRunsPolicy:主线程中执行任务
+
+几种典型的工作队列：
+ArrayBlockingQueue:使用数组实现的有界阻塞队列，特性先进先出
+LinkedBlockingQueue:使用链表实现的阻塞队列，特性先进先出，可以设置其容量，默认为Interger.MAX_VALUE，特性先进先出
+PriorityBlockingQueue:使用平衡二叉树堆，实现的具有优先级的无界阻塞队列
+DelayQueue:无界阻塞延迟队列，队列中每个元素均有过期时间，当从队列获取元素时，只有过期元素才会出队列。队列头元素是最块要过期的元素。
+SynchronousQueue:一个不存储元素的阻塞队列，每个插入操作，必须等到另一个线程调用移除操作，否则插入操作一直处于阻塞状态。
+
+几种典型的线程池：
+FixedThreadPool:Fixed中文解释为固定。结合在一起解释固定的线程池，说的更全面点就是，有固定数量线程的线程池。其corePoolSize=maximumPoolSize，且keepAliveTime为0，适合线程稳定的场景。使用LinkedBlockingQueue。
+SingleThreadPool:Single中文解释为单一。结合在一起解释单一的线程池，说的更全面点就是，有固定数量线程的线程池，且数量为一，从数学的角度来看SingleThreadPool应该属于FixedThreadPool的子集。其corePoolSize=maximumPoolSize=1,且keepAliveTime为0，适合线程同步操作的场所。使用LinkedBlockingQueue。
+CachedThreadPool:Cached中文解释为储存。结合在一起解释储存的线程池，说的更通俗易懂，既然要储存，其容量肯定是很大，所以它的corePoolSize=0，maximumPoolSize=Integer.MAX_VALUE(2^32-1一个很大的数字)。使用SynchronousQueue。
+ScheduledThreadPool:Scheduled中文解释为计划。结合在一起解释计划的线程池，顾名思义既然涉及到计划，必然会涉及到时间。所以ScheduledThreadPool是一个具有定时定期执行任务功能的线程池。使用DelayedWorkQueue。
+
+使用无界队列的线程池会导致内存飙升吗？
+会的，newFixedThreadPool使用了无界的阻塞队列LinkedBlockingQueue，如果线程获取一个任务后，任务的执行时间比较长，会导致队列的任务越积越多，导致机器内存使用不停飙升， 最终导致OOM。
 
 11.锁的分类与区别
 
@@ -741,7 +827,7 @@ handler 拒绝策略，当线程无法执行新任务时（一般是由于线程
 (6)分段锁
 分段锁其实是一种锁的设计，并不是具体的一种锁，对于ConcurrentHashMap而言，其并发的实现就是通过分段锁的形式来实现高效的并发操作。
 我们以ConcurrentHashMap来说一下分段锁的含义以及设计思想，ConcurrentHashMap中的分段锁称为Segment，它即类似于HashMap（JDK7与JDK8中HashMap的实现）的结构，即内部拥有一个Entry数组，数组中的每个元素又是一个链表；同时又是一个ReentrantLock（Segment继承了ReentrantLock)。
-当需要put元素的时候，并不是对整个hashmap进行加锁，而是先通过hashcode来知道他要放在那一个分段中，然后对这个分段进行加锁，所以当多线程put的时候，只要不是放在一个分段中，就实现了真正的并行的插入。
+当需要put元素的时候，并不是对整个hashmap进行加锁，而是先通过hashcode来知道它要放在那一个分段中，然后对这个分段进行加锁，所以当多线程put的时候，只要不是放在一个分段中，就实现了真正的并行的插入。
 但是，在统计size的时候，可就是获取hashmap全局信息的时候，就需要获取所有的分段锁才能统计。
 分段锁的设计目的是细化锁的粒度，当操作不需要更新整个数组的时候，就仅仅针对数组中的一项进行加锁操作。
 
@@ -767,6 +853,18 @@ ThreadLocal的静态内部类ThreadLocalMap为每个Thread都维护了一个数�
 对于同一线程的不同ThreadLocal来讲，这些ThreadLocal实例共享一个table数组，然后每个ThreadLocal实例在table中的索引i是不同的。
 ThreadLocal和Synchronized都是为了解决多线程中相同变量的访问冲突问题，不同的点是Synchronized是通过线程等待，牺牲时间来解决访问冲突。ThreadLocal是通过每个线程单独一份存储空间，牺牲空间来解决冲突，并且相比于Synchronized，ThreadLocal具有线程隔离的效果，只有在线程内才能获取到对应的值，线程外则不能访问到想要的值。
 
+13.Java的线程安全与不安全
+
+多个线程之间是不能直接传递数据进行交互的，它们之间的交互只能通过共享变量来实现。
+例如在多个线程之间共享了Count类的一个实例，这个对象是被创建在主内存（堆内存）中，每个线程都有自己的工作内存（线程栈），工作内存存储了主内存count对象的一个副本，当线程操作count对象时，首先从主内存复制count对象到工作内存中，然后执行代码count.count()，改变了num值，最后用工作内存中的count刷新主内存的count。当一个对象在多个工作内存中都存在副本时，如果一个工作内存刷新了主内存中的共享变量，其它线程也应该能够看到被修改后的值，此为可见性。
+多个线程执行时，CPU对线程的调度是随机的，我们不知道当前程序被执行到哪步就切换到了下一个线程，一个最经典的例子就是银行汇款问题，一个银行账户存款100，这时一个人从该账户取10元，同时另一个人向该账户汇10元，那么余额应该还是100。那么此时可能发生这种情况，A线程负责取款，B线程负责汇款，A从主内存读到100，B从主内存读到100，A执行减10操作，并将数据刷新到主内存，这时主内存数据100-10=90，而B内存执行加10操作，并将数据刷新到主内存，最后主内存数据100+10=110，显然这是一个严重的问题，我们要保证A线程和B线程有序执行，先取款后汇款或者先汇款后取款，此为有序性。
+
+在Web开发方面，Servlet是否是线程安全的呢？
+Servlet不是线程安全的。要解释为什么Servlet为什么不是线程安全的，需要了解Servlet容器（如Tomcat）是如何响应HTTP请求的。当Tomcat接收到Client的HTTP请求时，Tomcat从线程池中取出一个线程，之后找到该请求对应的Servlet对象并进行初始化，之后调用service()方法。
+要注意的是每一个Servlet对象在Tomcat容器中只有一个实例对象，即是单例模式。如果多个HTTP请求请求的是同一个Servlet，那么这两个HTTP请求对应的线程将并发调用Servlet的service()方法。如果的Thread1和Thread2调用了同一个Servlet1，Servlet1中定义了成员变量或静态变量，那么可能会发生线程安全问题（因为所有的线程都可能使用这些变量）。
+像Servlet这样的类，在Web容器中创建以后，会被传递给每个访问Web应用的用户线程执行，这个类就不是线程安全的。但这并不意味着一定会引发线程安全问题，如果Servlet类里没有成员变量，即使多线程同时执行这个Servlet实例的方法，也不会造成成员变量冲突。
+这种对象被称作无状态对象，也就是说对象不记录状态，执行这个对象的任何方法都不会改变对象的状态，也就不会有线程安全问题了。事实上，Web开发实践中，常见的Service类、DAO类，都被设计成无状态对象，所以虽然我们开发的Web应用都是多线程的应用，因为Web容器一定会创建多线程来执行我们的代码，但是我们开发中却可以很少考虑线程安全的问题。
+
 N.参考
 
 (1)[线程进程区别](https://www.cnblogs.com/toria/p/11123130.html)
@@ -776,6 +874,8 @@ N.参考
 (3)[谈谈什么是守护线程以及作用](https://www.jianshu.com/p/3d6f32af5625)
 
 (4)[ThreadLocal](https://www.jianshu.com/p/3c5d7f09dfbd)
+
+(5)[【260期】Java线程池，这篇能让你和面试官聊了半小时](https://mp.weixin.qq.com/s/fUcTHmYE8yAZX041LEiajQ)
 
 # JVM
 
@@ -819,7 +919,7 @@ Java虚拟机规范规定，Java堆可以处在物理上不连续的内存空间
 堆：堆是向高地址扩展的数据结构，是不连续的内存区域。这是由于系统是用链表来存储的空闲内存地址的，自然是不连续的，而链表的遍历方向是由低地址向高地址。堆的大小受限于计算机系统中有效的虚拟内存。由此可见，堆获得的空间比较灵活，也比较大。
 
 (4)堆栈缓存方式
-栈使用的是一级缓存， 他们通常都是被调用时处于存储空间中，调用完毕立即释放。
+栈使用的是一级缓存， 它们通常都是被调用时处于存储空间中，调用完毕立即释放。
 堆则是存放在二级缓存中，生命周期由虚拟机的垃圾回收算法来决定（并不是一旦成为孤儿对象就能被回收）。所以调用这些对象的速度要相对来得低一些。
 
 4.如何判断一个对象是否存活/GC对象的判定方法

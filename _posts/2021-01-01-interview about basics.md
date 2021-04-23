@@ -15,6 +15,8 @@ N.参考
 
 (2)[Linux命令速查手册](https://mp.weixin.qq.com/s/wmLeQrorGiIFq1uDQOQbqQ)
 
+(3)[【256期】面试官常考的21条Linux命令](https://mp.weixin.qq.com/s?__biz=MzIyNDU2ODA4OQ==&mid=2247489274&idx=1&sn=00347609e6b24b1d0dfdd393f562dec3&chksm=e80da08cdf7a299a40ecb331afbf5b42593964952aa391f375815796390746876b95a88cb1bb&scene=21#wechat_redirect)
+
 # 问题排查与调优
 
 1.常用命令
@@ -70,6 +72,12 @@ DH（Diffie-Hellman）算法是一种密钥交换算法，其既不用于加密�
     A拿到value_B值后，对其求x平方得value_B^x=p^(xy%g)；
     B拿到value_A值后，对其求y平方得value_A^y=p^(xy%g)；
     最终得到的结果是一致的。在整个过程中，第三方人员只能获取p、g两个值，AB双方交换的是计算后的结果，因此这种方式是很安全的。
+    
+2.LRU算法
+
+整体的设计思路是，可以使用HashMap存储key，这样可以做到save和get key的时间都是O(1)，而HashMap的Value指向双向链表实现的LRU的Node节点。核心操作的步骤：
+save(key, value)，首先在HashMap找到Key对应的节点，如果节点存在，更新节点的值，并把这个节点移动队头。如果不存在，需要构造新的节点，并且尝试把节点塞到队头，如果LRU空间不足，则通过tail淘汰掉队尾的节点，同时在HashMap中移除Key。
+get(key)，通过HashMap找到LRU链表节点，把节点插入到队头，返回缓存的值。
 
 N.参考
 
