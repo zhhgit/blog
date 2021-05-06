@@ -68,6 +68,12 @@ select version();
 
     -- 将参数以binary('')包围
     select * from user where username like binary('admin') and password like binary('admin');
+    
+N.参考
+
+(1)[Java面试题之数据库三范式是什么？](https://www.cnblogs.com/marsitman/p/10162231.html)
+
+(2)[三张图搞透第一范式(1NF)、第二范式(2NF)和第三范式(3NF)的区别](https://blog.csdn.net/weixin_43971764/article/details/88677688)
 
 # 数据库索引
 
@@ -172,6 +178,12 @@ like以通配符开头like '%abc'，mysql索引失效会变成全表扫描的操
 
     alter table tbl_test add index(name(4));
 
+N.参考
+
+(1)[【57期】面试官问，MySQL建索引需要遵循哪些原则呢？](https://mp.weixin.qq.com/s?__biz=MzIyNDU2ODA4OQ==&mid=2247484196&idx=1&sn=d1a082c4eaa6ca9c35bfb220f2f9d0a0&chksm=e80db552df7a3c44fcca59444fc6246ab169d165634fbe3b2f9e2465093a96e662c01a62a91e&scene=21#wechat_redirect)
+
+(2)[MySQL索引与查询优化](https://juejin.im/post/6844903818056974350)
+
 # 数据库锁
 
 1.MySQL的S锁和X锁的区别
@@ -242,6 +254,14 @@ SERIALIZABLE：串行化。无问题。
 5.MVCC
 
 MVCC(Multi Version Concurrency Control)，中文名是多版本并发控制，简单来说就是通过维护数据历史版本，从而解决并发访问情况下的读一致性问题。
+
+N.参考
+
+(1)[真正理解Mysql的四种隔离级别](https://www.jianshu.com/p/8d735db9c2c0)
+
+(2)[MySQL幻读的详解、实例及解决办法](https://segmentfault.com/a/1190000016566788?utm_source=tag-newest)
+
+(3)[聊聊MVCC和Next-key Locks](https://juejin.im/post/6844903842505555981)
 
 # 数据库日志
 
@@ -340,23 +360,13 @@ trx_query: 事务中的sql。
 如果使用非自增主键（如果身份证号或学号等），由于每次插入主键的值近似于随机，因此每次新纪录都要被插到现有索引页得中间某个位置，此时MySQL不得不为了将新记录插到合适位置而移动数据，甚至目标页面可能已经被回写到磁盘上而从缓存中清掉，此时又要从磁盘上读回来，这增加了很多开销，同时频繁的移动、分页操作造成了大量的碎片，得到了不够紧凑的索引结构，后续不得不通过OPTIMIZE TABLE来重建表并优化填充页面。
 mysql在频繁的更新、删除操作，会产生碎片。而含碎片比较大的表，查询效率会降低。此时需对表进行优化，这样才会使查询变得更有效率。
 
+4.热点数据问题
 
-# 参考
+问题：流量集中，达到物理网卡上限。请求过多，缓存服务被打垮。DB击穿，引起业务雪崩。
+解决方案：读写分离方案，SLB层做负载均衡。Proxy层（多台）做读写分离自动路由，Master负责写请求，ReadOnly节点（多台）负责读请求，Slave节点和Master节点做高可用。
 
-(1)[Java面试题之数据库三范式是什么？](https://www.cnblogs.com/marsitman/p/10162231.html)
+N.参考
 
-(2)[三张图搞透第一范式(1NF)、第二范式(2NF)和第三范式(3NF)的区别](https://blog.csdn.net/weixin_43971764/article/details/88677688)
+(1)[【178期】面试官：谈谈在做项目过程中，你是是如何进行SQL优化的](https://mp.weixin.qq.com/s?__biz=MzIyNDU2ODA4OQ==&mid=2247486029&idx=1&sn=a2ae60fb8a326fded471dfa8411d5d52&chksm=e80dbc3bdf7a352d5875b6f82668e5e3a9bb37cb72167a8fbbce70bd47d8bcd917fd28deb5f5&scene=21#wechat_redirect)
 
-(3)[真正理解Mysql的四种隔离级别](https://www.jianshu.com/p/8d735db9c2c0)
-
-(4)[【178期】面试官：谈谈在做项目过程中，你是是如何进行SQL优化的](https://mp.weixin.qq.com/s?__biz=MzIyNDU2ODA4OQ==&mid=2247486029&idx=1&sn=a2ae60fb8a326fded471dfa8411d5d52&chksm=e80dbc3bdf7a352d5875b6f82668e5e3a9bb37cb72167a8fbbce70bd47d8bcd917fd28deb5f5&scene=21#wechat_redirect)
-
-(5)[MySQL幻读的详解、实例及解决办法](https://segmentfault.com/a/1190000016566788?utm_source=tag-newest)
-
-(6)[聊聊MVCC和Next-key Locks](https://juejin.im/post/6844903842505555981)
-
-(7)[【57期】面试官问，MySQL建索引需要遵循哪些原则呢？](https://mp.weixin.qq.com/s?__biz=MzIyNDU2ODA4OQ==&mid=2247484196&idx=1&sn=d1a082c4eaa6ca9c35bfb220f2f9d0a0&chksm=e80db552df7a3c44fcca59444fc6246ab169d165634fbe3b2f9e2465093a96e662c01a62a91e&scene=21#wechat_redirect)
-
-(8)[MySQL索引与查询优化](https://juejin.im/post/6844903818056974350)
-
-(9)[最官方的mysql explain type字段解读](https://mengkang.net/1124.html)
+(2)[最官方的mysql explain type字段解读](https://mengkang.net/1124.html)

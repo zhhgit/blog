@@ -325,11 +325,28 @@ MappedByteBuffer：java nio提供的FileChannel提供了map()方法，该方法�
                 System.out.print(scan.next() + " ");  
             }  
         }  
-    }  
+    }
+    
+8.serialVersionUID
 
-# 容器
+serialVersionUID适用于Java的序列化机制。简单来说，Java的序列化机制是通过判断类的serialVersionUID来验证版本一致性的。在进行反序列化时，JVM会把传来的字节流中的serialVersionUID与本地相应实体类的serialVersionUID进行比较，如果相同就认为是一致的，可以进行反序列化，否则就会出现序列化版本不一致的异常，即是InvalidCastException。
 
-1.Java容器
+生成方式：
+默认的1L，比如：private static final long serialVersionUID = 1L;
+根据类名、接口名、成员方法及属性等来生成一个64位的哈希字段，比如：private static final  long   serialVersionUID = xxxxL;
+当实现java.io.Serializable接口的类没有显式地定义一个serialVersionUID变量时候，Java序列化机制会根据编译的Class自动生成一个serialVersionUID作序列化版本比较用，这种情况下，如果Class文件(类名，方法明等)没有发生变化(增加空格，换行，增加注释等等)，就算再编译多次，serialVersionUID也不会变化的。
+
+几种情况：
+情况一：A端序列化后传输到B端反序列化。如果A端增加一个字段，A端增加的字段丢失(被B端忽略)。
+情况二：A端序列化后传输到B端反序列化。如果B端减少一个字段，A端不变，A端多的字段值丢失(被B端忽略)。
+情况三：A端序列化后传输到B端反序列化。如果B端增加一个字段，A端不变，B端新增加的int字段被赋予了默认值0。
+情况四：将对象序列化后，修改静态变量的数值，再将序列化对象读取出来，然后通过读取出来的对象获得静态变量的数值并打印出来。应该是修改后的值。因为序列化时，并不保存静态变量，这其实比较容易理解，序列化保存的是对象的状态，静态变量属于类的状态，因此序列化并不保存静态变量。
+情况五：父类的序列化。一个子类实现了Serializable接口，它的父类没有实现Serializable接口，序列化该子类对象，然后反序列化后输出父类定义的某变量的数值，该变量数值与序列化时的数值不同。因为在父类没有实现Serializable接口时，虚拟机是不会序列化父对象的，而一个Java对象的构造必须先有父对象，才有子对象，反序列化也不例外。所以反序列化时，为了构造父对象，只能调用父类的无参构造函数作为默认的父对象。因此当我们取父对象的变量值时，它的值是调用父类无参构造函数后的值。如果考虑到这种序列化的情况，在父类无参构造函数中对变量进行初始化，否则的话，父类变量值都是默认声明的值，如int型的默认是0，string型的默认是null。
+情况六：Transient关键字。其作用是控制变量的序列化，在变量声明前加上该关键字，可以阻止该变量被序列化到文件中，在被反序列化后，transient变量的值被设为初始值，如int型的是0，对象型的是null。
+
+# 集合
+
+1.Java集合类
 
     Collection
         --Set(继承)
@@ -360,8 +377,47 @@ MappedByteBuffer：java nio提供的FileChannel提供了map()方法，该方法�
         --SortedMap(继承)
             --TreeMap(实现，同时实现了AbstractMap)
 
+2.Java集合框架基本概念、优点
 
-2.Collection和Collections有什么区别
+最初的Java版本包含几种集合类：Vector、Stack、HashTable和Array。Java1.2提出了囊括所有集合接口、实现和算法的集合框架。
+集合框架的优点：使用核心集合类降低开发成本，随着使用经过严格测试的集合框架类，代码质量会得到提高，复用性和可操作性。
+集合框架中的泛型的优点：Java1.5引入了泛型，所有的集合接口和实现都大量地使用它。泛型允许我们为集合提供一个可以容纳的对象类型，因此如果你添加其它类型的任何元素，它会在编译时报错。这避免了在运行时出现ClassCastException，因为将会在编译时得到报错信息。泛型也使得代码整洁，我们不需要使用显式转换和instanceOf操作符。
+
+3.为何Collection不实现Cloneable和Serializable接口？
+当与具体实现打交道的时候，克隆或序列化的语义和含义才发挥作用。所以，具体实现应该决定如何对它进行克隆或序列化，或它是否可以被克隆或序列化。在所有的实现中授权克隆和序列化，最终导致更少的灵活性和更多的限制。
+
+4.Iterator
+
+Iterator接口提供遍历任何Collection的接口。我们可以从一个Collection中使用迭代器方法来获取迭代器实例。迭代器取代了Java集合框架中的Enumeration。迭代器允许调用者在迭代过程中移除元素，而Enumeration不能做到。
+
+Enumeration和Iterator接口的区别：
+Enumeration的速度是Iterator的两倍，也使用更少的内存。Enumeration是非常基础的，也满足了基础的需要。但是与Enumeration相比，Iterator更加安全，因为当一个集合正在被遍历的时候，它会阻止其它线程去修改集合。
+
+为何没有像Iterator.add()这样的方法：
+语义不明，已知的是Iterator的协议不能确保迭代的次序。ListIterator有add()方法。
+
+Iterater和ListIterator之间的区别：
+可以使用Iterator来遍历Set和List集合，而ListIterator只能遍历List。
+Iterator只可以向前遍历，而LIstIterator可以双向遍历。
+ListIterator从Iterator接口继承，然后添加了一些额外的功能，比如添加一个元素、替换一个元素、获取前面或后面元素的索引位置。
+
+迭代器的fail-fast属性：
+每次我们尝试获取下一个元素的时候，Iterator fail-fast属性检查当前集合结构里的任何改动。如果发现任何改动，它抛出ConcurrentModificationException。Collection中所有Iterator的实现都是按fail-fast来设计的（ConcurrentHashMap和CopyOnWriteArrayList这类并发集合类除外）。
+java.util.concurrent中的集合类都为fail-safe的，迭代器不抛出ConcurrentModificationException。
+
+如何避免ConcurrentModificationException：
+在遍历一个集合的时候我们可以使用并发集合类来避免ConcurrentModificationException，比如使用CopyOnWriteArrayList，而不是ArrayList。
+
+5.当一个集合被作为参数传递给一个函数时，如何才可以确保函数不能修改它？
+在作为参数传递之前，我们可以使用Collections.unmodifiableCollection(Collection c)方法创建一个只读集合，这将确保改变集合的任何操作都会抛出UnsupportedOperationException。
+
+6.Map接口提供了哪些不同的集合视图？
+
+(1)Set keySet()：返回map中包含的所有key的一个Set视图。集合是受map支持的，map的变化会在集合中反映出来，反之亦然。当一个迭代器正在遍历一个集合时，若map被修改了（除迭代器自身的移除操作以外），迭代器的结果会变为未定义。
+(2)Collection values()：返回一个map中包含的所有value的一个Collection视图。这个collection受map支持的，map的变化会在collection中反映出来，反之亦然。当一个迭代器正在遍历一个collection时，若map被修改了（除迭代器自身的移除操作以外），迭代器的结果会变为未定义。
+(3)Set<Map.Entry<K,V>> entrySet()：返回一个map包含的所有映射的一个集合视图。这个集合受map支持的，map的变化会在集合中反映出来，反之亦然。当一个迭代器正在遍历一个集合时，若map被修改了（除迭代器自身的移除操作，以及对迭代器返回的entry进行setValue外），迭代器的结果会变为未定义。
+
+7.Collection和Collections有什么区别
 
 Collection是一个集合接口。它提供了对集合对象进行基本操作的通用接口方法。Collection接口在Java类库中有很多具体的实现。Collection接口的意义是为各种具体的集合提供了最大化的统一操作方式，其直接继承接口有List与Set。
 Collections则是集合类的一个工具类，其中提供了一系列静态方法，用于对集合中元素进行排序、搜索以及线程安全等各种操作。
@@ -371,17 +427,15 @@ Collections则是集合类的一个工具类，其中提供了一系列静态方
     fill(Collection,Object),copy(List, List),rotate(Collection,int),swap(List,int,int),
     indexOfSublist(List,List),lastIndexOfSublist(List,List),max(Collection,Comparator),min(Collection,Comparator)
 
-3.TreeMap
+8.HashMap和HashTable有何不同？
 
-TreeMap<K,V>的Key值是要求实现java.lang.Comparable，所以迭代的时候TreeMap默认是按照Key值升序排序的；TreeMap的实现是基于红黑树结构。适用于按自然顺序或自定义顺序遍历键（key）。添加到SortedMap实现类的元素必须实现Comparable接口，否则必须给它的构造函数提供一个Comparator接口的实现。
-基于红黑树实现。TreeMap没有调优选项，因为该树总处于平衡状态。
+(1)HashMap允许key和value为null，而HashTable不允许。
+(2)HashTable是同步的，而HashMap不是。所以HashMap适合单线程环境，HashTable适合多线程环境。
+(3)在Java1.4中引入了LinkedHashMap，HashMap的一个子类，假如你想要遍历顺序，你很容易从HashMap转向LinkedHashMap，但是HashTable不是这样的，它的顺序是不可预知的。
+(4)HashMap提供对key的Set进行遍历，因此它是fail-fast的，但HashTable提供对key的Enumeration进行遍历，它不支持fail-fast。
+(5)HashTable被认为是个遗留的类，如果你寻求在迭代的时候修改Map，你应该使用CocurrentHashMap。
 
-    (a)TreeMap()：构建一个空的映像树
-    (b)TreeMap(Map m): 构建一个映像树，并且添加映像m中所有元素
-    (c)TreeMap(Comparator c): 构建一个映像树，并且使用特定的比较器对关键字进行排序
-    (d)TreeMap(SortedMap s): 构建一个映像树，添加映像树s中所有映射，并且使用与有序映像s相同的比较器排序
-
-4.HashMap
+9.HashMap
 
 构造函数：
 
@@ -391,24 +445,57 @@ TreeMap<K,V>的Key值是要求实现java.lang.Comparable，所以迭代的时候
     (d)HashMap(int initialCapacity, float loadFactor): 构建一个拥有特定容量和加载因子的空的哈希映像
 
 关于线程安全：HashMap不是线程安全的，如果想要线程安全的HashMap，可以通过Collections类的静态方法synchronizedMap获得线程安全的HashMap。除了不同步和允许使用null之外，HashMap类与Hashtable大致相同。在JDK7中，在多线程环境下，扩容时会造成环形链或数据丢失。在JDK8中，在多线程环境下，会发生数据覆盖的情况。
-
 JDK7实现：基于数组和链表来实现的，通过计算散列码来决定存储的位置。HashMap中主要是通过key的hashCode来计算hash值的。如果存储的对象对多了，就有可能不同的对象所算出来的hash值是相同的，这就出现了所谓的hash冲突。HashMap底层是通过链表来解决hash冲突的。哈希数组中每个元素都是一个单链表的头节点，链表是用来解决冲突的，如果不同的key映射到了数组的同一位置处，就将其放入单链表中。
-
 JDK8实现：基于位桶+链表/红黑树的方式实现，也是非线程安全的。当某个位桶的链表的长度达到某个阀值的时候，这个链表就将转换成红黑树。
-
 loadFactor加载因子：是表示Hash表中元素的填满的程度。若加载因子越大填满的元素越多，好处是空间利用率高了但冲突的机会加大了。链表长度会越来越长，查找效率降低。因此，必须在 "冲突的机会"与"空间利用率"之间寻找一种平衡与折衷。不过一般我们都不用去设置它，让它取默认值0.75就好了。
+如何决定选用HashMap还是TreeMap：对于在Map中插入、删除和定位元素这类操作，HashMap是最好的选择。然而，假如你需要对一个有序的key集合进行遍历，TreeMap是更好的选择。基于你的collection的大小，也许向HashMap中添加元素会更快，将map换为TreeMap进行有序key的遍历。
 
-5.ArrayList和LinkedList
+10.TreeMap
 
-(1)对ArrayList和LinkedList而言，在列表末尾增加一个元素所花的开销都是固定的。
-对ArrayList而言，主要是在内部数组中增加一项，指向所添加的元素，偶尔可能会导致对数组重新进行分配；而对LinkedList而言，这个开销是统一的，分配一个内部Entry对象。
+TreeMap<K,V>的Key值是要求实现java.lang.Comparable，所以迭代的时候TreeMap默认是按照Key值升序排序的；TreeMap的实现是基于红黑树结构。适用于按自然顺序或自定义顺序遍历键（key）。添加到SortedMap实现类的元素必须实现Comparable接口，否则必须给它的构造函数提供一个Comparator接口的实现。
+基于红黑树实现。TreeMap没有调优选项，因为该树总处于平衡状态。
+
+    (a)TreeMap()：构建一个空的映像树
+    (b)TreeMap(Map m): 构建一个映像树，并且添加映像m中所有元素
+    (c)TreeMap(Comparator c): 构建一个映像树，并且使用特定的比较器对关键字进行排序
+    (d)TreeMap(SortedMap s): 构建一个映像树，添加映像树s中所有映射，并且使用与有序映像s相同的比较器排序
+
+11.ArrayList和Vector的异同
+
+相同：
+(1)两者都是基于索引的，内部由一个数组支持。
+(2)两者维护插入的顺序，我们可以根据插入顺序来获取元素。
+(3)ArrayList和Vector的迭代器实现都是fail-fast的。
+(4)ArrayList和Vector两者允许null值，也可以使用索引值对元素进行随机访问。
+
+不同：
+(1)Vector是线程安全的，源码中有很多的synchronized可以看出，而ArrayList不是。导致Vector效率无法和ArrayList相比。
+(2)ArrayList和Vector都采用线性连续存储空间，当存储空间不足的时候，ArrayList默认增加为原来的50%，Vector默认增加为原来的一倍。
+(3)Vector可以设置capacityIncrement，而ArrayList不可以，从字面理解就是capacity容量Increment增加，容量增长的参数。
+
+12.ArrayList和LinkedList的区别
+
+(1)对ArrayList和LinkedList而言，在列表末尾增加一个元素所花的开销都是固定的。对ArrayList而言，主要是在内部数组中增加一项，指向所添加的元素，偶尔可能会导致对数组重新进行分配；而对LinkedList而言，这个开销是统一的，分配一个内部Entry对象。
 (2)在ArrayList的中间插入或删除一个元素意味着这个列表中剩余的元素都会被移动；而在LinkedList的中间插入或删除一个元素的开销是固定的。
-(3)LinkedList不支持高效的随机元素访问。
+(3)LinkedList不支持高效的随机元素访问。ArrayList是由Array所支持的基于一个索引的数据结构，所以它提供对元素的随机访问，复杂度为O(1)，但LinkedList存储一系列的节点数据，每个节点都与前一个和下一个节点相连接。所以，尽管有使用索引获取元素的方法，内部实现是从起始点开始遍历，遍历到索引的节点然后返回元素，时间复杂度为O(n)，比ArrayList要慢。
 (4)ArrayList的空间浪费主要体现在在list列表的结尾预留一定的容量空间，而LinkedList的空间花费则体现在它的每一个元素都需要消耗相当的空间。
-
 总结：当操作是在一列数据的后面添加数据而不是在前面或中间,并且需要随机地访问其中的元素时,使用ArrayList会有更好的性能；当操作是在一列数据的前面或中间添加或删除数据,并且按照顺序访问其中的元素时,就应该使用LinkedList了。
 
-6.List中删除元素
+13.Array和ArrayList的区别
+
+Array可以容纳基本类型和对象，而ArrayList只能容纳对象。
+Array是指定大小的，而ArrayList大小不是固定的。
+Array没有提供ArrayList那么多功能，比如addAll、removeAll和iterator等。尽管ArrayList明显是更好的选择，但也有些时候Array比较好用：如果列表的大小已经指定，大部分情况下是存储和遍历它们。对于遍历基本数据类型，尽管Collections使用自动装箱来减轻编码任务，在指定大小的基本类型的列表上工作也会变得很慢。如果你要使用多维数组，使用[][]比List<List<>>更容易。
+
+14.哪些集合类提供对元素的随机访问？
+ArrayList、HashMap、TreeMap和HashTable类提供对元素的随机访问。
+
+15.哪些集合类是线程安全的？
+Vector、HashTable、Properties和Stack是同步类，所以它们是线程安全的，可以在多线程环境下使用。
+Java1.5并发包（java.util.concurrent）包含线程安全集合类，允许在迭代时修改集合，是fail-safe的，不会抛出ConcurrentModificationException。
+一部分类为：CopyOnWriteArrayList、 ConcurrentHashMap、CopyOnWriteArraySet。
+
+16.List中删除元素
 
 (1)倒序循环，因为list删除只会导致当前元素之后的元素位置发生改变，所以采用倒序可以保证前面的元素没有变化；
 
@@ -426,14 +513,14 @@ loadFactor加载因子：是表示Hash表中元素的填满的程度。若加载
         }
     }
     
-7.Arrays.asList()方法返回的ArrayList不是java.util包下的，而是java.util.Arrays.ArrayList，显然它是Arrays类自己定义的一个内部类！这个内部类没有实现add()、remove()方法，而是直接使用它的父类AbstractList的相应方法，抛出UnsupportedOperationException。
+17.Arrays.asList()方法返回的ArrayList不是java.util包下的，而是java.util.Arrays.ArrayList，显然它是Arrays类自己定义的一个内部类！这个内部类没有实现add()、remove()方法，而是直接使用它的父类AbstractList的相应方法，抛出UnsupportedOperationException。
 Arrays.asList()返回的ArrayList继承自AbstractList，它仅支持那些不会改变数组大小的操作，所以任何对底层数据结构的尺寸进行修改的方法都会出现异常，Arrays.asList()返回固定尺寸的List。
   
 如何才能避免这个错误：thinking in java给的解释是：把Arrays.asList()的结果作为构造器的参数传递给任何Collection。
 
     List<Integer> list = new ArrayList<>(Arrays.asList(1,2,3)); 
     
-8.ConcurrentHashMap
+18.ConcurrentHashMap
 
 JDK7实现：ConcurrentHashMap的数据结构是由一个Segment数组和多个HashEntry组成，Segment数组的意义就是将一个大的table分割成多个小的table来进行加锁，也就是锁分离技术，而每一个Segment元素存储的是HashEntry数组+链表，这个和HashMap的数据存储结构一样。
 ConcurrentHashMap采用了分段锁技术，其中Segment继承于ReentrantLock。不会像HashTable那样不管是put还是get操作都需要做同步处理，理论上ConcurrentHashMap支持CurrencyLevel(Segment 数组数量)的线程并发。每当一个线程占用锁访问一个Segment时，不会影响到其他的Segment。
@@ -453,7 +540,7 @@ JDK8为什么使用内置锁synchronized来代替重入锁ReentrantLock，我觉
 JVM的开发团队从来都没有放弃synchronized，而且基于JVM的synchronized优化空间更大，使用内嵌的关键字比使用API更加自然。
 在大量的数据操作下，对于JVM的内存压力，基于API的ReentrantLock会开销更多的内存，虽然不是瓶颈，但是也是一个选择依据。
 
-9.CopyOnWriteArrayList
+19.CopyOnWriteArrayList
 
 CopyOnWriteArrayList适合于多线程场景下使用，其采用读写分离的思想，读操作不上锁，写操作上锁，且写操作效率较低。
 CopyOnWriteArrayList基于fail-safe机制，每次修改都会在原先基础上复制一份，修改完毕后在进行替换。
@@ -477,6 +564,8 @@ N.参考
 (7)[JDK7与JDK8中HashMap的实现](https://my.oschina.net/hosee/blog/618953)
 
 (8)[ConcurrentHashMap总结](https://my.oschina.net/hosee/blog/675884)
+
+(9)[30个Java集合面试必备的问题和答案](https://mp.weixin.qq.com/s/5JbhrM677q3aDQmErnYAGw)
 
 # 反射
 
@@ -595,20 +684,28 @@ Java 的所有异常可以分为受检异常（checked exception）和非受检�
 try – 用于监听。将要被监听的代码(可能抛出异常的代码)放在try语句块之内，当try语句块内发生异常时，异常就被抛出。
 catch – 用于捕获异常。catch用来捕获try语句块中发生的异常。
 finally – finally语句块总是会被执行。它主要用于回收在try块里打开的物力资源(如数据库连接、网络连接和磁盘文件)。只有finally块，执行完成之后，才会回来执行try或者catch块中的return或者throw语句，如果finally中使用了return或者throw等终止方法的语句，则就不会跳回执行，直接停止。
-throw – 用于抛出异常。
+throw – 用在方法内部，只能用于抛出一种异常，用来抛出方法或代码块中的异常，受查异常和非受查异常都可以被抛出。
 throws – 用在方法签名中，用于声明该方法可能抛出的异常。
 
 throw和throws都是消极处理异常的方式，只是抛出或者可能抛出异常，但是不会由函数去处理异常，真正的处理异常由函数的上层调用处理。
 
-3.异常的处理方式：
-(1)捕获并处理：在异常的代码附近用try/catch进行处理,运行时系统捕获后会查询相应的catch处理块，再catch处理块中对该异常进行处理。
-(2)查看发生异常的方法是否有向上声明异常，有向上声明，向上级查询处理语句，如果没有向上声明，JVM中断程序的运行并处理。用throws向外声明。throws可以声明方法可能会抛出一个或多个异常，异常之间用'，'隔开。
+3.异常的处理
 
+异常的处理机制分为声明异常，抛出异常和捕获异常。
 
+捕获异常：程序通常在运行之前不报错，但是运行后可能会出现某些未知的错误，但是还不想直接抛出到上一级，那么就需要通过try…catch…的形式进行异常捕获，之后根据不同的异常情况来进行相应的处理。
+声明异常：在方法签名处使用throws关键字声明可能会抛出的异常。注意：非检查异常（Error、RuntimeException 或它们的子类）不可使用throws关键字来声明要抛出的异常。一个方法出现编译时异常，就需要try-catch或throws处理，否则会导致编译错误。
+抛出异常：如果你觉得解决不了某些异常问题，且不需要调用者处理，那么你可以抛出异常。throw关键字作用是在方法内部抛出一个Throwable类型的异常。任何Java代码都可以通过throw语句抛出异常。
 
-6.自定义异常：当需要一些跟特定业务相关的异常信息类时。可以继承继承Exception来定义一个受检异常。也可以继承自RuntimeException或其子类来定义一个非受检异常。
+    是否能解决异常？
+        是 --> 捕获异常
+        否 --> 调用者是否必须处理（是否受检异常）？
+            是 --> 声明受检异常
+            否 --> 抛出运行时异常
 
-7.finally中改变返回值的做法是不好的，因为如果存在finally代码块，try中的return语句不会立马返回调用者，而是记录下返回值待finally代码块执行完毕之后再向调用者返回其值，然后如果在finally中修改了返回值，就会返回修改后的值。显然，在finally中返回或者修改返回值会对程序造成很大的困扰。
+4.自定义异常：当需要一些跟特定业务相关的异常信息类时。可以继承继承Exception来定义一个受检异常。也可以继承自RuntimeException或其子类来定义一个非受检异常。
+
+5.finally中改变返回值的做法是不好的，因为如果存在finally代码块，try中的return语句不会立马返回调用者，而是记录下返回值待finally代码块执行完毕之后再向调用者返回其值，然后如果在finally中修改了返回值，就会返回修改后的值。显然，在finally中返回或者修改返回值会对程序造成很大的困扰。
 即使catch中包含了return语句，finally子句依然会执行。若finally中也包含return语句，finally中的return会覆盖前面的return。
 
     public static int getInt() {
@@ -650,7 +747,7 @@ throw和throws都是消极处理异常的方式，只是抛出或者可能抛出
     
 执行结果：40
 
-8.JAVA 7提供了更优雅的方式来实现资源的自动释放，自动释放的资源需要是实现了AutoCloseable接口的类。try代码块退出时，会自动调用scanner.close方法，和把scanner.close方法放在finally代码块中不同的是，若scanner.close抛出异常，则会被抑制，抛出的仍然为原始异常。
+6.JAVA7提供了更优雅的方式来实现资源的自动释放，自动释放的资源需要是实现了AutoCloseable接口的类。try代码块退出时，会自动调用scanner.close方法，和把scanner.close方法放在finally代码块中不同的是，若scanner.close抛出异常，则会被抑制，抛出的仍然为原始异常。
 
     private  static void tryWithResourceTest(){
         try (Scanner scanner = new Scanner(new FileInputStream("c:/abc"),"UTF-8")){
@@ -659,6 +756,23 @@ throw和throws都是消极处理异常的方式，只是抛出或者可能抛出
             // handle exception
         }
     }
+    
+7.NoClassDefFoundError和ClassNotFoundException区别？
+
+NoClassDefFoundError是一个Error类型的异常，是由JVM 引起的，不应该尝试捕获这个异常。引起该异常的原因是JVM或ClassLoader尝试加载某类时在内存中找不到该类的定义，该动作发生在运行期间，即编译时该类存在，但是在运行时却找不到了，可能是变异后被删除了等原因导致。
+ClassNotFoundException是一个受查异常，需要显式地使用try-catch对其进行捕获和处理，或在方法签名中用throws关键字进行声明。当使用Class.forName, ClassLoader.loadClass或ClassLoader.findSystemClass动态加载类到内存的时候，通过传入的类路径参数没有找到该类，就会抛出该异常；另一种抛出该异常的可能原因是某个类已经由一个类加载器加载至内存中，另一个加载器又尝试去加载它。
+
+8.try-catch-finally中哪个部分可以省略？
+
+catch 可以省略。更为严格的说法其实是：try只适合处理运行时异常，try+catch适合处理运行时异常+普通异常（受检异常）。
+也就是说，如果你只用try去处理普通异常却不加以catch处理，编译是通不过的，因为编译器硬性规定，普通异常如果选择捕获，则必须用catch显示声明以便进一步处理。
+而运行时异常在编译时没有如此规定，所以catch可以省略，你加上catch编译器也觉得无可厚非。
+理论上，编译器看任何代码都不顺眼，都觉得可能有潜在的问题，所以你即使对所有代码加上try，代码在运行期时也只不过是在正常运行的基础上加一层皮。但是你一旦对一段代码加上try，就等于显示地承诺编译器，对这段代码可能抛出的异常进行捕获而非向上抛出处理。如果是普通异常，编译器要求必须用catch捕获以便进一步处理；如果运行时异常，捕获然后丢弃并且+finally扫尾处理，或者加上catch捕获以便进一步处理。
+至于加上finally，则是在不管有没捕获异常，都要进行的“扫尾”处理。
+
+N.参考
+
+(1)[【249期】关于Java中的异常，面试可以问的都在这里了！](https://mp.weixin.qq.com/s/IuopmEa4soPxeIQFTQKtkg)
 
 # 并发与多线程
 
@@ -783,6 +897,13 @@ ScheduledThreadPool:Scheduled中文解释为计划。结合在一起解释计划
 
 使用无界队列的线程池会导致内存飙升吗？
 会的，newFixedThreadPool使用了无界的阻塞队列LinkedBlockingQueue，如果线程获取一个任务后，任务的执行时间比较长，会导致队列的任务越积越多，导致机器内存使用不停飙升， 最终导致OOM。
+
+线程回收：
+ThreadPoolExecutor回收工作线程，一条线程getTask()返回null，就会被回收。分两种场景。
+(1)未调用shutdown() ，RUNNING状态下全部任务执行完成的场景：线程数量大于corePoolSize，线程获取任务但超时阻塞，超时唤醒后CAS减少工作线程数，如果CAS成功，返回null，线程回收。否则进入下一次循环。当工作者线程数量小于等于corePoolSize，就可以一直阻塞了。
+(2)调用shutdown() ，全部任务执行完成的场景：shutdown()会向所有线程发出中断信号，这时有两种可能。
+(2.1)所有线程都在阻塞，中断唤醒，进入循环，都符合第一个if判断条件（线程池的状态已经是STOP，TIDYING, TERMINATED，或者是SHUTDOWN且工作队列为空），都返回null，所有线程回收。
+(2.2)任务还没有完全执行完，至少会有一条线程被回收。在processWorkerExit(Worker w, boolean completedAbruptly)方法里会调用tryTerminate()，向任意空闲线程发出中断信号。所有被阻塞的线程，最终都会被一个个唤醒，回收。
 
 11.锁的分类与区别
 
@@ -960,6 +1081,64 @@ finalize()方法是对象逃脱死亡命运的最后一次机会，稍后GC将�
 
 G1提供了两种GC模式，YoungGC和MixedGC，两种都是StopTheWorld(STW)的。YoungGC主要是对Eden区进行GC，MixGC不仅进行正常的新生代垃圾收集，同时也回收部分后台扫描线程标记的老年代分区。
 另外有趣的一点，G1将新生代、老年代的物理空间划分取消了，而是将堆划分为若干个区域（region），每个大小都为2的倍数且大小全部一致，最多有2000个。除此之外， G1专门划分了一个Humongous区，它用来专门存放超过一个region 50%大小的巨型对象。在正常的处理过程中，对象从一个区域复制到另外一个区域，同时也完成了堆的压缩。
+
+7.JVM的内存溢出
+
+内存溢出：内存空间不足导致，新对象无法分配到足够的内存。
+内存泄漏：应该释放的对象没有被释放，多见于自己使用容器保存元素的情况下。
+
+(1)堆内存溢出，java.lang.OutOfMemoryError: Java heap space
+解决方案：JDK自带的jvisualvm.exe工具可以分析.hprof和.dump文件。首先需要找出最大的对象，判断最大对象的存在是否合理，如何合理就需要调整JVM内存大小。如果不合理，那么这个对象的存在，就是最有可能是引起内存溢出的根源。通过GC Roots的引用链信息，就可以比较准确地定位出泄露代码的位置。
+
+(2)超出GC开销限制，当出现java.lang.OutOfMemoryError: GC overhead limit exceeded异常信息时，表示超出了GC开销限制。当超过98%的时间用来做GC，但是却回收了不到2%的堆内存时会抛出此异常。
+解决方案：通过-XX:-UseGCOverheadLimit参数来禁用这个检查，但是并不能从根本上来解决内存溢出的问题，最后还是会报出java.lang.OutOfMemoryError: Java heap space异常；调整JVM内存大小（-Xmx与-Xms）。
+
+(3)虚拟机栈和本地方法栈溢出，如果线程请求的栈深度大于虚拟机所允许的最大深度，将抛出StackOverflowError异常。如果虚拟机在扩展栈时无法申请到足够的内存空间，则抛出OutOfMemoryError异常。这里把异常分成两种情况，看似更加严谨，但却存在着一些互相重叠的地方：当栈空间无法继续分配时，到底是内存太小，还是已使用的栈空间太大，其本质上只是对同一件事情的两种描述而已。
+StackOverflowError：主要原因有两点：单个线程请求的栈深度大于虚拟机所允许的最大深度；创建的线程过多。
+
+a)单个线程请求的栈深度大于虚拟机所允许的最大深度
+主要表现有以下几点：存在递归调用，存在循环依赖调用方法调用链路很深，比如使用装饰器模式的时候，对已经装饰后的对象再进行装饰。
+影响递归的深度因素有：单个线程的栈空间大小（-Xss），局部变量表的大小。单个线程请求的栈深度超过内存限制导致的栈内存溢出，一般是由于非正确的编码导致的。
+
+b)创建的线程过多
+不断地建立线程也可能导致栈内存溢出，因为我们机器的总内存是有限制的，所以虚拟机栈和本地方法栈对应的内存也是有最大限制的。如果单个线程的栈空间越大，那么整个应用允许创建的线程数就越少。异常信息java.lang.OutOfMemoryError: unable to create new native thread。
+虚拟机栈和本地方法栈内存 ≈ 操作系统内存限制 - 最大堆容量(Xmx) - 最大方法区容量(MaxPermSize)
+Java的线程是映射到操作系统的内核线程上，因此过多地创建线程有较大的风险，可能会导致操作系统假死。
+
+(4)元数据区域的内存溢出，报错java.lang.OutOfMemoryError: Metaspace
+元数据区域或方法区是用于存放Class的相关信息，如类名、访问修饰符、常量池、字段描述、方法描述等。我们可以通过在运行时产生大量的类去填满方法区，直到溢出，如：代理的使用(CGlib)、大量JSP或动态产生JSP文件的应用（JSP第一次运行时需要编译为Java类）、基于OSGi的应用（即使是同一个类文件，被不同的加载器加载也会视为不同的类）等。
+
+(5)运行时常量池的内存溢出，包括java.lang.OutOfMemoryError: PermGen space
+String.intern()是一个Native方法，它的作用是：如果字符串常量池中已经包含一个等于此String对象的字符串，则返回代表池中这个字符串的String对象；否则，将此String对象包含的字符串添加到常量池中，并且返回此String对象的引用。
+
+(6)直接内存溢出，由DirectMemory导致的内存溢出，一个明显的特征是在Heap Dump文件中不会看见明显的异常，如果读者发现OOM之后Dump文件很小，而程序中又直接或间接使用了NIO，那就可以考虑检查一下是不是这方面的原因。
+DirectMemory容量可通过-XX:MaxDirectMemorySize指定，如果不指定，则默认与Java堆最大值（-Xmx指定）一样。
+
+    public class DirectMemoryOutOfMemoryErrorTest {
+    
+        public static void main(String[] args) throws IllegalAccessException {
+            int _1M = 1024 * 1024;
+            Field unsafeField = Unsafe.class.getDeclaredFields()[0];
+            unsafeField.setAccessible(true);
+            Unsafe unsafe = (Unsafe) unsafeField.get(null);
+            while (true) {
+                unsafe.allocateMemory(_1M);
+            }
+        }
+    }
+
+8.JVM参数配置
+
+    -verbose:gc 
+    -Xms20m 最小内存
+    -Xmx20m 最大内存
+    -XX:+HeapDumpOnOutOfMemoryError 
+    -XX:HeapDumpPath=D:\dump 堆Dump文件路径
+    -XX:-UseGCOverheadLimit 取消GC开销检查
+    -Xss1m 单个线程栈空间大小
+    -XX:MetaspaceSize=5m 元数据区大小
+    -XX:MaxMetaspaceSize=5m 元数据区最大大小
+    -XX:MaxDirectMemorySize 直接内存容量
 
 N.参考
 

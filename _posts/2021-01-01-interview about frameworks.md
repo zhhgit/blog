@@ -23,7 +23,7 @@ tags: [Interview]
 (1)实例化一个Bean－－也就是我们常说的new；
 (2)按照Spring上下文对实例化的Bean进行配置－－也就是IOC注入，例如属性；
 (3)如果这个Bean已经实现了BeanNameAware接口，会调用它实现的setBeanName(String)方法，此处传递的就是Spring配置文件中Bean的id值
-(4)如果这个Bean已经实现了BeanFactoryAware接口，会调用它实现的setBeanFactory(setBeanFactory(BeanFactory)传递的是Spring工厂自身（可以用这个方式来获取其它Bean，只需在Spring配置文件中配置一个普通的Bean就可以）；
+(4)如果这个Bean已经实现了BeanFactoryAware接口，会调用它实现的setBeanFactory(BeanFactory)传递的是Spring工厂自身（可以用这个方式来获取其它Bean，只需在Spring配置文件中配置一个普通的Bean就可以）；
 (5)如果这个Bean已经实现了ApplicationContextAware接口，会调用setApplicationContext(ApplicationContext)方法，传入Spring上下文（同样这个方式也可以实现步骤4的内容，但比4更好，因为ApplicationContext是BeanFactory的子接口，有更多的实现方法）；
 (6)如果这个Bean关联了BeanPostProcessor接口，将会调用postProcessBeforeInitialization(Object obj, String s)方法，BeanPostProcessor经常被用作是Bean内容的更改，并且由于这个是在Bean初始化结束时调用那个的方法，也可以被应用于内存或缓存技术；
 (7)如果这个Bean实现InitializingBean接口，并且增加afterPropertiesSet()方法。
@@ -223,6 +223,11 @@ Spring中定义了五种类型的通知，它们分别是
 注解@Transactional中Propagation属性值设置错误即Propagation.NOT_SUPPORTED；
 mysql关系型数据库，且存储引擎是MyISAM而非InnoDB，则事务会不起作用；
 
+7.DI与IOC
+
+所谓的依赖注入，则是，甲方开放接口，在它需要的时候，能够讲乙方传递进来(注入)
+所谓的控制反转，甲乙双方不相互依赖，交易活动的进行不依赖于甲乙任何一方，整个活动的进行由第三方负责管理(Spring容器)。
+
 N.参考
 
 (1)[Spring 官网](https://docs.spring.io/spring/docs/current/spring-framework-reference/index.html)
@@ -262,6 +267,31 @@ Spring Cloud是构建在Spring Boot之上的服务治理框架。
 SpringBoot在启动的时候从类路径下的META-INF/spring.factories中获取EnableAutoConfiguration指定的值，将这些值作为自动配置类导入容器，自动配置类就生效，帮我们进行自动配置工作。
 以前我们需要自己配置的东西，自动配置类都帮我们解决了。整个J2EE的整体解决方案和自动配置都在springboot-autoconfigure的jar包中。它将所有需要导入的组件以全类名的方式返回，这些组件就会被添加到容器中。
 它会给容器中导入非常多的自动配置类(xxxAutoConfiguration），就是给容器中导入这个场景需要的所有组件，并配置好这些组件。有了自动配置类，免去了我们手动编写配置注入功能组件等的工作。
+
+# Spring Cloud
+
+1.怎么解决Eureka某一个服务挂掉的问题
+
+同一个服务部署了多个实例，在通过网关调用时会随机调用其中一个。但是，当某个服务挂掉之后，依然在注册中心中，依然会随机被调用到，调用时便会超时报错。（主要是开发测试或者演示时需要立即将失效的从注册中心剔除。）
+(1)停止服务端，向eureka注册中心发送delete请求，到http://{eurekaIP:port}/eureka/apps/{application.name}/{http://serviceIP:port}
+(2)如果你的eureka客户端是是一个spring boot应用，可以通过调用以下代码通知注册中心下线。DiscoveryManager.getInstance().shutdownComponent();
+   
+    @RestController
+    public class HelloController {
+       @Autowired
+       private DiscoveryClient client;
+    
+       @RequestMapping(value = "/hello", method = RequestMethod.GET)
+       public String index() {
+           java.util.List<ServiceInstance> instances = client.getInstances("hello-service");       
+           return "Hello World";
+       }
+       
+       @RequestMapping(value = "/offline", method = RequestMethod.GET)
+       public void offLine(){
+           DiscoveryManager.getInstance().shutdownComponent();
+       }   
+    }
 
 # Dubbo
 
@@ -360,20 +390,277 @@ Hibernate在批量数据处理时有弱势，针对单一对象简单的增删�
 
 # Mybatis
 
-1.#{}与${}差别
+1.Mybatis，优缺点，适用场合
 
+优点：
+基于SQL语句编程，相当灵活，不会对应用程序或者数据库的现有设计造成任何影响，SQL写在XML里，解除sql与程序代码的耦合，便于统一管理；提供XML标签，支持编写动态SQL语句，并可重用。与JDBC相比，减少了50%以上的代码量，消除了JDBC大量冗余的代码，不需要手动开关连接。
+很好的与各种数据库兼容（因为MyBatis使用JDBC来连接数据库，所以只要JDBC支持的数据库MyBatis都支持）。能够与Spring很好的集成。
+提供映射标签，支持对象与数据库的ORM字段关系映射；提供对象关系映射标签，支持对象关系组件维护。
+
+缺点：
+SQL语句的编写工作量较大，尤其当字段多、关联表多时，对开发人员编写SQL语句的功底有一定要求。
+SQL语句依赖于数据库，导致数据库移植性差，不能随意更换数据库。
+
+适用场合：
+MyBatis专注于SQL本身，是一个足够灵活的DAO层解决方案。
+对性能的要求很高，或者需求变化较多的项目，如互联网项目，MyBatis将是不错的选择。
+
+2.MyBatis与Hibernate有哪些不同？
+Mybatis和hibernate不同，它不完全是一个ORM框架，因为MyBatis需要程序员自己编写Sql语句。Mybatis直接编写原生态sql，可以严格控制sql执行性能，灵活度高，非常适合对关系数据模型要求不高的软件开发，因为这类软件需求变化频繁，一但需求变化要求迅速输出成果。但是灵活的前提是mybatis无法做到数据库无关性，如果需要实现支持多种数据库的软件，则需要自定义多套sql映射文件，工作量大。
+Hibernate对象/关系映射能力强，数据库无关性好，对于关系模型要求高的软件，如果用hibernate开发可以节省很多代码，提高效率。
+Hibernate属于全自动ORM映射工具，使用Hibernate查询关联对象或者关联集合对象时，可以根据对象关系模型直接获取，所以它是全自动的。而Mybatis在查询关联对象或关联集合对象时，需要手动编写sql来完成，所以，称之为半自动ORM映射工具。
+
+
+3.#{}与${}差别
+
+差别是#是预编译处理，$是字符串替换。
 (1)#将传入的数据都当成一个字符串，会对自动传入的数据加一个双引号。$将传入的数据直接显示生成在sql中。
 (2)#方式在很大程度上能够防止sql注入。$方式无法防止sql注入。一般能用#的就别用$。$方式一般用于传入数据库对象，例如传入表名。
-(3)#在预处理时，会把参数部分用一个占位符？代替。$只会做简单的字符串替换，在动态SQL解析阶段将会进行变量替换。
+(3)#在预处理时，会把参数部分用一个占位符？代替，调用PreparedStatement的set方法来赋值。$只会做简单的字符串替换，在动态SQL解析阶段将会进行变量替换。
 
-2.Mybatis分页
+4.当实体类中的属性名和表中的字段名不一样怎么办
 
-(1)数组分页查询所有然后取subList。
-(2)sql的limit语法。
-(3)使用Mybatis的RowBounds(int offset, int limit)，不适合数据量大。
-(4)自己实现拦截器，对执行的sql语句加limit条件。
+第1种：通过在查询的sql语句中定义字段名的别名，让字段名的别名和实体类的属性名一致。
 
-3.流式查询
+    <select id=”selectorder” parameterType=”int” resulteType=”me.gacl.domain.order”>         
+          select order_id id, order_no orderno ,order_price price from orders where order_id=#{id};      
+    </select>
+    
+第2种：通过来映射字段名和实体类属性名的一一对应的关系。
+
+    <select id="getOrder" parameterType="int" resultMap="orderresultmap">  
+        select * from orders where order_id=#{id}  
+    </select>  
+  
+    <resultMap type=”me.gacl.domain.order” id=”orderresultmap”>  
+        <!–用id属性来映射主键字段–>  
+        <id property=”id” column=”order_id”>  
+        <!–用result属性来映射非主键字段，property为实体类属性名，column为数据表中的属性–>  
+        <result property = “orderno” column =”order_no”/>  
+        <result property=”price” column=”order_price” />  
+    </reslutMap>  
+    
+5.模糊查询like语句该怎么写?
+
+    string wildcardname = “%smi%”;  
+    list<name> names = mapper.selectlike(wildcardname);  
+  
+    <select id=”selectlike”>  
+         select * from foo where bar like #{value}  
+    </select>
+    
+6.通常一个Xml映射文件，都会写一个Dao接口与之对应，请问这个Dao接口的工作原理是什么？Dao接口里的方法，参数不同时，方法能重载吗？
+
+Dao接口即Mapper接口。接口的全限名，就是映射文件中mapper的namespace的值；接口的方法名，就是映射文件中mapper的Statement的id值；接口方法内的参数，就是传递给sql的参数。
+Mapper接口是没有实现类的，当调用接口方法时，接口全限名+方法名拼接字符串作为key值，可唯一定位一个MapperStatement。在Mybatis中，每一个<select>、<insert>、<update>、<delete>标签，都会被解析为一个MapperStatement对象。
+举例：com.mybatis3.mappers.StudentDao.findStudentById，可以唯一找到namespace为com.mybatis3.mappers.StudentDao下面id为findStudentById的MapperStatement。
+Mapper接口里的方法，是不能重载的，因为是使用"全限名+方法名"的保存和寻找策略。Mapper接口的工作原理是JDK动态代理，Mybatis运行时会使用JDK动态代理为Mapper接口生成代理对象proxy，代理对象会拦截接口方法，转而执行MapperStatement所代表的sql，然后将sql执行结果返回。
+不同的Xml映射文件，如果配置了namespace，那么id可以重复；如果没有配置namespace，那么id不能重复。原因就是namespace+id是作为Map<String, MapperStatement>的key使用的，如果没有namespace，就剩下id，那么，id重复会导致数据互相覆盖。有了namespace，自然id就可以重复，namespace不同，namespace+id自然也就不同。
+
+7.分页查询
+
+(1)sql的limit语法，直接书写带有物理分页的参数来完成物理分页功能。
+(2)使用Mybatis的RowBounds(int offset, int limit)对象进行分页，不适合数据量大。它是针对ResultSet结果集执行的内存分页，而非物理分页。
+(3)自己实现拦截器，对执行的sql语句加limit条件。分页插件的基本原理是使用Mybatis提供的插件接口，实现自定义插件，在插件的拦截方法内拦截待执行的sql，然后重写sql，根据dialect方言，添加对应的物理分页语句和物理分页参数。
+
+8.如何执行批量插入?
+
+    <insert id=”insertname”>  
+         insert into names (name) values (#{value})  
+    </insert>  
+
+    List<String> names = new Arraylist();  
+    names.add(“fred”);  
+    names.add(“barney”);  
+    names.add(“betty”);  
+    names.add(“wilma”);  
+  
+    // 注意这里 executortype.batch  
+    SqlSession sqlSession = sqlSessionFactory.openSession(Executortype.Batch);  
+    try {  
+     NameMapper mapper = sqlSession.getMapper(NameMapper.class);  
+     for (string name : names) {  
+         mapper.insertname(name);  
+     }  
+     sqlSession.commit();  
+    }catch(Exception e){  
+     e.printStackTrace();  
+     sqlSession.rollback();   
+     throw e;   
+    }  
+     finally {  
+       sqlSession.close();  
+    }
+
+9.在mapper中如何传递多个参数?
+第一种：
+
+    // DAO层的函数  
+    Public UserselectUser(String name,String area);  
+    // 对应的xml,#{0}代表接收的是dao层中的第一个参数，#{1}代表dao层中第二参数，更多参数一致往后加即可。  
+    <select id="selectUser"resultMap="BaseResultMap">    
+      select *  from user_t where user_name = #{0} and user_area=#{1}     
+    </select>
+    
+第二种：使用@param注解:
+
+    public interface UserMapper {  
+       User selectUser(@Param(“username”) String username,@Param(“hashedpassword”) String hashedpassword);  
+    }
+      
+    // 然后,就可以在xml像下面这样使用(推荐封装为一个map,作为单个参数传递给mapper):  
+    <select id=”selectUser” resulttype=”user”>  
+             select id, username, hashedpassword  
+             from some_table  
+             where username = #{username} and hashedpassword = #{hashedpassword}   
+    </select>
+
+第三种：多个参数封装成map
+
+    try{  
+        //映射文件的命名空间SQL片段的ID，就可以调用对应的映射文件中的SQL  
+        //由于我们的参数超过了两个，而方法中只有一个Object参数收集，因此我们使用Map集合来装载我们的参数  
+       Map<String, Object> map = new HashMap();       
+       map.put("start", start);       
+       map.put("end", end);       
+       return sqlSession.selectList("StudentID.pagination", map);  
+    }catch(Exception e){      
+       e.printStackTrace();       
+       sqlSession.rollback();      
+       throw e; 
+    }  
+    finally{   
+       MybatisUtil.closeSqlSession();   
+    }
+     
+10.Mybatis动态sql有什么用？执行原理？有哪些动态sql？
+
+Mybatis动态sql可以在Xml映射文件内，以标签的形式编写动态sql，执行原理是根据表达式的值完成逻辑判断并动态拼接sql的功能。
+Mybatis提供了9种动态sql标签：trim | where | set | foreach | if | choose | when | otherwise | bind。
+
+11.Xml映射文件中，除了常见的select|insert|updae|delete标签之外，还有哪些标签？
+<resultMap>、<parameterMap>、<sql>、<include>、<selectKey>，加上动态sql的9个标签。
+其中为sql片段标签，通过<include>标签引入sql片段，<selectKey>为不支持自增的主键生成策略标签。
+
+12.一对一、一对多的关联查询
+
+    <mapper namespace="com.lcb.mapping.userMapper">    
+        <!--association  一对一关联查询 -->    
+        <select id="getClass" parameterType="int" resultMap="ClassesResultMap">    
+            select * from class c,teacher t where c.teacher_id=t.t_id and c.c_id=#{id}    
+        </select>    
+      
+        <resultMap type="com.lcb.user.Classes" id="ClassesResultMap">    
+            <!-- 实体类的字段名和数据表的字段名映射 -->    
+            <id property="id" column="c_id"/>    
+            <result property="name" column="c_name"/>    
+            <association property="teacher" javaType="com.lcb.user.Teacher">    
+                <id property="id" column="t_id"/>    
+                <result property="name" column="t_name"/>    
+            </association>    
+        </resultMap>    
+      
+      
+        <!--collection  一对多关联查询 -->    
+        <select id="getClass2" parameterType="int" resultMap="ClassesResultMap2">    
+            select * from class c,teacher t,student s where c.teacher_id=t.t_id and c.c_id=s.class_id and c.c_id=#{id}    
+        </select>    
+      
+        <resultMap type="com.lcb.user.Classes" id="ClassesResultMap2">    
+            <id property="id" column="c_id"/>    
+            <result property="name" column="c_name"/>    
+            <association property="teacher" javaType="com.lcb.user.Teacher">    
+                <id property="id" column="t_id"/>    
+                <result property="name" column="t_name"/>    
+            </association>    
+      
+            <collection property="student" ofType="com.lcb.user.Student">    
+                <id property="id" column="s_id"/>    
+                <result property="name" column="s_name"/>    
+            </collection>    
+        </resultMap>    
+    </mapper> 
+  
+MyBatis实现一对一有几种方式?具体怎么操作的？
+有联合查询和嵌套查询。
+联合查询是几个表联合查询，只查询一次,，通过在resultMap里面配置association节点配置一对一的类就可以完成。
+嵌套查询是先查一个表，根据这个表里面的结果的外键id，去再另外一个表里面查询数据,也是通过association配置，但另外一个表的查询通过select属性配置。
+
+MyBatis实现一对多有几种方式,怎么操作的？
+有联合查询和嵌套查询。
+联合查询是几个表联合查询，只查询一次，通过在resultMap里面的collection节点配置一对多的类就可以完成。
+嵌套查询是先查一个表，根据这个表里面的结果的外键id，去再另外一个表里面查询数据，也是通过配置collection,但另外一个表的查询通过select节点配置。
+
+13.Mybatis是否支持延迟加载？如果支持，它的实现原理是什么？
+Mybatis仅支持association关联对象和collection关联集合对象的延迟加载，association指的就是一对一，collection指的就是一对多查询。
+在Mybatis配置文件中，可以配置是否启用延迟加载lazyLoadingEnabled=true|false。
+它的原理是，使用CGLIB创建目标对象的代理对象，当调用目标方法时，进入拦截器方法，比如调用a.getB().getName()，拦截器invoke()方法发现a.getB()是null值，那么就会单独发送事先保存好的查询关联B对象的sql，把B查询上来，然后调用a.setB(b)，于是a的对象b属性就有值了，接着完成a.getB().getName()方法的调用。这就是延迟加载的基本原理。
+当然了，不光是Mybatis，几乎所有的框架包括Hibernate，支持延迟加载的原理都是一样的。
+
+14.Mybatis的一级、二级缓存
+一级缓存基于PerpetualCache的HashMap本地缓存，其存储作用域为Session，当Session flush或close之后，该Session中的所有Cache就将清空，默认打开一级缓存。
+二级缓存与一级缓存其机制相同，默认也是采用PerpetualCache，HashMap存储，不同在于其存储作用域为Mapper(Namespace)，并且可自定义存储源，如Ehcache。默认不打开二级缓存，要开启二级缓存，使用二级缓存属性类需要实现Serializable序列化接口(可用来保存对象的状态)，可在它的映射文件中配置<cache/> ；
+对于缓存数据更新机制，当某一个作用域(一级缓存Session/二级缓存Namespaces)的进行了C/U/D操作后，默认该作用域下所有select中的缓存将被clear。
+
+15.什么是MyBatis的接口绑定？有哪些实现方式？
+接口绑定，就是在MyBatis中任意定义接口，然后把接口里面的方法和SQL语句绑定，我们直接调用接口方法就可以，这样比起原来了SqlSession提供的方法我们可以有更加灵活的选择和设置。
+接口绑定有两种实现方式,一种是通过注解绑定，就是在接口的方法上面加上@Select、@Update等注解，里面包含Sql语句来绑定。
+另外一种就是通过xml里面写SQL来绑定, 在这种情况下,要指定xml映射文件里面的namespace必须为接口的全路径名。当Sql语句比较简单时候用注解绑定，当SQL语句比较复杂时候用xml绑定,一般用xml绑定的比较多。
+
+16.使用MyBatis的mapper接口调用时有哪些要求？
+Mapper接口方法名和mapper.xml中定义的每个sql的id相同；
+Mapper接口方法的输入参数类型和mapper.xml中定义的每个sql 的parameterType的类型相同；
+Mapper接口方法的输出参数类型和mapper.xml中定义的每个sql的resultType的类型相同；
+Mapper.xml文件中的namespace即是mapper接口的类路径。
+
+17.Mapper编写有哪几种方式？
+
+第一种：接口实现类继承SqlSessionDaoSupport：使用此种方法需要编写mapper接口，mapper接口实现类、mapper.xml文件。
+
+在sqlMapConfig.xml中配置mapper.xml的位置
+
+    <mappers>  
+        <mapper resource="mapper.xml文件的地址" />  
+        <mapper resource="mapper.xml文件的地址" />  
+    </mappers>
+    
+定义mapper接口，实现类继承SqlSessionDaoSupport，mapper方法中可以this.getSqlSession()进行数据增删改查。
+spring 配置
+
+    <bean id="mapperImpl" class="mapper接口的实现">  
+        <property name="sqlSessionFactory" ref="sqlSessionFactory"></property>  
+    </bean>
+
+第二种：使用org.mybatis.spring.mapper.MapperFactoryBean：
+在sqlMapConfig.xml中配置mapper.xml的位置，如果mapper.xml和mapper接口的名称相同且在同一个目录，这里可以不用配置
+
+    <mappers>  
+        <mapper resource="mapper.xml文件的地址" />  
+        <mapper resource="mapper.xml文件的地址" />  
+    </mappers>  
+    
+定义mapper接口：mapper.xml中的namespace为mapper接口的地址。mapper接口中的方法名和mapper.xml中的定义的statement的id保持一致。Spring中定义
+
+    <bean id="mapperFactoryBean" class="org.mybatis.spring.mapper.MapperFactoryBean">  
+        <property name="mapperInterface"   value="mapper接口地址" />   
+        <property name="sqlSessionFactory" ref="sqlSessionFactory" />   
+    </bean>  
+
+第三种：使用mapper扫描器：
+mapper.xml文件编写：mapper.xml中的namespace为mapper接口的地址；mapper接口中的方法名和mapper.xml中的定义的statement的id保持一致；如果将mapper.xml和mapper接口的名称保持一致则不用在sqlMapConfig.xml中进行配置。
+定义mapper接口：注意mapper.xml的文件名和mapper的接口名称保持一致，且放在同一个目录。
+配置mapper扫描器，使用扫描器后从spring容器中获取mapper的实现对象。
+
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">  
+        <property name="basePackage" value="mapper接口包地址"></property>  
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>   
+    </bean>  
+
+18.简述Mybatis的插件运行原理，以及如何编写一个插件。
+Mybatis仅可以编写针对ParameterHandler、ResultSetHandler、StatementHandler、Executor这4种接口的插件，Mybatis使用JDK的动态代理，为需要拦截的接口生成代理对象以实现接口方法拦截功能，每当执行这4种接口对象的方法时，就会进入拦截方法，具体就是InvocationHandler的invoke()方法，当然，只会拦截那些你指定需要拦截的方法。
+编写插件：实现Mybatis的Interceptor接口并复写intercept()方法，然后在给插件编写注解，指定要拦截哪一个接口的哪些方法即可，记住，别忘了在配置文件中配置你编写的插件。
+
+19.流式查询
 
 流式查询指的是查询成功后不是返回一个集合而是返回一个迭代器，应用每次从迭代器取一条查询结果。流式查询的好处是能够降低内存使用。
 如果没有流式查询，我们想要从数据库取1000万条记录而又没有足够的内存时，就不得不分页查询，而分页查询效率取决于表设计，如果设计的不好，就无法执行高效的分页查询。因此流式查询是一个数据库访问框架必须具备的功能。
@@ -434,3 +721,7 @@ getCurrentIndex()：返回已经获取了多少条数据。
             cursor.forEach(foo -> { });
         }
     }
+    
+N.参考
+
+(1)[【250期】关于Mybatis知识点，面试可以问的都在这里了！](https://mp.weixin.qq.com/s/kReDxX3pA_ygyxzeWJDtoQ)
