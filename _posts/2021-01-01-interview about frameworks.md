@@ -512,22 +512,38 @@ Spring Cloud社区活跃度很高，教程很丰富，遇到问题很容易找�
 
 Spring Cloud的子项目，大致可分成两类，一类是对现有成熟框架"Spring Boot化"的封装和抽象，也是数量最多的项目；第二类是开发了一部分分布式系统的基础设施的实现，如Spring Cloud Stream扮演的就是kafka, ActiveMQ这样的角色。
 
-    Spring Cloud Config：集中配置管理工具，分布式系统中统一的外部配置管理，默认使用Git来存储配置，可以支持客户端配置的刷新及加密、解密操作。
-    Spring Cloud Netflix：Netflix OSS开源组件集成，包括Eureka、Hystrix、Ribbon、Feign、Zuul等核心组件。
-    Eureka：服务治理组件，包括服务端的注册中心和客户端的服务发现机制。
-    Ribbon：负载均衡的服务调用组件，具有多种负载均衡调用策略。
-    Hystrix：服务容错组件，实现了断路器模式，为依赖服务的出错和延迟提供了容错能力。旨在隔离远程系统，服务和第三方库的访问点，当出现故障是不可避免的故障时，停止级联故障并在复杂的分布式系统中实现弹性。
-    Feign：基于Ribbon和Hystrix的声明式服务调用组件。
-    Zuul：API网关组件，对请求提供路由及过滤功能。
-    Spring Cloud Bus：用于传播集群状态变化的消息总线，使用轻量级消息代理链接分布式系统中的节点，可以用来动态刷新集群中的服务配置。这是通过将所有微服务连接到单个消息代理来实现的。无论何时刷新实例，此事件都会订阅到侦听此代理的所有微服务，并且它们也会刷新。可以通过使用端点/总线/刷新来实现对任何单个实例的刷新。
-    Spring Cloud Consul：基于Hashicorp Consul的服务治理组件。
-    Spring Cloud Security：安全工具包，对Zuul代理中的负载均衡OAuth2客户端及登录认证进行支持。
-    Spring Cloud Sleuth：Spring Cloud应用程序的分布式请求链路跟踪，支持使用Zipkin、HTrace和基于日志（例如ELK）的跟踪。
-    Spring Cloud Stream：轻量级事件驱动微服务框架，可以使用简单的声明式模型来发送及接收消息，主要实现为Apache Kafka及RabbitMQ。
-    Spring Cloud Task：用于快速构建短暂、有限数据处理任务的微服务框架，用于向应用中添加功能性和非功能性的特性。
-    Spring Cloud Zookeeper：基于Apache Zookeeper的服务治理组件。
-    Spring Cloud Gateway：是Spring Cloud官方推出的第二代网关框架，取代Zuul网关。网关作为流量的，在微服务系统中有着非常作用，网关常见的功能有路由转发、权限校验、限流控制等作用。
-    Spring Cloud OpenFeign：基于Ribbon和Hystrix的声明式服务调用组件，可以动态创建基于Spring MVC注解的接口实现用于服务调用，在Spring Cloud 2.0中已经取代Feign成为了一等公民。
+    Spring Cloud
+        --服务注册与发现
+            --Eureka：服务治理组件，包括服务端的注册中心和客户端的服务发现机制。
+            --Spring Cloud Consul：基于Hashicorp Consul的服务治理组件。
+            --Spring Cloud Zookeeper：基于Apache Zookeeper的服务治理组件。
+        --客户端负载均衡
+            --Ribbon：负载均衡的服务调用组件，具有多种负载均衡调用策略。
+        --声明式服务调用
+            --Feign：基于Ribbon和Hystrix的声明式服务调用组件。
+            --Spring Cloud OpenFeign：基于Ribbon和Hystrix的声明式服务调用组件，可以动态创建基于Spring MVC注解的接口实现用于服务调用，在Spring Cloud 2.0中已经取代Feign成为了一等公民。
+        --服务容错保护
+            --Hystrix：服务容错组件，实现了断路器模式，为依赖服务的出错和延迟提供了容错能力。旨在隔离远程系统，服务和第三方库的访问点，当出现故障是不可避免的故障时，停止级联故障并在复杂的分布式系统中实现弹性。
+        --API网关
+            --Zuul：API网关组件，对请求提供路由及过滤功能。
+            --Spring Cloud Gateway：是Spring Cloud官方推出的第二代网关框架，取代Zuul网关。网关作为流量的，在微服务系统中有着非常作用，网关常见的功能有路由转发、权限校验、限流控制等作用。
+        --容器化
+            --Docker
+            --Kubernates
+        --服务链路追踪
+            --Spring Cloud Sleuth：Spring Cloud应用程序的分布式请求链路跟踪，支持使用Zipkin、HTrace和基于日志（例如ELK）的跟踪。
+        --认证与授权
+            --Spring Cloud Security：安全工具包，对Zuul代理中的负载均衡OAuth2客户端及登录认证进行支持。
+            --Oauth2.0
+        --消息
+            --Spring Cloud Bus：用于传播集群状态变化的消息总线，使用轻量级消息代理链接分布式系统中的节点，可以用来动态刷新集群中的服务配置。这是通过将所有微服务连接到单个消息代理来实现的。无论何时刷新实例，此事件都会订阅到侦听此代理的所有微服务，并且它们也会刷新。可以通过使用端点/总线/刷新来实现对任何单个实例的刷新。
+            --Spring Cloud Stream：轻量级事件驱动微服务框架，可以使用简单的声明式模型来发送及接收消息，主要实现为Apache Kafka及RabbitMQ。
+        --分布式配置中心
+            --Spring Cloud Config：集中配置管理工具，分布式系统中统一的外部配置管理，默认使用Git来存储配置，可以支持客户端配置的刷新及加密、解密操作。
+        --命令行工具
+            --Spring Cloud CLI
+        --其他
+            --Spring Cloud Task：用于快速构建短暂、有限数据处理任务的微服务框架，用于向应用中添加功能性和非功能性的特性。
 
 N.参考
 
