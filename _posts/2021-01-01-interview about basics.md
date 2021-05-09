@@ -136,14 +136,52 @@ root.crt:根证书，server.key:服务证书私钥，server.crt:服务证书
 3.单例模式
 
 (1)饱汉模式：第一次使用的时候再初始化，即“懒加载”。存在线程不安全问题。
-可能解决方案：
-(a)静态方法getInstance上增加synchronized。
-(b)getInstance方法中外层套了一层check，加上synchronized内层的check，即所谓“双重检查锁”（Double Check Lock，简称DCL）。DCL仍然是线程不安全的，由于指令重排序，你可能会得到“半个对象”，即”部分初始化“问题，一部分域被初始化了。
-(c)DCL 2.0，在instance上增加了volatile关键字。
+可能解决方案：(a)静态方法getInstance上增加synchronized。(b)getInstance方法中外层套了一层check，加上synchronized内层的check，即所谓“双重检查锁”（Double Check Lock，简称DCL）。DCL仍然是线程不安全的，由于指令重排序，你可能会得到“半个对象”，即”部分初始化“问题，一部分域被初始化了。(c)DCL 2.0，在instance上增加了volatile关键字。
 
 (2)饿汉模式：类加载时初始化单例，以后访问时直接返回即可。
 (3)Holder模式：通过静态的Holder类持有真正实例，间接实现了懒加载。
 (4)枚举模式：本质上和饿汉模式相同，区别仅在于公有的静态成员变量。
+
+为什么是双重校验锁实现单例模式呢？
+
+    public class Singleton {
+    
+        private static volatile Singleton singleton = null;
+    
+        private Singleton() {
+        }
+    
+        public static Singleton getInstance(){
+            //第一次校验singleton是否为空
+            if(singleton==null){
+                synchronized (Singleton.class){
+                    //第二次校验singleton是否为空
+                    if(singleton==null){
+                        singleton = new Singleton();
+                    }
+                }
+            }
+            return singleton;
+        }
+    
+    
+        public static void main(String[] args) {
+            for (int i = 0; i < 100; i++) {
+                new Thread(new Runnable() {
+                    public void run() {
+                        System.out.println(Thread.currentThread().getName()+" : "+Singleton.getInstance().hashCode());
+                    }
+                }).start();
+            }
+        }
+    }
+
+第一次校验： 也就是第一个if（singleton==null），这个是为了代码提高代码执行效率，由于单例模式只要一次创建实例即可，所以当创建了一个实例之后，再次调用getInstance方法就不必要进入同步代码块，不用竞争锁。直接返回前面创建的实例即可。
+第二次校验： 也就是第二个if（singleton==null），这个校验是防止二次创建实例，假如有一种情况，当singleton还未被创建时，线程t1调用getInstance方法，由于第一次判断singleton==null，此时线程t1准备继续执行，但是由于资源被线程t2抢占了，此时t2页调用getInstance方法。
+同样的，由于singleton并没有实例化，t2同样可以通过第一个if，然后继续往下执行，同步代码块，第二个if也通过，然后t2线程创建了一个实例singleton。此时t2线程完成任务，资源又回到t1线程，t1此时也进入同步代码块，如果没有这个第二个if，那么，t1就也会创建一个singleton实例，那么，就会出现创建多个实例的情况，但是加上第二个if，就可以完全避免这个多线程导致多次创建实例的问题。所以说：两次校验都必不可少。
+还有，这里的private static volatile Singleton singleton = null;中的volatile也必不可少，volatile关键字可以防止jvm指令重排优化，因为singleton = new Singleton() 这句话可以分为三步：为singleton分配内存空间；初始化singleton；将singleton指向分配的内存空间。
+但是由于JVM具有指令重排的特性，执行顺序有可能变成 1-3-2。指令重排在单线程下不会出现问题，但是在多线程下会导致一个线程获得一个未初始化的实例。例如：线程T1执行了1和3，此时T2调用getInstance()后发现singleton不为空，因此返回singleton，但是此时的singleton还没有被初始化。使用volatile会禁止JVM指令重排，从而保证在多线程下也能正常执行。
+这里还说一下volatile关键字的第二个作用，保证变量在多线程运行时的可见性：在JDK1.2之前，Java的内存模型实现总是从主存（即共享内存）读取变量，是不需要进行特别的注意的。而在当前的Java内存模型下，线程可以把变量保存本地内存（比如机器的寄存器）中，而不是直接在主存中进行读写。这就可能造成一个线程在主存中修改了一个变量的值，而另外一个线程还继续使用它在寄存器中的变量值的拷贝，造成数据的不一致。要解决这个问题，就需要把变量声明为volatile，这就指示JVM，这个变量是不稳定的，每次使用它都到主存中进行读取。
 
 使用场景：
 
@@ -156,6 +194,7 @@ root.crt:根证书，server.key:服务证书私钥，server.crt:服务证书
 
 这种类型的设计模式属于创建型模式，它提供了一种创建对象的最佳方式。
 意图：定义一个创建对象的接口，让其子类自己决定实例化哪一个工厂类，工厂模式使其创建过程延迟到子类进行。
+所谓的工厂方法模式，就是定义一个工厂方法，通过传入的参数，返回某个实例，然后通过该实例来处理后续的业务逻辑。一般的，工厂方法的返回值类型是一个接口类型，而选择具体子类实例的逻辑则封装到了工厂方法中了。通过这种方式，来将外层调用逻辑与具体的子类的获取逻辑进行分离。
 
 5.观察者模式
 
@@ -168,7 +207,21 @@ root.crt:根证书，server.key:服务证书私钥，server.crt:服务证书
 意图：动态地给一个对象添加一些额外的职责。就增加功能来说，装饰器模式相比生成子类更为灵活。
 主要解决：一般的，我们为了扩展一个类经常使用继承方式实现，由于继承为类引入静态特征，并且随着扩展功能的增多，子类会很膨胀。
 
-7.实现低耦合就是对两类之间进行解耦，解耦的本质就是将类之间的直接关系转换成间接关系，不管是类向上转型，接口回调还是适配器模式都是在类之间加了一层，将原来的直接关系变成间接关系，使得两类对中间层是强耦合，两类之间变成弱耦合关系。
+7.策略模式
+
+策略模式就是一个接口下有多个实现类，而每种实现类会处理某一种情况。
+
+8.实现低耦合就是对两类之间进行解耦，解耦的本质就是将类之间的直接关系转换成间接关系，不管是类向上转型，接口回调还是适配器模式都是在类之间加了一层，将原来的直接关系变成间接关系，使得两类对中间层是强耦合，两类之间变成弱耦合关系。
+
+9.设计模式的7大原则
+
+开放-封闭原则；
+单一职责原则；
+依赖倒转原则；
+最小知识原则；
+接口隔离原则；
+合成/聚合复用原则；
+里氏代换原则，任何基类可以出现的地方，子类一定可以出现。
 
 N.参考
 

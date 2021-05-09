@@ -18,22 +18,40 @@ tags: [Interview]
 (5)Spring的ORM和DAO提供了与第三方持久层框架的良好整合，并简化了底层的数据库访问。
 (6)Spring并不强制应用完全依赖于Spring，开发者可自由选用Spring框架的部分或全部。Spring是开源的轻量级一站式框架，内部支持对多种优秀开源框架的集成。
 
-2.Spring Bean的生命周期
+2.Spring，SpringMVC，SpringBoot，SpringCloud的区别和联系
 
-(1)实例化一个Bean－－也就是我们常说的new；
-(2)按照Spring上下文对实例化的Bean进行配置－－也就是IOC注入，例如属性；
-(3)如果这个Bean已经实现了BeanNameAware接口，会调用它实现的setBeanName(String)方法，此处传递的就是Spring配置文件中Bean的id值
-(4)如果这个Bean已经实现了BeanFactoryAware接口，会调用它实现的setBeanFactory(BeanFactory)传递的是Spring工厂自身（可以用这个方式来获取其它Bean，只需在Spring配置文件中配置一个普通的Bean就可以）；
-(5)如果这个Bean已经实现了ApplicationContextAware接口，会调用setApplicationContext(ApplicationContext)方法，传入Spring上下文（同样这个方式也可以实现步骤4的内容，但比4更好，因为ApplicationContext是BeanFactory的子接口，有更多的实现方法）；
-(6)如果这个Bean关联了BeanPostProcessor接口，将会调用postProcessBeforeInitialization(Object obj, String s)方法，BeanPostProcessor经常被用作是Bean内容的更改，并且由于这个是在Bean初始化结束时调用那个的方法，也可以被应用于内存或缓存技术；
-(7)如果这个Bean实现InitializingBean接口，并且增加afterPropertiesSet()方法。
-(8)如果Bean在Spring配置文件中配置了init-method属性会自动调用其配置的初始化方法。
-(9)如果这个Bean关联了BeanPostProcessor接口，将会调用postProcessAfterInitialization(Object obj, String s)方法。
+Spring是核心，提供了基础功能。Spring是一个一站式的轻量级的java开发框架，核心是控制反转（IOC）和面向切面（AOP），针对于开发的WEB层(springMvc)、业务层(Ioc)、持久层(jdbcTemplate)等都提供了多种配置解决方案。
+Spring MVC是基于Spring的一个MVC框架。SpringMVC是Spring基础之上的一个MVC框架，主要处理web开发的路径映射和视图渲染，属于Spring框架中WEB层开发的一部分。
+Spring Boot是为简化Spring配置的快速开发整合包。SpringBoot使用了默认大于配置的理念，集成了快速开发的Spring多个插件，同时自动过滤不需要配置的多余的插件，简化了项目的开发配置流程，一定程度上取消xml配置，是一套快速配置开发的脚手架，能快速开发单个微服务。更专注于开发微服务后台接口，不开发前端视图。
+Spring Cloud是构建在Spring Boot之上的服务治理框架。SpringCloud大部分的功能插件都是基于SpringBoot去实现的，SpringCloud关注于全局的微服务整合和管理，将多个SpringBoot单体微服务进行整合以及管理；SpringCloud依赖于SpringBoot开发，而SpringBoot可以独立开发。
+
+3.Spring Bean的生命周期
+
+容器启动阶段：
+
+(1)BeanDefenitionReader读取配置元信息（例如xml），生成BeanDefenition。
+(2)将BeanDefination注册到BeanDefinationRegistry中，BeanDefinationRegistry就是一个存放BeanDefination的大篮子，它也是一种键值对的形式，通过特定的Bean定义的id，映射到相应的BeanDefination。
+(3)BeanFactoryPostProcessor是容器启动阶段Spring提供的一个扩展点，主要负责对注册到BeanDefinationRegistry中的一个个的BeanDefination进行一定程度上的修改与替换。BeanFactoryPostProcessor实现类实例化。BeanFactoryPostProcessor主要是在Spring刚加载完配置文件，还没来得及初始化Bean的时候做一些操作。比如篡改某个Bean在配置文件中配置的内容。BeanFactoryPostProcessor调用postProcessBeanFactory方法。
+
+Bean实例化阶段：
+
+(1)InstantiationAwareBeanPostProcessorAdapter实现类实例化。基本没什么用，Bean初始化后，还没有设置属性值时调用，和BeanFactoryPostProcessor一样，可以篡改配置文件加载到内存中的信息。
+(2)BeanPostProcessor实现类实例化。没什么用，Spring框架内部使用的比较猛，像什么AOP，动态代理，都是在这搞事。
+(3)InstantiationAwareBeanPostProcessor调用postProcessBeforeInstantiation方法。
+(4)InstantiationAwareBeanPostProcessor调用postProcessPropertyValues方法。
+(5)如果这个Bean已经实现了BeanNameAware接口，会调用它实现的setBeanName(String)方法，此处传递的就是Spring配置文件中Bean的id值
+(6)如果这个Bean已经实现了BeanFactoryAware接口，会调用它实现的setBeanFactory(BeanFactory)传递的是Spring工厂自身（可以用这个方式来获取其它Bean，只需在Spring配置文件中配置一个普通的Bean就可以）；
+(7)如果这个Bean已经实现了ApplicationContextAware接口，会调用setApplicationContext(ApplicationContext)方法，传入Spring上下文（同样这个方式也可以实现步骤4的内容，但比4更好，因为ApplicationContext是BeanFactory的子接口，有更多的实现方法）；
+(8)如果这个Bean关联了BeanPostProcessor接口，将会调用postProcessBeforeInitialization(Object obj, String s)方法，BeanPostProcessor经常被用作是Bean内容的更改，并且由于这个是在Bean初始化结束时调用那个的方法，也可以被应用于内存或缓存技术；
+(9)如果这个Bean实现InitializingBean接口，并且增加afterPropertiesSet()方法。
+(10)如果Bean在Spring配置文件中配置了init-method属性会自动调用其配置的初始化方法。
+(11)InstantiationAwareBeanPostProcessor调用postProcessAfterInitialization方法。
+(12)如果这个Bean关联了BeanPostProcessor接口，将会调用postProcessAfterInitialization(Object obj, String s)方法。
 注：以上工作完成以后就可以应用这个Bean了，那这个Bean是一个Singleton的，所以一般情况下我们调用同一个id的Bean会是在内容地址相同的实例，当然在Spring配置文件中也可以配置非Singleton。
-(10)当Bean不再需要时，会经过清理阶段，如果Bean实现了DisposableBean这个接口，会调用那个其实现的destroy()方法；
-(11)最后，如果这个Bean的Spring配置中配置了destroy-method属性，会自动调用其配置的销毁方法。
+(13)当Bean不再需要时，会经过清理阶段，如果Bean实现了DisposableBean这个接口，会调用那个其实现的destroy()方法；
+(14)最后，如果这个Bean的Spring配置中配置了destroy-method属性，会自动调用其配置的销毁方法。
 
-3.Spring-bean的循环依赖以及解决方式
+4.Spring-bean的循环依赖以及解决方式
 
 循环依赖其实就是循环引用，也就是两个或两个以上的bean互相持有对方，最终形成闭环。比如A依赖于B，B依赖于C，C又依赖于A。注意，这里不是函数的循环调用，是对象的相互依赖关系。循环调用其实就是一个死循环，除非有终结条件。
 Spring中循环依赖场景有： （1）构造器的循环依赖 （2）field属性的循环依赖。
@@ -64,86 +82,29 @@ Spring的单例对象的初始化主要分为三步：
 这样做有什么好处呢？让我们来分析一下。A的某个field或者setter依赖了B的实例对象，同时B的某个field或者setter依赖了A的实例对象”这种循环依赖的情况。A首先完成了初始化的第一步，并且将自己提前曝光到singletonFactories中，此时进行初始化的第二步，发现自己依赖对象B，此时就尝试去get(B)，发现B还没有被create，所以走create流程，B在初始化第一步的时候发现自己依赖了对象A，于是尝试get(A)，尝试一级缓存singletonObjects(肯定没有，因为A还没初始化完全)，尝试二级缓存earlySingletonObjects（也没有），尝试三级缓存singletonFactories，由于A通过ObjectFactory将自己提前曝光了，所以B能够通过ObjectFactory.getObject拿到A对象(虽然A还没有初始化完全，但是总比没有好呀)，B拿到A对象后顺利完成了初始化阶段1、2、3，完全初始化之后将自己放入到一级缓存singletonObjects中。此时返回A中，A此时能拿到B的对象顺利完成自己的初始化阶段2、3，最终A也完成了初始化，进去了一级缓存singletonObjects中，而且更加幸运的是，由于B拿到了A的对象引用，所以B现在hold住的A对象完成了初始化。
 知道了这个原理时候，肯定就知道为啥Spring不能解决“A的构造方法中依赖了B的实例对象，同时B的构造方法中依赖了A的实例对象”这类问题了！因为加入singletonFactories三级缓存的前提是执行了构造器，所以构造器的循环依赖没法解决。
 
-4.SpringMVC执行原理
-
-HelloController这个类需要实现Controller这个接口，并且覆写handleRequest这个方法。
-
-    public class HelloController implements Controller {
-        @Override 
-        public ModelAndView handleRequest(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws Exception {
-            ModelAndView mv = new ModelAndView();
-            String msg="HelloSpringmvc!";
-            mv.addObject("msg",msg);
-            mv.setViewName("test");
-            return mv;
-        }
-    }
-    
-在资源路径下创建springmvc的配置文件。
-
-    <?xml version="1.0" encoding="UTF-8"?>
-    <beans xmlns="http://www.springframework.org/schema/beans"
-           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-           xsi:schemaLocation="http://www.springframework.org/schema/beans
-           https://www.springframework.org/schema/beans/spring-beans.xsd">
-           <!-- 配置处理器映射器-->
-           <bean id="beanNameUrlHandlerMapping" class="org.springframework.web.servlet.handler.BeanNameUrlHandlerMapping"/>
-           <!-- 配置处理器适配器-->
-           <bean id="controllerHandlerAdapter" class="org.springframework.web.servlet.mvc.SimpleControllerHandlerAdapter"/>
-            <!--配置视图解析器-->
-           <bean id="internalResourceViewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver">
-                <!--路径前缀-->
-               <property name="prefix" value="/WEB-INF/jsp/"/>
-                <!--路径后缀-->
-               <property name="suffix" value=".jsp"/>
-           </bean>
-            <!--BeanNameUrlHandlerMapping这个类会自动找到与请求一致的类-->
-           <bean id="/hello" class="com.zhang.controller.HelloController"/>
-    </beans>
-    
-在web.xml中配置springmvc的核心控制器DispatchServlet。
-
-    <?xml version="1.0" encoding="UTF-8"?>
-    <web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
-             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-             xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd"
-             version="4.0">
-        <!--配置前端控制器-->
-        <servlet>
-            <servlet-name>dispatcherServlet</servlet-name>
-            <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
-            <!--初始化时加载配置文件-->
-            <init-param>
-                <param-name>contextConfigLocation</param-name>
-                <param-value>classpath:springmvc.xml</param-value>
-            </init-param>
-            <!--开启服务器时启动-->
-            <load-on-startup>1</load-on-startup>
-        </servlet>
-        <servlet-mapping>
-            <servlet-name>dispatcherServlet</servlet-name>
-            <!--/和/*的区别
-                /:只会去匹配请求,不会匹配jsp页面
-                /*:会匹配所有请求
-            -->
-            <url-pattern>/</url-pattern>
-        </servlet-mapping>
-    </web-app>
-
-执行原理：
-
-(1)DispatcherServlet：前端控制器，作为整个SpringMVC的控制中心。用户发出请求，DispatcherServlet接收请求并拦截请求。
-(2)HandlerMapping：处理器映射器，DispatcherServlet调用HandlerMapping,HandlerMapping根据请求url去查找对应的处理。
-(3)HandlerExecution：具体的handler(处理)，将解析后的url传递给DispatcherServlet。
-(4)HandlerAdapter：处理器适配器，将DispatcherServlet传递的信息去执行相应的controller。
-(5)Controller层中调用service层，获得数据放在ModelAndView对象中，并给ModelAndView设置页面信息。
-(6)HandlerAdapter将视图名传递给DispatcherServlet。
-(7)DispatcherServlet调用视图解析器来解析HandlerAdapter传递的视图名。
-(8)视图解析器将解析的视图名传给DispatcherServlet。
-(9)DispatcherServlet根据视图解析器返回的视图名调用具体的视图。
-(10)用户获得视图。
-
 5.AOP
+
+传统的OOP开发中的代码逻辑是至上而下的过程中会产生一些横切性问题，这些横切性的问题和我们的主业务逻辑关系不大，会散落在代码的各个地方，造成难以维护。
+AOP的编程思想就是把业务逻辑和横切的问题进行分离，从而达到解耦的目的，使代码的重用性和开发效率高（目的是重用代码，把公共的代码抽取出来）。
+
+应用场景：
+日志记录、权限验证、效率检查（实现校验，例如redis分布式锁等功能）、事务管理（spring 的事务就是用AOP实现的）
+
+底层是怎样实现的：
+JDK动态代理、CGLIB代理。
+在运行期进行织入，生成字节码，再加载到虚拟机中，JDK是利用反射原理，CGLIB使用了ASM原理。
+初始化的时候(不是获取对象时)，已经将目标对象进行代理，放入到spring容器中。
+Spring默认，如果实现了接口的类，是使用jdk动态代理。如果没实现接口，就使用cglib代理。
+
+Spring AOP和AspectJ的关系：
+两者都是为了实现AOP这个目的而出现的技术，Spring aop参考AspectJ编程风格。原本spring aop初期的时候所用的编程风格，让人用起来，很不方便，而且让人看不懂。后来，spring aop就开始取用了Aspectj的编程风格去进行编程。
+
+AOP中的切面、切点、连接点、通知，四者的关系？
+aspect 切面
+pointcut 切点，表示连接点的集合（类似一个表）。
+joinpoint 连接点，目标对象中的方法（每一条记录）。
+weaving 把代理逻辑加入到目标对象上的过程叫做织入
+advice 通知
 
 Spring中定义了五种类型的通知，它们分别是
 前置通知 (@Before)
@@ -218,15 +179,108 @@ Spring中定义了五种类型的通知，它们分别是
 注解@Transactional配置的方法非public权限修饰；
 注解@Transactional所在类非Spring容器管理的bean；
 注解@Transactional所在类中，注解修饰的方法被类内部方法调用；
-业务代码抛出异常类型非RuntimeException，事务失效；
+业务代码抛出异常类型非RuntimeException，事务失效；解决方案：@Transactional注解修饰的方法，加上rollbackfor属性值，指定回滚异常类型：@Transactional(propagation = Propagation.REQUIRED,rollbackFor = Exception.class)
 业务代码中存在异常时，使用try…catch…语句块捕获，而catch语句块没有throw new RuntimeExecption异常；
 注解@Transactional中Propagation属性值设置错误即Propagation.NOT_SUPPORTED；
 mysql关系型数据库，且存储引擎是MyISAM而非InnoDB，则事务会不起作用；
 
 7.DI与IOC
 
-所谓的依赖注入，则是，甲方开放接口，在它需要的时候，能够讲乙方传递进来(注入)
-所谓的控制反转，甲乙双方不相互依赖，交易活动的进行不依赖于甲乙任何一方，整个活动的进行由第三方负责管理(Spring容器)。
+不好的依赖：汽车依赖车身，车身依赖底盘，底盘依赖轮子。这样的设计看起来没问题，但是可维护性却很低。
+依赖倒置：轮子依赖底盘， 底盘依赖车身， 车身依赖汽车。这就是依赖倒置原则——把原本的高层建筑依赖底层建筑“倒置”过来，变成底层建筑依赖高层建筑。高层建筑决定需要什么，底层去实现这样的需求，但是高层并不用管底层是怎么实现的。
+依赖倒置原则的思路是控制反转，控制反转具体采用的方法是依赖注入。
+依赖注入：就是把底层类作为参数传入上层类，实现上层类对下层类的“控制”。用构造方法将传递的依赖注入。另外两种方法：Setter传递和接口传递。
+控制反转容器：对类进行初始化的那段代码发生的地方，就是控制反转容器。这个容器可以自动对代码进行初始化。原始的创建过程，我们需要了解整个Car/Framework/Bottom/Tire类构造函数是怎么定义的，才能一步一步new/注入。而IoC Container在进行这个工作的时候是反过来的，它先从最上层开始往下找依赖关系，到达最底层之后再往上一步一步new（有点像深度优先遍历）。IoC Container可以隐藏具体的创建实例的细节。
+
+8.Bean是如何注入的？
+
+@Autowired：@Autowired是Spring的注解，Autowired默认先按byType，如果发现找到多个bean，则又按照byName方式比对，如果还有多个，则报出异常；@Autowired结合@Qualifier来使用，如下：
+
+    @Autowired
+    @Qualifier("testServiceImpl")
+    private TestService testService;                                                                                              
+                                                                                                  
+@Resource：@Resource是JDK1.6支持的注解，默认按照名称(Byname)进行装配, 如果没有指定name属性，当注解写在字段上时，默认取字段名，按照名称查找，如果注解写在setter方法上默认取属性名进行装配。当找不到与名称匹配的bean时才按照类型进行装配。但是需要注意的是，如果name属性一旦指定，就只会按照名称进行装配。
+
+    @Resource(name = "testServiceImpl")
+    private TestService testService;    
+
+通过在实现类上添加@Primary注解来指定默认加载类。这样如果在使用@Autowired/@Resource获取实例时如果不指定bean的名字，就会默认获取TestServiceImpl2的bean，如果指定了bean的名字则以指定的为准。
+
+    @Service
+    @Primary
+    public class TestServiceImpl2 implements TestService{
+    
+        @Override
+        public String test() {
+            return "TestServiceImpl2";
+        }
+    }
+
+效率上来说@Autowired/@Resource差不多，不过推荐使用@Resource一点，因为当接口有多个实现时@Resource直接就能通过name属性来指定实现类，而@Autowired还要结合@Qualifier注解来使用，且@Resource是jdk的注解，可与Spring解耦。
+
+为什么非要调用接口来多此一举，而不直接调用实现类serviceImpl的bean来得简单明了呢？
+直接获取实现类serviceImpl的bean也是可以的；
+至于加一层接口的原因：一是AOP程序设置思想指导，给别人调用的接口，调用者只想知道方法和功能，而对于这个方法内部逻辑怎么实现的并不关心；二是可以降低各个模块间的关联，实现松耦合、程序分层、高扩展性，使程序更加灵活，他除了在规范上有卓越贡献外，最精髓的是在多态上的运用；继承只能单一继承，接口却可以多实现。
+当业务逻辑简单，变更较少，项目自用时，省略掉接口直接使用实现类更简单明了；反之则推荐使用接口。
+
+9.Spring初始化过程
+
+首先初始化上下文，生成ClassPathXmlApplicationContext对象，再获取resourcePatternResolver对象将xml解析成Resource对象。
+利用生成的context、resource初始化工厂，并将resource解析成beandefinition, 再将beandefinition注册到beanfactory中。
+
+10.Spring bean作用域
+
+共5中，后3种是在web项目下才用到的。
+singleton：单例模式，当spring创建applicationContext容器的时候，spring会预初始化所有的该作用域实例，加上lazy-init就可以避免预处理。
+prototype：原型模式，每次通过getBean获取该bean就会新产生一个实例，创建后spring将不再对其管理。
+request：每次请求都新产生一个实例，和prototype不同就是创建后，接下来的管理，spring依然在监听。
+session：每次会话，同上。
+global session：全局的web域，类似于servlet中的application。
+
+11.常用注解
+
+    // 配置相关
+    @SpringBootApplication：让spring boot自动给程序进行必要的配置，这个配置等同于：@Configuration ，@EnableAutoConfiguration和@ComponentScan三个配置。其中@ComponentScan让spring Boot扫描到Configuration类并把它加入到程序上下文。
+    @EnableAutoConfiguration：Spring Boot自动配置（auto-configuration）：尝试根据你添加的jar依赖自动配置你的Spring应用。例如，如果你的classpath下存在HSQLDB，并且你没有手动配置任何数据库连接beans，那么我们将自动配置一个内存型（in-memory）数据库”。你可以将@EnableAutoConfiguration或者@SpringBootApplication注解添加到一个@Configuration类上来选择自动配置。如果发现应用了你不想要的特定自动配置类，你可以使用@EnableAutoConfiguration注解的排除属性来禁用它们。
+    @ComponentScan：表示将该类自动发现扫描组件。如果扫描到有@Component、@Controller、@Service等这些注解的类，并注册为Bean，可以自动收集所有的Spring组件，包括@Configuration类。我们经常使用@ComponentScan注解搜索beans，并结合@Autowired注解导入。如果没有配置的话，Spring Boot会扫描启动类所在包下以及子包下的使用了@Service,@Repository等注解的类。
+    @Configuration：相当于传统的xml配置文件，如果有些第三方库需要用到xml文件，建议仍然通过@Configuration类作为项目的配置主类，可以使用@ImportResource注解加载xml配置文件。
+    @Import：用来导入其他配置类。
+    @ImportResource：用来加载xml配置文件。
+    
+    // Spring、SpringMVC相关
+    @Controller：用于定义控制器类，在spring项目中由控制器负责将用户发来的URL请求转发到对应的服务接口（service层），一般这个注解在类中，通常方法需要配合注解@RequestMapping。
+    @RestController：用于标注控制层组件，是@ResponseBody和@Controller的合集。
+    @Service：一般用于修饰service层的组件
+    @Repository：这个注解修饰的DAO或者repositories类会被ComponetScan发现并配置。
+    @Component：泛指组件，当组件不好归类的时候，我们可以使用这个注解进行标注。
+    @Bean:用@Bean标注方法等价于XML中配置的bean。放在方法的上面，而不是类，意思是产生一个bean,并交给spring管理。
+    @Value：注入Spring boot application.properties配置的属性的值。
+    @AutoWired：自动导入依赖的bean。byType方式。把配置好的Bean拿来用，完成属性、方法的组装，它可以对类成员变量、方法及构造函数进行标注，完成自动装配的工作。当加上（required=false）时，就算找不到bean也不报错。
+    @Qualifier：当有多个同一类型的Bean时，可以用@Qualifier(“name”)来指定。与@Autowired配合使用。@Qualifier限定描述符除了能根据名字进行注入，但能进行更细粒度的控制如何选择候选者。
+    @Resource(name=”name”,type=”type”)：没有括号内内容的话，默认byName。与@Autowired干类似的事。
+    @Inject：等价于默认的@Autowired，只是没有required属性。
+    @RequestMapping：提供路由信息，负责URL到Controller中的具体函数的映射。该注解有六个属性：params:指定request中必须包含某些参数值是，才让该方法处理。headers:指定request中必须包含某些指定的header值，才能让该方法处理请求。value:指定请求的实际地址，指定的地址可以是URI Template 模式。method:指定请求的method类型， GET、POST、PUT、DELETE等。consumes:指定处理请求的提交内容类型（Content-Type），如application/json,text/html。produces:指定返回的内容类型，仅当request请求头中的(Accept)类型中包含该指定类型才返回。
+    @ResponseBody：表示该方法的返回结果直接写入HTTP response body中，一般在异步获取数据时使用，用于构建RESTful的api。在使用@RequestMapping后，返回值通常解析为跳转路径，加上@responsebody后返回结果不会被解析为跳转路径，而是直接写入HTTP response body中。比如异步获取json数据，加上@responsebody后，会直接返回json数据。该注解一般会配合@RequestMapping一起使用。
+    @RequestParam：用在方法的参数前面。
+    @PathVariable:路径变量。
+
+    // JPA相关
+    @Entity：@Table(name="XXX")：表明这是一个实体类。一般用于jpa这两个注解一般一块使用，但是如果表名和实体类名相同的话，@Table可以省略
+    @MappedSuperClass:用在确定是父类的entity上。父类的属性子类可以继承。
+    @NoRepositoryBean:一般用作父类的repository，有这个注解，spring不会去实例化该repository。
+    @Column：如果字段名与列名相同，则可以省略。
+    @Id：表示该属性为主键。
+    @GeneratedValue(strategy = GenerationType.SEQUENCE,generator = “repair_seq”)：表示主键生成策略是sequence（可以为Auto、IDENTITY、native等，Auto表示可在多个数据库间切换，一般用AUTO），指定sequence的名字是repair_seq。
+    @SequenceGeneretor(name = “repair_seq”, sequenceName = “seq_repair”, allocationSize = 1)：name为sequence的名称，以便使用，sequenceName为数据库的sequence名称，两个名称可以一致。
+    @Transient：表示该属性并非一个到数据库表的字段的映射,ORM框架将忽略该属性。如果一个属性并非数据库表的字段映射,就务必将其标示为@Transient,否则,ORM框架默认其注解为@Basic。@Basic(fetch=FetchType.LAZY)：标记可以指定实体属性的加载方式
+    @JsonIgnore：作用是json序列化时将Java bean中的一些属性忽略掉,序列化和反序列化都受影响。
+    @JoinColumn（name=”loginId”）:一对一：本表中指向另一个表的外键。一对多：另一个表指向本表的外键。
+    @OneToOne、@OneToMany、@ManyToOne：对应hibernate配置文件中的一对一，一对多，多对一。
+    
+    // 全局异常处理
+    @ControllerAdvice：包含@Component。可以被扫描到。统一处理异常。
+    @ExceptionHandler（Exception.class）：用在方法上面表示遇到这个异常就执行以下方法。
 
 N.参考
 
@@ -244,33 +298,178 @@ N.参考
 
 (7)[【242期】面试官：Spring AOP有哪些通知类型，它们的执行顺序是怎样的？](https://mp.weixin.qq.com/s/dOTtB8zF4Id6NhXZ8jS2xw)
 
+(8)[【65期】Spring的IOC是啥?有什么好处?](https://mp.weixin.qq.com/s/KtuajQSAIRDYJ4axVX9gTw)
+
+(9)[【270期】面试官：Spring的Bean实例化过程应该是怎样的？](https://mp.weixin.qq.com/s/n3kMn0C_AhMjjrhleLkSpg)
+
+# Spring MVC
+
+1.SpringMVC执行原理
+
+HelloController这个类需要实现Controller这个接口，并且覆写handleRequest这个方法。
+
+    public class HelloController implements Controller {
+        @Override 
+        public ModelAndView handleRequest(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws Exception {
+            ModelAndView mv = new ModelAndView();
+            String msg="HelloSpringmvc!";
+            mv.addObject("msg",msg);
+            mv.setViewName("test");
+            return mv;
+        }
+    }
+    
+在资源路径下创建springmvc的配置文件springmvc.xml。
+
+    <?xml version="1.0" encoding="UTF-8"?>
+    <beans xmlns="http://www.springframework.org/schema/beans"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://www.springframework.org/schema/beans
+           https://www.springframework.org/schema/beans/spring-beans.xsd">
+           <!-- 配置处理器映射器-->
+           <bean id="beanNameUrlHandlerMapping" class="org.springframework.web.servlet.handler.BeanNameUrlHandlerMapping"/>
+           <!-- 配置处理器适配器-->
+           <bean id="controllerHandlerAdapter" class="org.springframework.web.servlet.mvc.SimpleControllerHandlerAdapter"/>
+            <!--配置视图解析器-->
+           <bean id="internalResourceViewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+                <!--路径前缀-->
+               <property name="prefix" value="/WEB-INF/jsp/"/>
+                <!--路径后缀-->
+               <property name="suffix" value=".jsp"/>
+           </bean>
+            <!--BeanNameUrlHandlerMapping这个类会自动找到与请求一致的类-->
+           <bean id="/hello" class="com.zhang.controller.HelloController"/>
+    </beans>
+    
+在web.xml中配置springmvc的核心控制器DispatchServlet。
+
+    <?xml version="1.0" encoding="UTF-8"?>
+    <web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd"
+             version="4.0">
+        <!--配置前端控制器-->
+        <servlet>
+            <servlet-name>dispatcherServlet</servlet-name>
+            <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+            <!--初始化时加载配置文件-->
+            <init-param>
+                <param-name>contextConfigLocation</param-name>
+                <param-value>classpath:springmvc.xml</param-value>
+            </init-param>
+            <!--开启服务器时启动-->
+            <load-on-startup>1</load-on-startup>
+        </servlet>
+        <servlet-mapping>
+            <servlet-name>dispatcherServlet</servlet-name>
+            <!--/和/*的区别
+                /:只会去匹配请求,不会匹配jsp页面
+                /*:会匹配所有请求
+            -->
+            <url-pattern>/</url-pattern>
+        </servlet-mapping>
+    </web-app>
+
+执行原理：
+
+(1)DispatcherServlet：前端控制器，作为整个SpringMVC的控制中心。用户发出请求，DispatcherServlet接收请求并拦截请求。
+(2)HandlerMapping：处理器映射器，DispatcherServlet调用HandlerMapping,HandlerMapping根据请求url去查找对应的处理。
+(3)HandlerExecution：具体的handler(处理)，将解析后的url对应的处理传递给DispatcherServlet。
+(4)HandlerAdapter：处理器适配器，将DispatcherServlet传递的信息去执行相应的controller。
+(5)Controller层中调用service层，获得数据放在ModelAndView对象中，并给ModelAndView设置页面信息。
+(6)HandlerAdapter将视图名传递给DispatcherServlet。
+(7)DispatcherServlet调用视图解析器来解析HandlerAdapter传递的视图名。
+(8)视图解析器将解析的视图名传给DispatcherServlet。
+(9)DispatcherServlet根据视图解析器返回的视图名调用具体的视图。
+(10)用户获得视图。
+
+2.Controller是否是单例的？
+
+默认是单例的，即@Scope(value = "singleton")
+尽量不要在controller里面去定义属性，如果在特殊情况需要定义属性的时候，那么就在类上面加上注解@Scope("prototype")改为多例的模式。多线程访问是共用类里面的属性值的，肯定是不安全的。但是springmvc是基于方法的开发，都是用形参接收值，一个方法结束参数就销毁了，多线程访问每个线程都会有一块内存空间产生，里面的参数也是不会共用的，所有springmvc默认使用了单例。
+只要controller中不定义属性，那么单例完全是安全的。springmvc这样设计主要的原因也是为了提高程序的性能和以后程序的维护只针对业务的维护就行。
+
 # Spring Boot
 
-1.Spring，SpringMVC，SpringBoot，SpringCloud的区别和联系
-
-Spring是核心，提供了基础功能。
-Spring MVC是基于Spring的一个MVC框架。
-Spring Boot是为简化Spring配置的快速开发整合包。
-Spring Cloud是构建在Spring Boot之上的服务治理框架。
-
-2.Spring Boot特征
+1.Spring Boot特征
 
 (1)创建独立的Spring应用。
 (2)嵌入式Tomcat、 Jetty、 Undertow容器（无需部署war文件）。
 (3)提供的starters简化构建配置。
-(4)尽可能自动配置 spring应用。
+(4)尽可能自动配置spring应用。
 (5)提供生产指标,例如指标、健壮检查和外部化配置。
 (6)完全没有代码生成和XML配置要求。
 
-3.Spring Boot自动装配过程
+2.Spring Boot自动装配过程
 
 SpringBoot在启动的时候从类路径下的META-INF/spring.factories中获取EnableAutoConfiguration指定的值，将这些值作为自动配置类导入容器，自动配置类就生效，帮我们进行自动配置工作。
 以前我们需要自己配置的东西，自动配置类都帮我们解决了。整个J2EE的整体解决方案和自动配置都在springboot-autoconfigure的jar包中。它将所有需要导入的组件以全类名的方式返回，这些组件就会被添加到容器中。
 它会给容器中导入非常多的自动配置类(xxxAutoConfiguration），就是给容器中导入这个场景需要的所有组件，并配置好这些组件。有了自动配置类，免去了我们手动编写配置注入功能组件等的工作。
+不是所有存在于spring,factories中的配置都进行加载，而是通过@ConditionalOnClass注解进行判断条件是否成立（只要导入相应的stater，条件就能成立），如果条件成立则加载配置类，否则不加载该配置类。
+
+3.spring-boot的启动方式
+
+    java -jar emample.jar --server.port=8081
+    
+4.常用的starter
+
+    spring-boot-starter-data-jpa
+    spring-boot-starter-security
+    spring-boot-starter-test
+    spring-boot-starter-web
+    spring-boot-starter-thymeleaf
+    
+5.约定大于配置
+
+说的具体点就是配置文件（.yml）应该放在哪个目录下，配置文件的命名规范，项目启动时扫描的Bean，组件的默认配置是什么样的（比如SpringMVC的视图解析器）等等这一系列的东西，都可以被称为约定。
+spring的配置文件目录可以放在，这四个路径从上到下存在优先级关系。
+
+    /config
+    /(根目录)
+    resource/config/
+    resource/
+
+SpringBoot默认配置文件的约定，可以加载以下三种配置文件，建议使用前两种作为项目的配置文件。
+
+    application.yml
+    application.yaml
+    application.properties
+
+项目启动时扫描包范围的约定：SpringBoot的注解扫描的默认规则是SpringBoot的入口类所在包及其子包。
+
+application.yml配置是如何配置到一个个的配置类中的？
+在application.yml中配置的东西，通常是一些存在与自动配置类中的属性。只要存在与spring.factories中的，我们都可以在application.yml中进行配置。
+当然，这并不意味着不存在其中的我们就不能配置，这些配置类我们是可以进行自定义的，只要我们写了配置类，我们就可以在yml中配置我们需要的属性值，然后在配置类中直接读取这个配置文件，将其映射到配置类的属性上。
+@ConfigurationProperties(prefix = "object")，标记在类上，该注解可以将yml文件中写好的值注入到我们类的属性中。
 
 # Spring Cloud
 
-1.怎么解决Eureka某一个服务挂掉的问题
+1.SpringCloud与Dubbo
+
+没有好坏，只有适合不适合。
+
+(1)dubbo的优势：
+单一应用架构，当网站流量很小时，只需一个应用，将所有功能都部署在一起，以减少部署节点和成本。此时，用于简化增删改查工作量的 数据访问框架（ORM）是关键。
+垂直应用架构，当访问量逐渐增大，单一应用增加机器带来的加速度越来越小，将应用拆成互不相干的几个应用，以提升效率。此时，用于加速前端页面开发的Web框架（MVC）是关键。
+分布式服务架构，当垂直应用越来越多，应用之间交互不可避免，将核心业务抽取出来，作为独立的服务，逐渐形成稳定的服务中心，使前端应用能更快速的响应多变的市场需求。此时，用于提高业务复用及整合的 分布式服务框架（RPC）是关键。
+流动计算架构，当服务越来越多，容量的评估，小服务资源的浪费等问题逐渐显现，此时需增加一个调度中心基于访问压力实时管理集群容量，提高集群利用率。此时，用于提高机器利用率的资源调度和治理中心（SOA）是关键。
+
+(2)SpringCloud优势：
+
+约定优于配置。
+开箱即用、快速启动。
+适用于各种环境。
+轻量级的组件。
+组件支持丰富，功能齐全。
+
+(3)两者相比较：
+dubbo由于是二进制的传输，占用带宽会更少。springCloud是http协议传输，带宽会比较多，同时使用http协议一般会使用JSON报文，消耗会更大。
+dubbo的开发难度较大，原因是dubbo的jar包依赖问题很多大型工程无法解决。SpringCloud对第三方的继承可以一键式生成，天然集成。
+springcloud的接口协议约定比较自由且松散，需要有强有力的行政措施来限制接口无序升级。
+dubbo的注册中心可以选择zk,redis等多种，springcloud的注册中心只能用eureka或者自研。
+严格来说，这两种方式各有优劣。虽然在一定程度上来说，SpringCloud牺牲了服务调用的性能，但也避免了上面提到的原生RPC带来的问题。而且REST相比RPC更为灵活，服务提供方和调用方的依赖只依靠一纸契约，不存在代码级别的强依赖，这在强调快速演化的微服务环境下，显得更为合适。
+
+2.怎么解决Eureka某一个服务挂掉的问题
 
 同一个服务部署了多个实例，在通过网关调用时会随机调用其中一个。但是，当某个服务挂掉之后，依然在注册中心中，依然会随机被调用到，调用时便会超时报错。（主要是开发测试或者演示时需要立即将失效的从注册中心剔除。）
 (1)停止服务端，向eureka注册中心发送delete请求，到http://{eurekaIP:port}/eureka/apps/{application.name}/{http://serviceIP:port}
@@ -292,6 +491,47 @@ SpringBoot在启动的时候从类路径下的META-INF/spring.factories中获取
            DiscoveryManager.getInstance().shutdownComponent();
        }   
     }
+
+3.什么是Spring Cloud
+
+Spring Cloud是一系列框架的有序集合。它利用Spring Boot的开发便利性巧妙地简化了分布式系统基础设施的开发，如服务发现注册、配置中心、智能路由、消息总线、负载均衡、断路器、数据监控等，都可以用Spring Boot的开发风格做到一键启动和部署。
+Spring Cloud并没有重复制造轮子，它只是将各家公司开发的比较成熟、经得起实际考验的服务框架组合起来，通过Spring Boot风格进行再封装屏蔽掉了复杂的配置和实现原理，最终给开发者留出了一套简单易懂、易部署和易维护的分布式系统开发工具包。
+设计目标是协调各个微服务，简化分布式系统开发。
+
+优点：
+产出于Spring大家族，Spring在企业级开发框架中无人能敌，来头很大，可以保证后续的更新、完善。
+组件丰富，功能齐全。Spring Cloud 为微服务架构提供了非常完整的支持。例如、配置管理、服务发现、断路器、微服务网关等；
+Spring Cloud社区活跃度很高，教程很丰富，遇到问题很容易找到解决方案。
+服务拆分粒度更细，耦合度比较低，有利于资源重复利用，有利于提高开发效率。
+可以更精准的制定优化服务方案，提高系统的可维护性。
+减轻团队的成本，可以并行开发，不用关注其他人怎么开发，先关注自己的开发。
+微服务可以是跨平台的，可以用任何一种语言开发。
+适于互联网时代，产品迭代周期更短。
+
+4.Spring Cloud主要项目
+
+Spring Cloud的子项目，大致可分成两类，一类是对现有成熟框架"Spring Boot化"的封装和抽象，也是数量最多的项目；第二类是开发了一部分分布式系统的基础设施的实现，如Spring Cloud Stream扮演的就是kafka, ActiveMQ这样的角色。
+
+    Spring Cloud Config：集中配置管理工具，分布式系统中统一的外部配置管理，默认使用Git来存储配置，可以支持客户端配置的刷新及加密、解密操作。
+    Spring Cloud Netflix：Netflix OSS开源组件集成，包括Eureka、Hystrix、Ribbon、Feign、Zuul等核心组件。
+    Eureka：服务治理组件，包括服务端的注册中心和客户端的服务发现机制。
+    Ribbon：负载均衡的服务调用组件，具有多种负载均衡调用策略。
+    Hystrix：服务容错组件，实现了断路器模式，为依赖服务的出错和延迟提供了容错能力。旨在隔离远程系统，服务和第三方库的访问点，当出现故障是不可避免的故障时，停止级联故障并在复杂的分布式系统中实现弹性。
+    Feign：基于Ribbon和Hystrix的声明式服务调用组件。
+    Zuul：API网关组件，对请求提供路由及过滤功能。
+    Spring Cloud Bus：用于传播集群状态变化的消息总线，使用轻量级消息代理链接分布式系统中的节点，可以用来动态刷新集群中的服务配置。这是通过将所有微服务连接到单个消息代理来实现的。无论何时刷新实例，此事件都会订阅到侦听此代理的所有微服务，并且它们也会刷新。可以通过使用端点/总线/刷新来实现对任何单个实例的刷新。
+    Spring Cloud Consul：基于Hashicorp Consul的服务治理组件。
+    Spring Cloud Security：安全工具包，对Zuul代理中的负载均衡OAuth2客户端及登录认证进行支持。
+    Spring Cloud Sleuth：Spring Cloud应用程序的分布式请求链路跟踪，支持使用Zipkin、HTrace和基于日志（例如ELK）的跟踪。
+    Spring Cloud Stream：轻量级事件驱动微服务框架，可以使用简单的声明式模型来发送及接收消息，主要实现为Apache Kafka及RabbitMQ。
+    Spring Cloud Task：用于快速构建短暂、有限数据处理任务的微服务框架，用于向应用中添加功能性和非功能性的特性。
+    Spring Cloud Zookeeper：基于Apache Zookeeper的服务治理组件。
+    Spring Cloud Gateway：是Spring Cloud官方推出的第二代网关框架，取代Zuul网关。网关作为流量的，在微服务系统中有着非常作用，网关常见的功能有路由转发、权限校验、限流控制等作用。
+    Spring Cloud OpenFeign：基于Ribbon和Hystrix的声明式服务调用组件，可以动态创建基于Spring MVC注解的接口实现用于服务调用，在Spring Cloud 2.0中已经取代Feign成为了一等公民。
+
+N.参考
+
+(1)[【182期】SpringCloud常见面试题（2020最新版）](https://mp.weixin.qq.com/s/JQLLPAJfR6yoHVKmxWz4Zw)
 
 # Dubbo
 
@@ -331,29 +571,6 @@ consistentHash loadbalance:一致性哈希，相同参数的请求，总是到�
 
 6.Dubbo默认使用的是什么通信框架，还有别的选择吗？
 Dubbo默认使用Netty框架，也是推荐的选择，另外内容还集成有Mina、Grizzly。
-
-7.你觉得用Dubbo好还是SpringCloud好？
-没有好坏，只有适合不适合。
-
-(1)dubbo的优势：
-单一应用架构，当网站流量很小时，只需一个应用，将所有功能都部署在一起，以减少部署节点和成本。此时，用于简化增删改查工作量的 数据访问框架（ORM）是关键。
-垂直应用架构，当访问量逐渐增大，单一应用增加机器带来的加速度越来越小，将应用拆成互不相干的几个应用，以提升效率。此时，用于加速前端页面开发的Web框架（MVC）是关键。
-分布式服务架构，当垂直应用越来越多，应用之间交互不可避免，将核心业务抽取出来，作为独立的服务，逐渐形成稳定的服务中心，使前端应用能更快速的响应多变的市场需求。此时，用于提高业务复用及整合的 分布式服务框架（RPC）是关键。
-流动计算架构当服务越来越多，容量的评估，小服务资源的浪费等问题逐渐显现，此时需增加一个调度中心基于访问压力实时管理集群容量，提高集群利用率。此时，用于提高机器利用率的资源调度和治理中心（SOA）是关键。
-
-(2)SpringCloud优势：
-
-约定优于配置。
-开箱即用、快速启动。
-适用于各种环境。
-轻量级的组件。
-组件支持丰富，功能齐全。
-
-(3)两者相比较：
-dubbo由于是二进制的传输，占用带宽会更少。springCloud是http协议传输，带宽会比较多，同时使用http协议一般会使用JSON报文，消耗会更大。
-dubbo的开发难度较大，原因是dubbo的jar包依赖问题很多大型工程无法解决。
-springcloud的接口协议约定比较自由且松散，需要有强有力的行政措施来限制接口无序升级。
-dubbo的注册中心可以选择zk,redis等多种，springcloud的注册中心只能用eureka或者自研。
 
 # Hibernate
 
