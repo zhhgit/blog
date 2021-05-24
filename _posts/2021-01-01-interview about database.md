@@ -909,9 +909,40 @@ B+树的所有数据存储在叶子节点上，当有一个新的数据进来，
     接着a事务不加条件地update，这个update会作用在所有行上（包括b事务新加的）
     a事务再次select就会出现b事务中的新行，并且这个新行已经被update修改了。
 
-MVCC在mysql中的实现依赖的是undo log与read view。 undo log :undo log中记录某行数据的多个版本的数据。read view:用来判断当前版本数据的可见性。
+6.MVCC在mysql中的实现
 
-6.分库分表之后，你是如何解决事务问题
+依赖的是undo log与read view。:undo log中记录某行数据的多个版本的数据。ReadView用来判断当前版本数据的可见性。
+
+版本链：
+在InnoDB中，每行记录实际上都包含了两个隐藏字段：事务id(trx_id)和回滚指针(roll_pointer)。
+trx_id：事务id。每次修改某行记录时，都会把该事务的事务id赋值给trx_id隐藏列。
+roll_pointer：回滚指针。每次修改某行记录时，都会把undo日志地址赋值给roll_pointer隐藏列。
+假设hero表中只有一行记录，当时插入的事务id为80。此时，该条记录的示例图如下：假设之后两个事务id分别为100、200的事务对这条记录进行UPDATE操作，操作流程如下：由于每次变动都会先把undo日志记录下来，并用roll_pointer指向undo日志地址。因此可以认为，对该条记录的修改日志串联起来就形成了一个版本链，版本链的头节点就是当前记录最新的值。
+
+ReadView：
+如果数据库隔离级别是未提交读（READ UNCOMMITTED），那么读取版本链中最新版本的记录即可。如果是是串行化（SERIALIZABLE），事务之间是加锁执行的，不存在读不一致的问题。但是如果是已提交读（READ COMMITTED）或者可重复读（REPEATABLE READ），就需要遍历版本链中的每一条记录，判断该条记录是否对当前事务可见，直到找到为止(遍历完还没找到就说明记录不存在)。InnoDB通过ReadView实现了这个功能。ReadView中主要包含以下4个内容：
+
+m_ids：表示在生成ReadView时当前系统中活跃的读写事务的事务id列表。
+
+min_trx_id：表示在生成ReadView时当前系统中活跃的读写事务中最小的事务id，也就是m_ids中的最小值。
+
+max_trx_id：表示生成ReadView时系统中应该分配给下一个事务的id值。
+
+creator_trx_id：表示生成该ReadView事务的事务id。
+
+有了ReadView之后，我们可以基于以下步骤判断某个版本的记录是否对当前事务可见。
+
+如果被访问版本的trx_id属性值与ReadView中的creator_trx_id值相同，意味着当前事务在访问它自己修改过的记录，所以该版本可以被当前事务访问。
+
+如果被访问版本的trx_id属性值小于ReadView中的min_trx_id值，表明生成该版本的事务在当前事务生成ReadView前已经提交，所以该版本可以被当前事务访问。
+
+如果被访问版本的trx_id属性值大于或等于ReadView中的max_trx_id值，表明生成该版本的事务在当前事务生成ReadView后才开启，所以该版本不可以被当前事务访问。
+
+如果被访问版本的trx_id属性值在ReadView的min_trx_id和max_trx_id之间，那就需要判断一下trx_id属性值是不是在m_ids列表中，如果在，说明创建ReadView时生成该版本的事务还是活跃的，该版本不可以被访问；如果不在，说明创建ReadView时生成该版本的事务已经被提交，该版本可以被访问。
+
+在MySQL中，READ COMMITTED和REPEATABLE READ隔离级别的的一个非常大的区别就是它们生成ReadView的时机不同。READ COMMITTED在每次读取数据前都会生成一个ReadView，这样就能保证每次都能读到其它事务已提交的数据。REPEATABLE READ 只在第一次读取数据时生成一个ReadView，这样就能保证后续读取的结果完全一致。
+
+7.分库分表之后，你是如何解决事务问题
 
 (1)基于非事务消息的异步确保的方式
 
@@ -930,13 +961,13 @@ MVCC在mysql中的实现依赖的是undo log与read view。 undo log :undo log�
 为什么不用事务消息？如果是绝对不容忍有任何消息丢失或者消息处理失败)，不使用事务消息。需要额外引入消息队列，增加系统的复杂度，而且也需要额外的逻辑保证和消息队列通讯失败的时候处理
 而且事务消息需要手动的commit和rollback（使用数据库不需要），那么问题来了，spring中事务是有传递性的，那我们事务消息何时提交又是个大问题，例如 A.a()本来就是一个事务， 但是另外一个事务B.b()中又调用了A.a() 那事务消息提交是放在A.a()还是B.b()中呢？
 
-7.提交数据的三种类型
+8.提交数据的三种类型
 
 (1)显式提交：用COMMIT命令直接完成的提交为显式提交。其格式为：SQL>COMMIT；
 (2)隐式提交：用SQL命令间接完成的提交为隐式提交。这些命令是：ALTER，AUDIT，COMMENT，CONNECT，CREATE，DISCONNECT，DROP，EXIT，GRANT，NOAUDIT，QUIT，REVOKE，RENAME。
 (3)自动提交若把AUTOCOMMIT设置为ON，则在插入、修改、删除语句执行后，系统将自动进行提交，这就是自动提交。其格式为：SQL>SET AUTOCOMMIT ON；
 
-8.事务传播行为
+9.事务传播行为
   
 (1)PROPAGATION_REQUIRED：如果当前没有事务，就创建一个新事务，如果当前存在事务，就加入该事务，该设置是最常用的设置。
 (2)PROPAGATION_SUPPORTS：支持当前事务，如果当前存在事务，就加入该事务，如果当前不存在事务，就以非事务执行。
@@ -946,14 +977,14 @@ MVCC在mysql中的实现依赖的是undo log与read view。 undo log :undo log�
 (6)PROPAGATION_NEVER：以非事务方式执行，如果当前存在事务，则抛出异常。
 (7)PROPAGATION_NESTED：如果当前存在事务，则在嵌套事务内执行。如果当前没有事务，则执行与PROPAGATION_REQUIRED类似的操作。
   
-9.嵌套事务
+10.嵌套事务
   
 嵌套是子事务套在父事务中执行，子事务是父事务的一部分，在进入子事务之前，父事务建立一个回滚点，叫save point，然后执行子事务，这个子事务的执行也算是父事务的一部分，然后子事务执行结束，父事务继续执行。重点就在于那个save point。
 如果子事务回滚，会发生什么？父事务会回滚到进入子事务前建立的save point，然后尝试其他的事务或者其他的业务逻辑，父事务之前的操作不会受到影响，更不会自动回滚。
 如果父事务回滚，会发生什么？父事务回滚，子事务也会跟着回滚！为什么呢，因为父事务结束之前，子事务是不会提交的，我们说子事务是父事务的一部分，正是这个道理。
 那么事务的提交，是什么情况？是父事务先提交，然后子事务提交，还是子事务先提交，父事务再提交？答案是第二种情况，还是那句话，子事务是父事务的一部分，由父事务统一提交。
 
-10.事务是如何实现的
+11.事务是如何实现的
 
 事务的原子性是通过undo log来实现的。
 事务的持久性性是通过redo log来实现的。
