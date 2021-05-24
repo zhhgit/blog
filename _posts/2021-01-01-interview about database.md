@@ -728,7 +728,8 @@ MySQL还有个问题是select for update语句执行中所有扫描过的行都�
 
 6.如何加锁的？
 
-MyISAM在执行查询语句（SELECT）前，会自动给涉及的所有表加读锁，在执行更新操作（UPDATE、DELETE、INSERT等）前，会自动给涉及的表加写锁，这个过程并不需要用户干预，因此用户一般不需要直接用LOCK TABLE命令给MyISAM表显式加锁。显式加锁：
+MyISAM在执行查询语句（SELECT）前，会自动给涉及的所有表加读锁，在执行更新操作（UPDATE、DELETE、INSERT等）前，会自动给涉及的表加写锁，这个过程并不需要用户干预，因此用户一般不需要直接用LOCK TABLE命令给MyISAM表显式加锁。
+显式加锁：
 
     select  math from zje where math>60 lock in share mode； # 上共享锁（读锁）
     select math from zje where math >60 for update； # 上排它锁（写锁）
@@ -834,7 +835,7 @@ UPDATE时，插入一条新纪录，保存当前事务版本号为行创建版�
 MCVV这种读取历史数据的方式称为快照读(snapshot read)，而读取数据库当前版本数据的方式，叫当前读(current read)。
 使用select就是快照读，这样可以减少加锁所带来的开销。对于会对数据修改的操作(update、insert、delete)都是采用当前读的模式。在执行这几个操作时会读取最新的记录，即使是别的事务提交的数据也可以查询到。
 假设要update一条记录，但是在另一个事务中已经delete掉这条数据并且commit了，如果update就会产生冲突，所以在update的时候需要知道最新的数据。读取的是最新的数据，需要加锁。
-以下第一个语句需要加共享锁，其它都需要加排它锁。
+以下都是当前读，第一个语句需要加共享锁，其它都需要加排它锁。
 
     select * from table where ? lock in share mode; 
     select * from table where ? for update; 
