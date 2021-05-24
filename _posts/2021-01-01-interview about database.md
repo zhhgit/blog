@@ -310,6 +310,50 @@ not in逻辑上不完全等同于not exists，如果你误用了not in，小心�
     select name from student where name in('zhang','wang','zhao');
     select name from student where name='zhang' or name='wang' or name='zhao';
 
+25.条件判断
+
+(1)CASE WHEN
+
+    # 用法1：
+    CASE 字段 WHEN 预期值 THEN 结果1 ELSE 结果2 END
+
+    SELECT name,(CASE sex WHEN 0 THEN '女' ELSE '男' END) sex FROM score
+
+    # 用法2：语句中的condition是条件判断，如果该判断结果为true，那么CASE语句将返回result，否则返回result2，如果没有ELSE，则返回null。CASE与END之间可以有多个WHEN…THEN…ELSE语句。END表示CASE语句结束。
+    CASE
+    WHEN condition THEN result1 ELSE result2
+    END
+
+    SELECT name,score,(CASE
+    WHEN score>=90 THEN '优秀'
+    WHEN score>=80 THEN '良好'
+    WHEN score>=60 THEN '及格'
+    ELSE '不及格' END) level
+    FROM score；
+
+    # 用法3：CASE WHEN和聚合函数综合使用，能实现更加复杂的统计功能。
+    SELECT
+    SUM(CASE WHEN sex=0 THEN 1 ELSE 0 END) AS 女生人数,
+    SUM(CASE WHEN sex=1 THEN 1 ELSE 0 END) AS 男生人数,
+    SUM(CASE WHEN score>=60 AND sex=0 THEN 1 ELSE 0 END) 男生及格人数,
+    SUM(CASE WHEN score>=60 AND sex=1 THEN 1 ELSE 0 END) 女生及格人数
+    FROM score;
+
+(2)IF
+
+    # 用法1：
+    IF(expr,result_true,result_false)，expr是一个条件表达式，如果结果为true，则返回result_true，否则返回result_false。
+    SELECT name,IF(sex=1,'男','女')sex FROM students;
+
+    # 用法2：IF函数还可以和聚合函数结合
+    SELECT COUNT(IF(sex=1,1,NULL)) 男生人数,COUNT(IF(sex=0,1,NULL))女生人数 FROM students
+
+(3)IFNULL
+
+    SELECT IFNULL(price,0) price FROM goods WHERE name='aaa';
+
+    SELECT IFNULL(SUM(price),0) FROM goods WHERE status=3;
+
 N.参考
 
 (1)[Java面试题之数据库三范式是什么？](https://www.cnblogs.com/marsitman/p/10162231.html)
