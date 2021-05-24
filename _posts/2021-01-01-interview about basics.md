@@ -56,6 +56,55 @@ N.参考
     used：已使用的交换分区量。如果这个值比较大，一般是某个时刻内存不够用了，将大量内存的数据换出到交换分区。如果之后内存变为可用，将内容重新加载回了内存，这个值也不会马上变小，即该内容并没有被交换分区马上删除。这样做主要是为了在之后如果需要将该内容重新换出，由于交换分区还有，故不需要重新进行将该内容写出的操作，提供系统性能。
     free：可使用的交换分区量
 
+3.CPU飙升问题排查步骤
+
+执行top命令：查看所有进程占系统CPU的排序。极大可能排第一个的就是咱们的java进程（COMMAND列）。PID那一列就是进程号。
+执行top -Hp 进程号命令：查看java进程下的所有线程占CPU的情况。
+执行printf "%x\n" 线程号命令 ：后续查看线程堆栈信息展示的都是十六进制，为了找到咱们的线程堆栈信息，咱们需要把线程号转成16进制。例如,printf "%x\n 10-》打印：a，那么在jstack中线程号就是0xa。
+执行jstack 进程号 | grep 线程ID 查找某进程下-》线程ID（jstack堆栈信息中的nid）=0xa的线程状态。如果"VM Thread" os_prio=0 tid=0x00007f871806e000 nid=0xa runnable，第一个双引号圈起来的就是线程名，如果是“VM Thread”这就是虚拟机GC回收线程了。
+执行jstat -gcutil 进程号 统计间隔毫秒 统计次数（缺省代表一致统计），查看某进程GC持续变化情况，如果发现返回中FGC很大且一直增大-》确认Full GC! 也可以使用jmap -heap 进程ID查看一下进程的堆内从是不是要溢出了，特别是老年代内从使用情况一般是达到阈值(具体看垃圾回收器和启动时配置的阈值)就会进程Full GC。
+执行jmap -dump:format=b,file=filename 进程ID，导出某进程下内存heap输出到文件中。可以通过eclipse的mat工具（内存泄露工具）查看内存中有哪些对象比较多。
+
+原因分析：
+
+(1)内存消耗过大，导致Full GC次数过多。
+执行步骤1-5：多个线程的CPU都超过了100%，通过jstack命令可以看到这些线程主要是垃圾回收线程-》上一节步骤2。
+通过jstat命令监控GC情况，可以看到Full GC次数非常多，并且次数在不断增加。--》上一节步骤5
+确定是Full GC,接下来找到具体原因：
+生成大量的对象，导致内存溢出-》执行步骤6，查看具体内存对象占用情况。
+或内存占用不高，但是Full GC次数还是比较多，此时可能是代码中手动调用 System.gc()导致GC次数过多，这可以通过添加 -XX:+DisableExplicitGC来禁用JVM对显示GC的响应。
+
+(2)代码中有大量消耗CPU的操作，导致CPU过高，系统运行缓慢；
+执行步骤1-4：在步骤4jstack，可直接定位到代码行。例如某些复杂算法，甚至算法BUG，无限循环递归等等。
+
+(3)由于锁使用不当，导致死锁。
+执行步骤1-4：如果有死锁，会直接提示。关键字：deadlock.步骤四，会打印出业务死锁的位置。
+造成死锁的原因：最典型的就是2个线程互相等待对方持有的锁。
+
+(4)随机出现大量线程访问接口缓慢。
+代码某个位置有阻塞性的操作，导致该功能调用整体比较耗时，但出现是比较随机的；平时消耗的CPU不多，而且占用的内存也不高。
+首先找到该接口，通过压测工具不断加大访问力度，大量线程将阻塞于该阻塞点。
+执行步骤1-4：找到业务代码阻塞点，这里业务代码使用了TimeUnit.sleep()方法，使线程进入了TIMED_WAITING(期限等待)状态。
+
+    "http-nio-8080-exec-4" #31 daemon prio=5 os_prio=31 tid=0x00007fd08d0fa000 nid=0x6403 waiting on condition [0x00007000033db000]
+       java.lang.Thread.State: TIMED_WAITING (sleeping)-》期限等待
+        at java.lang.Thread.sleep(Native Method)
+        at java.lang.Thread.sleep(Thread.java:340)
+        at java.util.concurrent.TimeUnit.sleep(TimeUnit.java:386)
+        at com.*.user.controller.UserController.detail(UserController.java:18)-》业务代码阻塞点
+        
+(5)某个线程由于某种原因而进入WAITING状态，此时该功能整体不可用，但是无法复现。
+执行步骤1-4：jstack多查询几次，每次间隔30秒，对比一直停留在parking导致的WAITING状态的线程。
+例如CountDownLatch倒计时器，使得相关线程等待->AQS->LockSupport.park()。
+
+    "Thread-0" #11 prio=5 os_prio=31 tid=0x00007f9de08c7000 nid=0x5603 waiting on condition [0x0000700001f89000]   
+    java.lang.Thread.State: WAITING (parking) ->无期限等待
+    at sun.misc.Unsafe.park(Native Method)    
+    at java.util.concurrent.locks.LockSupport.park(LockSupport.java:304)    
+    at com.*.SyncTask.lambda$main$0(SyncTask.java:8)-》业务代码阻塞点
+    at com.*.SyncTask$$Lambda$1/1791741888.run(Unknown Source)    
+    at java.lang.Thread.run(Thread.java:748)
+
 N.参考
 
 (1)[记一次线上商城系统高并发的优化](https://www.cnblogs.com/wangjiming/p/13225544.html)
