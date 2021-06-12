@@ -67,7 +67,23 @@ MongoDB和Redis都是NoSQL，采用结构型数据存储。二者在使用场景
 因为redis的客户端和服务器的连接时基于TCP的，默认每次连接都时只能执行一个命令。流水线则是允许利用一次连接来处理多条命令，从而可以节省一些tcp连接的开销。流水线和事务的差异在于流水线是为了节省通信的开销，但是并不会保证原子性。
 pipeline只是把多个redis指令一起发出去，redis并没有保证这些指定的执行是原子的；multi相当于一个redis的transaction的，保证整个操作的原子性，避免由于中途出错而导致最后产生的数据不一致。
 
-7.事件(或者问Redis的线程模型)
+Redis事务功能是通过MULTI、EXEC、DISCARD和WATCH四个原语实现的。Redis会将一个事务中的所有命令序列化，然后按顺序执行。
+MULTI命令：用于开启一个事务，它总是返回OK。MULTI执行之后，客户端可以继续向服务器发送任意多条命令，这些命令不会立即被执行，而是被放到一个队列中，当EXEC命令被调用时，所有队列中的命令才会被执行。
+EXEC命令：执行所有事务块内的命令。返回事务块内所有命令的返回值，按命令执行的先后顺序排列。当操作被打断时(其他客户端的操作)，返回空值nil。
+DISCARD命令：在执行exec之前执行该命令，提交事务会失败，执行的命令会进行回滚。客户端可以清空事务队列，并放弃执行事务，并且客户端会从事务状态中退出。redis的discard只是结束本次事务，其他正确命令造成的影响仍然存在。
+WATCH命令：可以为Redis事务提供check-and-set（CAS）行为。可以监控一个或多个键，一旦其中有一个键被修改（或删除），之后的事务就不会执行，监控一直持续到EXEC命令。
+
+Redis在事务失败时不进行回滚，而是继续执行余下的命令，所以Redis的内部可以保持简单且快速。如果在一个事务中的命令出现错误，那么所有的命令都不会执行；如果在一个事务中出现运行错误，那么正确的命令会被执行。redis支持事务，但属于弱事务，中间的一些异常可能会导致事务失效。
+命令错误，语法不正确，导致事务不能正常结束：exec提交事务异常，此前正确的命令，无法执行。
+运行错误，语法正确，但类型错误，事务可以正常结束：例如类型异常，此前正确的命令，正常执行。
+
+7.pipeline
+
+使用Pipeline模式，客户端可以一次性的发送多个命令，无需等待服务端返回。这样就大大的减少了网络往返时间，提高了系统性能。
+pipeline是多条命令的组合，使用PIPELINE可以解决网络开销的问题，原理也非常简单，将多个指令打包后一次性提交到Redis, 网络通信只有一次。
+redis的延迟主要出现在网络请求的IO次数上，因此我们在使用redis的时候，尽量减少网络IO次数，通过pipeline的方式将多个指令封装在一个命令里执行。
+
+8.事件(或者问Redis的线程模型)
 
 Redis服务器是一个事件驱动程序。
 (1)文件事件:服务器通过套接字与客户端或者其它服务器进行通信，文件事件就是对套接字操作的抽象。Redis基于Reactor模式开发了自己的网络事件处理器，使用I/O多路复用程序来同时监听多个套接字，并将到达的事件传送给文件事件分派器，分派器会根据套接字产生的事件类型调用相应的事件处理器。
@@ -77,13 +93,13 @@ Redis服务器是一个事件驱动程序。
 使用I/O多路复用程序来同时监听多个套接字，并根据套接字目前执行的任务来为套接字关联不同的事件处理器。当被监听的套接字准备好执行连接应答（accept）、读取（read）、写入（write）、关闭（close）等操作时，与操作相对应的文件事件就会产生，这时文件事件处理器就会调用套接字之前关联好的事件处理器来处理这些事件。
 I/O多路复用程序负责监听多个套接字，并向文件事件分派器传送那些产生了事件的套接字。尽管多个文件事件可能会并发地出现，但I/O 多路复用程序总是会将所有产生事件的套接字都入队到一个队列里面，然后通过这个队列，以有序（sequentially）、同步（synchronously）、每次一个套接字的方式向文件事件分派器传送套接字。当上一个套接字产生的事件被处理完毕之后（该套接字为事件所关联的事件处理器执行完毕），I/O 多路复用程序才会继续向文件事件分派器传送下一个套接字。如果一个套接字又可读又可写的话，那么服务器将先读套接字，后写套接字。
 
-8.使用Redis的方式
+9.使用Redis的方式
 
 UP：使用RedisConnector工具类，JedisBalancer线程池中获取连接，直接用Jedis。
 RedisTemplate：opsForValue()、opsForHash()、opsForList()、opsForSet()、opsForZSet()
 缓存注解：使用Spring Cache集成Redis（也就是注解的方式）。
 
-9.关于Redis新版本开始引入多线程
+10.关于Redis新版本开始引入多线程
 
 存在问题：
 若客户端向Redis发送一条耗时较长的命令，比如删除一个含有上百万对象的Set键，或者执行flushdb，flushall操作，Redis服务器需要回收大量的内存空间，导致服务器卡住好几秒，对负载较高的缓存系统而言将会是个灾难。
@@ -98,7 +114,7 @@ Redis实现的多线程部分，利用多核来分担I/O读写负荷。在事件
 局限性是6.0版本的多线程并非彻底的多线程，I/O线程只能同时执行读或者同时执行写操作，期间事件处理线程一直处于等待状态，并非流水线模型，有很多轮训等待开销。
 从压测性能看，多线程版本性能是单线程版本的2倍。
 
-10.缓存注解
+11.缓存注解
 
 用缓存要注意，启动类要加上一个注解开启缓存
  
@@ -156,6 +172,86 @@ Key：缓存的Key，可以为空，如果指定要按照SPEL表达式编写，�
              return userMap.get(id);
          }
      }
+
+12.Redis如何保证操作的原子性
+
+对于Redis而言，命令的原子性指的是：一个操作的不可以再分，操作要么执行，要么不执行。
+Redis的操作之所以是原子性的，是因为Redis是单线程的。（Redis新版本已经引入多线程，这里基于旧版本的Redis）
+Redis本身提供的所有API都是原子操作，例如可以将get和set改成单命令操作incr。
+Redis中的事务其实是要保证批量操作的原子性，或者使用Redis+Lua的方式实现。
+
+13.redis发布与订阅
+
+redis提供了“发布、订阅”模式的消息机制，其中消息订阅者与发布者不直接通信，发布者向指定的频道（channel）发布消息，订阅该频道的每个客户端都可以接收到消息。
+
+    subscribe channel [channel …] 订阅一个或多个频道
+    unsubscribe [channel [channel …]] 退订频道，如果没有指定频道，则退订所有的频道
+    publish channel message 给指定的频道发消息
+    psubscribe pattern [pattern …] 订阅给定模式相匹配的所有频道
+    punsubscribe [pattern [pattern …]] 退订给定的模式，如果没有指定模式，则退订所有模式
+
+缺点：
+(1)如果一个客户端订阅了频道，但自己读取消息的速度却不够快的话，那么不断积压的消息会使redis输出缓冲区的体积变得越来越大，这可能使得redis本身的速度变慢，甚至直接崩溃。 
+(2)这和数据传输可靠性有关，如果在订阅方断线，那么他将会丢失所有在断线期间发布者发布的消息，这个让绝不多数人都很失望吧。
+(3)和很多专业的消息队列（kafka rabbitmq）,redis的发布订阅显得很lower, 比如无法实现消息规程和回溯， 但就是简单，如果能满足应用场景，用这个也可以。
+
+14.键的迁移
+
+键迁移大家可能用的不是很多，因为一般都是使用redis主从同步。不过对于我们做数据统计分析使用的时候，可能会使用到，比如用户标签。为了避免key批量删除导致的redis雪崩，一般都是通过一个计算使用的redis和一个最终业务使用的redis，通过将计算时用的redis里的键值通过迁移的方式一个一个的更新到业务redis中，使其对业务冲击最小化。
+
+(1)move：move指令将redis一个库中的数据迁移到另外一个库中。如果key在目标数据库中已存在，那么什么也不会发生。这种模式不建议在生产环境使用，在同一个reids里可以使用
+
+    move key db  //reids有16个库， 编号为0－15
+    set name DK;  move name 5 //迁移到第6个库
+    elect 5 ;//数据库切换到第6个库，
+    get name  可以取到james1
+    
+(2)dump：DUMP命令用于将key给序列化 ，并返回被序列化的值。用于导入到其他服务中。一般通过dump命令导出，使用restore命令导入。
+
+    //在A服务器上
+    set name james;
+    dump name;       //  得到"\x00\x05james\b\x001\x82;f\"DhJ"
+    //在B服务器上
+    restore name 0 "\x00\x05james\b\x001\x82;f\"DhJ"    //0代表没有过期时间
+    get name //返回james
+    
+(3)migrate：migrate用于在Redis实例间进行数据迁移，实际上migrate命令是将dump、restore、del三个命令进行组合，从而简化了操作流程。migrate命令具有原子性，从Redis 3.0.6版本后已经支持迁移多个键的功能。migrate命令的数据传输直接在源Redis和目标Redis上完成，目标Redis完成restore后会发送OK给源Redis。
+
+    //比如把111上的name键值迁移到112上的redis，name为键，0为目标库，1000为超时时间，copy代表迁移后不删除原键，replace不管目标库是否存在该键都迁移成功
+    192.168.42.111:6379> migrate 192.168.42.112 6379 name 0 1000 copy replace
+
+15.自定义命令封装
+
+当我们使用jedis或者jdbctemplate时，想执行键迁移的指令的时候，发现根本没有给我们封装相关指令，这个时候我们该怎么办呢？除了框架帮我们封装的方法外，我们自己也可以通过反射的方式进行命令的封装，主要步骤如下：
+建立Connection链接，使用Connection连接Redis。
+通过反射获取Connection中的sendCommand方法（protected Connection sendCommand(Command cmd, String... args)）。
+调用connection的sendCommand方法，第二个参数为执行的命令（比如set,get,client等），第三个参数为命令的参数。可以看到ProtocolCommand这个枚举对象包含了redis的所有指令，即所有的指令都可以通过这个对象获取到。并封装执行。
+执行invoke方法，并且按照redis的指令封装参数。
+获取Redis的命令执行结果。
+
+    public class RedisKeyMove {
+     
+        public static void main(String[] args) throws IOException {
+            //1.使用Connection连接Redis
+            try (Connection connection = new Connection("10.1.253.188", 6379)) {
+                // 2. 通过反射获取Connection中的sendCommand方法（protected Connection sendCommand(Command cmd, String... args)）。
+                Method method = Connection.class.getDeclaredMethod("sendCommand", Protocol.Command.class, String[].class);
+                method.setAccessible(true); // 设置可以访问private和protected方法
+                // 3. 调用connection的sendCommand方法，第二个参数为执行的命令（比如set,get,client等），第三个参数为命令的参数。
+                // 3.1 该命令最终对应redis中为: set test-key test-value
+                method.invoke(connection, Protocol.Command.MIGRATE,
+                        new String[] {"10.1.253.69", "6379", "name", "0", "1000", "copy"});
+                // 4.获取Redis的命令执行结果
+                System.out.println(connection.getBulkReply());
+            } catch (NoSuchMethodException e) {
+                e.printStackTrace();
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 
 # Redis数据结构与操作
 
@@ -1104,6 +1200,30 @@ Sentinel和其他Sentinel协商客观下线的主节点的状态，如果处于S
 (2)codis，目前用的最多的集群方案，基本和 twemproxy 一致的效果，但它支持在 节点数量改变情况下，旧节点数据可恢复到新hash节点。
 (3)redis cluster3.0 自带的集群，特点在于他的分布式算法不是一致性hash，而是hash槽的概念，以及自身支持节点设置从节点。
 
+12.Redis主从集群切换数据丢失问题如何应对
+
+丢失原因
+(1)异步复制丢失：
+对于Redis主节点与从节点之间的数据复制，是异步复制的，当客户端发送写请求给master节点的时候，客户端会返回OK，然后同步到各个slave节点中。如果此时master还没来得及同步给slave节点时发生宕机，那么master内存中的数据会丢失。
+要是master中开启持久化设置数据可不可以保证不丢失呢？答案是否定的。在master发生宕机后，sentinel集群检测到master发生故障，重新选举新的master，如果旧的master在故障恢复后重启，那么此时它需要同步新master的数据，此时新的master的数据是空的（假设这段时间中没有数据写入）。那么旧master中的数据就会被刷新掉，此时数据还是会丢失。
+
+(2)集群产生脑裂：
+首先我们需要理解集群的脑裂现象，这就好比一个人有两个大脑，那么到底受谁来控制呢？在分布式集群中，分布式协作框架zookeeper很好的解决了这个问题，通过控制半数以上的机器来解决。
+那么在Redis中，集群脑裂产生数据丢失的现象是怎么样的呢？假设我们有一个redis集群，正常情况下client会向master发送请求，然后同步到salve，sentinel集群监控着集群，在集群发生故障时进行自动故障转移。
+此时，由于某种原因，比如网络原因，集群出现了分区，master与slave节点之间断开了联系，sentinel监控到一段时间没有联系认为master故障，然后重新选举，将slave切换为新的master。
+但是master可能并没有发生故障，只是网络产生分区，此时client任然在旧的master上写数据，而新的master中没有数据，如果不及时发现问题进行处理可能旧的master中堆积大量数据。在发现问题之后，旧的master降为slave同步新的master数据，那么之前的数据被刷新掉，大量数据丢失。
+
+如何保证尽量少的数据丢失？
+在redis的配置文件中有两个参数我们可以如下设置。min-slaves-to-write 默认情况下是0，min-slaves-max-lag默认情况下是10。
+
+    min-slaves-to-write 1
+    min-slaves-max-lag 10
+
+以上面配置为例，这两个参数表示至少有1个salve的与master的同步复制延迟不能超过10s，一旦所有的slave复制和同步的延迟达到了10s，那么此时master就不会接受任何请求。
+我们可以减小min-slaves-max-lag参数的值，这样就可以避免在发生故障时大量的数据丢失，一旦发现延迟超过了该值就不会往master中写入数据。
+那么对于client，我们可以采取降级措施，将数据暂时写入本地缓存和磁盘中，在一段时间后重新写入master来保证数据不丢失；也可以将数据写入kafka消息队列，隔一段时间去消费kafka中的数据。
+通过上面两个参数的设置我们尽可能的减少数据的丢失，具体的值还需要在特定的环境下进行测试设置。
+
 # Redis性能优化
 
 1.redis服务节点受到外部关联影响
@@ -1187,8 +1307,4 @@ N.参考
 
 (1)[Redis中文官网](http://www.redis.cn/)
 
-(2)[【99期】中高级开发面试必问的Redis，看这篇就够了！](https://mp.weixin.qq.com/s?__biz=MzIyNDU2ODA4OQ==&mid=2247484524&idx=1&sn=7ae13d7805f70592245464a7d9512e57&chksm=e80db21adf7a3b0c6b7c8e1367f4c9e772666e1e764a00ad2f4771c87520fdeff68da57f5f07&scene=21#wechat_redirect)
-
-(3)[菜鸟Redis教程](https://www.runoob.com/redis/redis-tutorial.html)
-
-(4)[【244期】万字+图解 Redis，面试不用愁了！](https://mp.weixin.qq.com/s/qrX5WUC_oAes3JPgnP6bNQ)
+(2)[菜鸟Redis教程](https://www.runoob.com/redis/redis-tutorial.html)
