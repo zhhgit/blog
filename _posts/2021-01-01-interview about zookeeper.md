@@ -1,7 +1,7 @@
 ---
 layout: post
-title: "后端开发面试题 -- 中间件篇"
-description: 后端开发面试题 -- 中间件篇
+title: "后端开发面试题 -- ZooKeeper篇"
+description: 后端开发面试题 -- ZooKeeper篇
 modified: 2021-01-01
 category: Interview
 tags: [Interview]

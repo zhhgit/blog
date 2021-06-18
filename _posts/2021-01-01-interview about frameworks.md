@@ -552,11 +552,12 @@ N.参考
 # Dubbo
 
 1.Dubbo是什么，能做什么
-Dubbo是阿里巴巴开源的基于Java的高性能RPC分布式服务框架。其核心部分包含:
 
-(1)远程通讯: 提供对多种基于长连接的NIO框架抽象封装，包括多种线程模型，序列化，以及“请求-响应”模式的信息交换方式。透明化的远程方法调用，就像调用本地方法一样调用远程方法，只需简单配置，没有任何API侵入。
-(2)集群容错: 提供基于接口方法的透明远程过程调用，包括多协议支持，以及软负载均衡，失败容错，地址路由，动态配置等集群支持。软负载均衡及容错机制，可在内网替代F5等硬件负载均衡器，降低成本，减少单点。
-(3)自动发现: 基于注册中心目录服务，使服务消费方能动态的查找服务提供方，使地址透明，使服务提供方可以平滑增加或减少机器。服务自动注册与发现，不再需要写死服务提供方地址，注册中心基于接口名查询服务提供者的IP地址，并且能够平滑添加或删除服务提供者。
+Dubbo是阿里巴巴开源的基于Java的高性能RPC分布式服务框架。其核心部分包含：
+
+(1)远程通讯：提供对多种基于长连接的NIO框架抽象封装，包括多种线程模型，序列化，以及“请求-响应”模式的信息交换方式。透明化的远程方法调用，就像调用本地方法一样调用远程方法，只需简单配置，没有任何API侵入。
+(2)集群容错：提供基于接口方法的透明远程过程调用，包括多协议支持，以及软负载均衡，失败容错，地址路由，动态配置等集群支持。软负载均衡及容错机制，可在内网替代F5等硬件负载均衡器，降低成本，减少单点。
+(3)自动发现：基于注册中心目录服务，使服务消费方能动态的查找服务提供方，使地址透明，使服务提供方可以平滑增加或减少机器。服务自动注册与发现，不再需要写死服务提供方地址，注册中心基于接口名查询服务提供者的IP地址，并且能够平滑添加或删除服务提供者。
 
 2.Dubbo内置了哪几种服务容器？
 
@@ -564,29 +565,40 @@ Spring Container，Jetty Container，Log4j Container
 
 3.Dubbo核心的配置有哪些，什么关系
 
-Provider-side包括：dubbo:protocol, dubbo:provider, dubbo:service
-Application-shared包括：dubbo:application, dubbo:registry, dubbo:monitor
-Comsumer-side包括：dubbo:consummer, dubbo:reference
-Sub-config包括：dubbo:method与service和reference关联，dubbo:argument与method关联
+(1)Provider-side包括：dubbo:protocol, dubbo:provider, dubbo:service。
+(2)Application-shared包括：dubbo:application, dubbo:registry, dubbo:monitor。
+(3)Comsumer-side包括：dubbo:consummer, dubbo:reference。
+(4)Sub-config包括：dubbo:method与service和reference关联，dubbo:argument与method关联。
 
 4.Dubbo有哪几种集群容错方案，默认是哪种？
 
-failover:默认，失败自动切换，重试其他服务器。
-failfast:快速失败，立即报错，只调用一次。
-failsafe:安全失败，出现异常，直接忽略。
-failback:失败自动恢复，记录失败请求，定时重发。
-forking:并行调用多个，只要一个成功即返回。
-broadcast:广播调用所有提供者，任意一个报错即报错。
+    failover:默认，失败自动切换，重试其他服务器。
+    failfast:快速失败，立即报错，只调用一次。
+    failsafe:安全失败，出现异常，直接忽略。
+    failback:失败自动恢复，记录失败请求，定时重发。
+    forking:并行调用多个，只要一个成功即返回。
+    broadcast:广播调用所有提供者，任意一个报错即报错。
 
 5.Dubbo有哪几种负载均衡策略，默认是哪种？
 
-random loadbalance:默认，按权重设置随机概率。
-roundRobin loadbalance:轮循，按公约后的权重设置轮询比率。
-leastActive loadbalance:最小活跃调用数，相同活跃数的随机。
-consistentHash loadbalance:一致性哈希，相同参数的请求，总是到同一个提供者。
+    random loadbalance:默认，按权重设置随机概率。
+    roundRobin loadbalance:轮循，按公约后的权重设置轮询比率。
+    leastActive loadbalance:最小活跃调用数，相同活跃数的随机。
+    consistentHash loadbalance:一致性哈希，相同参数的请求，总是到同一个提供者。
 
 6.Dubbo默认使用的是什么通信框架，还有别的选择吗？
+
 Dubbo默认使用Netty框架，也是推荐的选择，另外内容还集成有Mina、Grizzly。
+
+7.注册中心全部宕掉后，Dubbo服务还能进行调用吗？
+
+答案是可以的，启动dubbo时，消费者会从注册中心拉取注册的生产者的接口等数据，缓存到本地。每次调用时，按照本地存储的地址进行调用。
+注册中心对等集群，任意一台宕掉后，将自动切换到另一台。注册中心全部宕掉后，服务提供者和服务消费者仍能通过本地缓存通讯。
+这里主要受益于Dubbo架构的健壮性：
+
+(1)监控中心宕掉不影响使用，只是丢失部分采样数据。
+(2)注册中心宕掉后，注册中心仍能通过缓存提供服务列表查询，但不能注册新服务。
+(3)服务提供者无状态，任意一台宕掉后，不影响使用。服务提供者全部宕掉后，服务消费者应用将无法使用，并无限次重连等待服务提供者恢复。
 
 # Hibernate
 

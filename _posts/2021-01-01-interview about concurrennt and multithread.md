@@ -10,8 +10,9 @@ tags: [Interview]
 # 并发与多线程
 
 1.并发与并行
-并发，指的是多个事情，在同一时间段内同时发生了。并行，指的是多个事情，在同一时间点上同时发生了。
-并发的多个任务之间是互相抢占资源的。并行的多个任务之间是不互相抢占资源的。只有在多CPU的情况中，才会发生并行。否则，看似同时发生的事情，其实都是并发执行的。
+
+并发，指的是多个事情，在同一时间段内同时发生了。并发的多个任务之间是互相抢占资源的。
+并行，指的是多个事情，在同一时间点上同时发生了。并行的多个任务之间是不互相抢占资源的。只有在多CPU的情况中，才会发生并行。否则，看似同时发生的事情，其实都是并发执行的。
 
 2.线程和进程的区别
 
@@ -33,10 +34,10 @@ tags: [Interview]
 
 4.创建线程方式
 
-(1)继承Thread类
-(2)实现Runnable接口
-(3)应用程序可以使用Executor框架来创建线程池
-(4)实现Callable接口，通过如下方式获取线程执行结果
+(1)继承Thread类。
+(2)实现Runnable接口。
+(3)应用程序可以使用Executor框架来创建线程池。
+(4)实现Callable接口，通过如下方式获取线程执行结果。
 
     FutureTask<Boolean> futureTask = new FutureTask<Boolean>(new SubscribeThreadWithResult(product, config));
     Thread thread = new Thread(futureTask);
@@ -50,8 +51,7 @@ tags: [Interview]
 (1)新建(new)：新创建了一个线程对象。
 (2)可运行(runnable)：线程对象创建后，其他线程(比如main线程）调用了该对象的start()方法。该状态的线程位于可运行线程池中，等待被线程调度选中，获取CPU的使用权。
 (3)运行(running)：可运行状态(runnable )的线程获得了CPU时间片（timeslice），执行程序代码。
-(4)阻塞(blocked)：阻塞状态是指线程因为某种原因放弃了CPU使用权，也即让出了CPU timeslice ，暂时停止运行。直到线程进入可运行(runnable)状态，才有机会再次获得cpu timeslice转到运行(running)状态。
-阻塞的情况分三种：
+(4)阻塞(blocked)：阻塞状态是指线程因为某种原因放弃了CPU使用权，也即让出了CPU timeslice ，暂时停止运行。直到线程进入可运行(runnable)状态，才有机会再次获得cpu timeslice转到运行(running)状态。阻塞的情况分三种：
 等待阻塞：运行(running)的线程执行o.wait()方法，JVM会把该线程放入等待队列(waitting queue)中。
 同步阻塞：运行(running)的线程在获取对象的同步锁时，若该同步锁被别的线程占用，则JVM会把该线程放入锁池(lock pool)中。
 其他阻塞: 运行(running)的线程执行Thread.sleep(long ms)或t.join()方法，或者发出了I/O请求时，JVM会把该线程置为阻塞状态。当sleep()状态超时、join()等待线程终止或者超时、或者I/O处理完毕时，线程重新转入可运行(runnable)状态。
@@ -59,12 +59,13 @@ tags: [Interview]
 
 6.同步方法和同步代码块的区别
 
-同步方法默认用this或者当前类class对象作为锁；
-同步代码块可以选择以什么来加锁，比同步方法要更细颗粒度，我们可以选择只同步会发生同步问题的部分代码而不是整个方法；
+同步方法默认用this或者当前类class对象作为锁。
+同步代码块可以选择以什么来加锁，比同步方法要更细颗粒度，我们可以选择只同步会发生同步问题的部分代码而不是整个方法。
 
 7.线程池
 
 (1)线程池优点：
+
 (a)线程池的重用:线程的创建和销毁的开销是巨大的，而通过线程池的重用大大减少了这些不必要的开销，当然既然少了这么多消费内存的开销，其线程执行速度也是突飞猛进的提升。
 (b)控制线程池的并发数:控制线程池的并发数可以有效的避免大量的线程池争夺CPU资源而造成堵塞。
 (c)线程池可以对线程进行管理：线程池可以提供定时、定期、单线程、并发数控制等功能。
@@ -403,7 +404,6 @@ Java线程状态的改变通常只与自身显式引入的机制有关，如果J
 
 就是使用java.io.PipedInputStream和java.io.PipedOutputStream进行通信。
 
-
 13.如何停止一个正在运行的线程
 
 3种方法：
@@ -480,12 +480,12 @@ this.interrupted()方法的解释：测试当前线程是否已经中断，当�
             }
         }
     }
-    运行结果：
-    
+    运行结果： 
     stop 1??false
     stop 2??false
   
-如何使main线程产生中断效果呢？方法interrupted()的确判断出当前线程是否是停止状态。但为什么第2个布尔值是false呢？官方帮助文档中对interrupted方法的解释：测试当前线程是否已经中断。线程的中断状态由该方法清除。换句话说，如果连续两次调用该方法，则第二次调用返回false。
+如何使main线程产生中断效果呢？
+方法interrupted()的确判断出当前线程是否是停止状态。但为什么第2个布尔值是false呢？官方帮助文档中对interrupted方法的解释：测试当前线程是否已经中断。线程的中断状态由该方法清除。换句话说，如果连续两次调用该方法，则第二次调用返回false。
 
     public class Run2 {
         public static void main(String args[]){
@@ -497,12 +497,11 @@ this.interrupted()方法的解释：测试当前线程是否已经中断，当�
         }
     }    
     运行效果为：
-    
     stop 1??true
     stop 2??false
     End
-
-inInterrupted()方法：isInterrupted()并未清除状态，所以打印了两个true。
+    
+当使用isInterrupted()，isInterrupted()并未清除状态，所以打印了两个true。
 
     public class Run3 {
         public static void main(String args[]){
@@ -514,322 +513,327 @@ inInterrupted()方法：isInterrupted()并未清除状态，所以打印了两�
         }
     }
     运行结果：
-    
     stop 1??true
     stop 2??true
 
 (3)能停止的线程--异常法
+
 有了前面学习过的知识点，就可以在线程中用for语句来判断一下线程是否是停止状态，如果是停止状态，则后面的代码不再运行即可：
 
-public class MyThread extends Thread {
-    public void run(){
-        super.run();
-        for(int i=0; i<500000; i++){
-            if(this.interrupted()) {
-                System.out.println("线程已经终止， for循环不再执行");
-                break;
-            }
-            System.out.println("i="+(i+1));
-        }
-    }
-}
-
-public class Run {
-    public static void main(String args[]){
-        Thread thread = new MyThread();
-        thread.start();
-        try {
-            Thread.sleep(2000);
-            thread.interrupt();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-}
-运行结果：
-
-...
-i=202053
-i=202054
-i=202055
-i=202056
-线程已经终止， for循环不再执行
-
-上面的示例虽然停止了线程，但如果for语句下面还有语句，还是会继续运行的。看下面的例子：
-
-public class MyThread extends Thread {
-    public void run(){
-        super.run();
-        for(int i=0; i<500000; i++){
-            if(this.interrupted()) {
-                System.out.println("线程已经终止， for循环不再执行");
-                break;
-            }
-            System.out.println("i="+(i+1));
-        }
-
-        System.out.println("这是for循环外面的语句，也会被执行");
-    }
-}
-使用Run.java执行的结果是：
-
-...
-i=180136
-i=180137
-i=180138
-i=180139
-线程已经终止， for循环不再执行
-
-这是for循环外面的语句，也会被执行
-
-如何解决语句继续运行的问题呢？看一下更新后的代码：
-
-public class MyThread extends Thread {
-    public void run(){
-        super.run();
-        try {
+    public class MyThread extends Thread {
+        public void run(){
+            super.run();
             for(int i=0; i<500000; i++){
                 if(this.interrupted()) {
                     System.out.println("线程已经终止， for循环不再执行");
-                        throw new InterruptedException();
+                    break;
                 }
                 System.out.println("i="+(i+1));
             }
-
-            System.out.println("这是for循环外面的语句，也会被执行");
-        } catch (InterruptedException e) {
-            System.out.println("进入MyThread.java类中的catch了。。。");
-            e.printStackTrace();
         }
     }
-}
-使用Run.java运行的结果如下：
 
-...
-i=203798
-i=203799
-i=203800
-线程已经终止， for循环不再执行
-进入MyThread.java类中的catch了。。。
-java.lang.InterruptedException
-    at thread.MyThread.run(MyThread.java:13)
-4. 在沉睡中停止
+    public class Run {
+        public static void main(String args[]){
+            Thread thread = new MyThread();
+            thread.start();
+            try {
+                Thread.sleep(2000);
+                thread.interrupt();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+    运行结果：
+    ...
+    i=202053
+    i=202054
+    i=202055
+    i=202056
+    线程已经终止， for循环不再执行
+
+上面的示例虽然停止了线程，但如果for语句下面还有语句，还是会继续运行的。看下面的例子：
+
+    public class MyThread extends Thread {
+        public void run(){
+            super.run();
+            for(int i=0; i<500000; i++){
+                if(this.interrupted()) {
+                    System.out.println("线程已经终止， for循环不再执行");
+                    break;
+                }
+                System.out.println("i="+(i+1));
+            }
+    
+            System.out.println("这是for循环外面的语句，也会被执行");
+        }
+    }
+    
+    使用Run.java执行的结果是：
+    ...
+    i=180136
+    i=180137
+    i=180138
+    i=180139
+    线程已经终止， for循环不再执行
+    这是for循环外面的语句，也会被执行
+
+如何解决语句继续运行的问题呢？看一下更新后的代码：
+
+    public class MyThread extends Thread {
+        public void run(){
+            super.run();
+            try {
+                for(int i=0; i<500000; i++){
+                    if(this.interrupted()) {
+                        System.out.println("线程已经终止， for循环不再执行");
+                            throw new InterruptedException();
+                    }
+                    System.out.println("i="+(i+1));
+                }
+    
+                System.out.println("这是for循环外面的语句，也会被执行");
+            } catch (InterruptedException e) {
+                System.out.println("进入MyThread.java类中的catch了。。。");
+                e.printStackTrace();
+            }
+        }
+    }
+    使用Run.java运行的结果如下：
+    ...
+    i=203798
+    i=203799
+    i=203800
+    线程已经终止， for循环不再执行
+    进入MyThread.java类中的catch了。。。
+    java.lang.InterruptedException
+        at thread.MyThread.run(MyThread.java:13)
+    
+(4)在沉睡中停止
+
 如果线程在sleep()状态下停止线程，会是什么效果呢？
 
-public class MyThread extends Thread {
-    public void run(){
-        super.run();
-
-        try {
-            System.out.println("线程开始。。。");
-            Thread.sleep(200000);
-            System.out.println("线程结束。");
-        } catch (InterruptedException e) {
-            System.out.println("在沉睡中被停止, 进入catch， 调用isInterrupted()方法的结果是：" + this.isInterrupted());
-            e.printStackTrace();
+    public class MyThread extends Thread {
+        public void run(){
+            super.run();
+            try {
+                System.out.println("线程开始。。。");
+                Thread.sleep(200000);
+                System.out.println("线程结束。");
+            } catch (InterruptedException e) {
+                System.out.println("在沉睡中被停止, 进入catch， 调用isInterrupted()方法的结果是：" + this.isInterrupted());
+                e.printStackTrace();
+            }
+    
         }
-
     }
-}
-使用Run.java运行的结果是：
-
-线程开始。。。
-在沉睡中被停止, 进入catch， 调用isInterrupted()方法的结果是：false
-java.lang.InterruptedException: sleep interrupted
-    at java.lang.Thread.sleep(Native Method)
-    at thread.MyThread.run(MyThread.java:12)
+    使用Run.java运行的结果是：
+    线程开始。。。
+    在沉睡中被停止, 进入catch， 调用isInterrupted()方法的结果是：false
+    java.lang.InterruptedException: sleep interrupted
+        at java.lang.Thread.sleep(Native Method)
+        at thread.MyThread.run(MyThread.java:12)
+        
 从打印的结果来看， 如果在sleep状态下停止某一线程，会进入catch语句，并且清除停止状态值，使之变为false。
-
 前一个实验是先sleep然后再用interrupt()停止，与之相反的操作在学习过程中也要注意：
 
-public class MyThread extends Thread {
-    public void run(){
-        super.run();
-        try {
-            System.out.println("线程开始。。。");
-            for(int i=0; i<10000; i++){
-                System.out.println("i=" + i);
+    public class MyThread extends Thread {
+        public void run(){
+            super.run();
+            try {
+                System.out.println("线程开始。。。");
+                for(int i=0; i<10000; i++){
+                    System.out.println("i=" + i);
+                }
+                Thread.sleep(200000);
+                System.out.println("线程结束。");
+            } catch (InterruptedException e) {
+                 System.out.println("先停止，再遇到sleep，进入catch异常");
+                e.printStackTrace();
             }
-            Thread.sleep(200000);
-            System.out.println("线程结束。");
-        } catch (InterruptedException e) {
-             System.out.println("先停止，再遇到sleep，进入catch异常");
-            e.printStackTrace();
+    
         }
-
     }
-}
-
-public class Run {
-    public static void main(String args[]){
-        Thread thread = new MyThread();
-        thread.start();
-        thread.interrupt();
+    
+    public class Run {
+        public static void main(String args[]){
+            Thread thread = new MyThread();
+            thread.start();
+            thread.interrupt();
+        }
     }
-}
-运行结果：
+    运行结果：
+    
+    i=9998
+    i=9999
+    先停止，再遇到sleep，进入catch异常
+    java.lang.InterruptedException: sleep interrupted
+        at java.lang.Thread.sleep(Native Method)
+        at thread.MyThread.run(MyThread.java:15)
+        
+(5)能停止的线程---暴力停止
 
-i=9998
-i=9999
-先停止，再遇到sleep，进入catch异常
-java.lang.InterruptedException: sleep interrupted
-    at java.lang.Thread.sleep(Native Method)
-    at thread.MyThread.run(MyThread.java:15)
-5. 能停止的线程---暴力停止
 使用stop()方法停止线程则是非常暴力的。
 
-public class MyThread extends Thread {
-    private int i = 0;
-    public void run(){
-        super.run();
-        try {
-            while (true){
-                System.out.println("i=" + i);
-                i++;
-                Thread.sleep(200);
+    public class MyThread extends Thread {
+        private int i = 0;
+        public void run(){
+            super.run();
+            try {
+                while (true){
+                    System.out.println("i=" + i);
+                    i++;
+                    Thread.sleep(200);
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         }
     }
-}
-
-public class Run {
-    public static void main(String args[]) throws InterruptedException {
-        Thread thread = new MyThread();
-        thread.start();
-        Thread.sleep(2000);
-        thread.stop();
-    }
-}
-运行结果：
-
-i=0
-i=1
-i=2
-i=3
-i=4
-i=5
-i=6
-i=7
-i=8
-i=9
-
-Process finished with exit code 0
-6.方法stop()与java.lang.ThreadDeath异常
-调用stop()方法时会抛出java.lang.ThreadDeath异常，但是通常情况下，此异常不需要显示地捕捉。
-
-public class MyThread extends Thread {
-    private int i = 0;
-    public void run(){
-        super.run();
-        try {
-            this.stop();
-        } catch (ThreadDeath e) {
-            System.out.println("进入异常catch");
-            e.printStackTrace();
+    
+    public class Run {
+        public static void main(String args[]) throws InterruptedException {
+            Thread thread = new MyThread();
+            thread.start();
+            Thread.sleep(2000);
+            thread.stop();
         }
     }
-}
+    运行结果：
+    
+    i=0
+    i=1
+    i=2
+    i=3
+    i=4
+    i=5
+    i=6
+    i=7
+    i=8
+    i=9
+    
+    Process finished with exit code 0
+    
+(6)方法stop()与java.lang.ThreadDeath异常
 
-public class Run {
-    public static void main(String args[]) throws InterruptedException {
-        Thread thread = new MyThread();
-        thread.start();
+调用stop()方法时会抛出java.lang.ThreadDeath异常，但是通常情况下，此异常不需要显式地捕捉。
+
+    public class MyThread extends Thread {
+        private int i = 0;
+        public void run(){
+            super.run();
+            try {
+                this.stop();
+            } catch (ThreadDeath e) {
+                System.out.println("进入异常catch");
+                e.printStackTrace();
+            }
+        }
     }
-}
-stop()方法以及作废，因为如果强制让线程停止有可能使一些清理性的工作得不到完成。另外一个情况就是对锁定的对象进行了解锁，导致数据得不到同步的处理，出现数据不一致的问题。
+    
+    public class Run {
+        public static void main(String args[]) throws InterruptedException {
+            Thread thread = new MyThread();
+            thread.start();
+        }
+    }
+    
+stop()方法已经作废，因为如果强制让线程停止有可能使一些清理性的工作得不到完成。另外一个情况就是对锁定的对象进行了解锁，导致数据得不到同步的处理，出现数据不一致的问题。
 
-7. 释放锁的不良后果
+(7)释放锁的不良后果
+
 使用stop()释放锁将会给数据造成不一致性的结果。如果出现这样的情况，程序处理的数据就有可能遭到破坏，最终导致程序执行的流程错误，一定要特别注意：
 
-public class SynchronizedObject {
-    private String name = "a";
-    private String password = "aa";
-
-    public synchronized void printString(String name, String password){
-        try {
+    public class SynchronizedObject {
+        private String name = "a";
+        private String password = "aa";
+    
+        public synchronized void printString(String name, String password){
+            try {
+                this.name = name;
+                Thread.sleep(100000);
+                this.password = password;
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    
+        public String getName() {
+            return name;
+        }
+    
+        public void setName(String name) {
             this.name = name;
-            Thread.sleep(100000);
+        }
+    
+        public String getPassword() {
+            return password;
+        }
+    
+        public void setPassword(String password) {
             this.password = password;
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         }
     }
-
-    public String getName() {
-        return name;
+    
+    public class MyThread extends Thread {
+        private SynchronizedObject synchronizedObject;
+        public MyThread(SynchronizedObject synchronizedObject){
+            this.synchronizedObject = synchronizedObject;
+        }
+    
+        public void run(){
+            synchronizedObject.printString("b", "bb");
+        }
     }
-
-    public void setName(String name) {
-        this.name = name;
+    
+    public class Run {
+        public static void main(String args[]) throws InterruptedException {
+            SynchronizedObject synchronizedObject = new SynchronizedObject();
+            Thread thread = new MyThread(synchronizedObject);
+            thread.start();
+            Thread.sleep(500);
+            thread.stop();
+            System.out.println(synchronizedObject.getName() + "  " + synchronizedObject.getPassword());
+        }
     }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-}
-
-public class MyThread extends Thread {
-    private SynchronizedObject synchronizedObject;
-    public MyThread(SynchronizedObject synchronizedObject){
-        this.synchronizedObject = synchronizedObject;
-    }
-
-    public void run(){
-        synchronizedObject.printString("b", "bb");
-    }
-}
-
-public class Run {
-    public static void main(String args[]) throws InterruptedException {
-        SynchronizedObject synchronizedObject = new SynchronizedObject();
-        Thread thread = new MyThread(synchronizedObject);
-        thread.start();
-        Thread.sleep(500);
-        thread.stop();
-        System.out.println(synchronizedObject.getName() + "  " + synchronizedObject.getPassword());
-    }
-}
-输出结果：
-
-b  aa
+    输出结果：
+    
+    b  aa
+    
 由于stop()方法以及在JDK中被标明为“过期/作废”的方法，显然它在功能上具有缺陷，所以不建议在程序张使用stop()方法。
 
-8. 使用return停止线程
+(8)使用return停止线程
+
 将方法interrupt()与return结合使用也能实现停止线程的效果：
 
-public class MyThread extends Thread {
-    public void run(){
-        while (true){
-            if(this.isInterrupted()){
-                System.out.println("线程被停止了！");
-                return;
+    public class MyThread extends Thread {
+        public void run(){
+            while (true){
+                if(this.isInterrupted()){
+                    System.out.println("线程被停止了！");
+                    return;
+                }
+                System.out.println("Time: " + System.currentTimeMillis());
             }
-            System.out.println("Time: " + System.currentTimeMillis());
         }
     }
-}
-
-public class Run {
-    public static void main(String args[]) throws InterruptedException {
-        Thread thread = new MyThread();
-        thread.start();
-        Thread.sleep(2000);
-        thread.interrupt();
+    
+    public class Run {
+        public static void main(String args[]) throws InterruptedException {
+            Thread thread = new MyThread();
+            thread.start();
+            Thread.sleep(2000);
+            thread.interrupt();
+        }
     }
-}
-输出结果：
+    输出结果：
+    ...
+    Time: 1467072288503
+    Time: 1467072288503
+    Time: 1467072288503
+    线程被停止了！
 
-...
-Time: 1467072288503
-Time: 1467072288503
-Time: 1467072288503
-线程被停止了！
 不过还是建议使用“抛异常”的方法来实现线程的停止，因为在catch块中还可以将异常向上抛，使线程停止事件得以传播。
 
 N.参考
@@ -846,13 +850,15 @@ N.参考
 
 1.公平锁/非公平锁
 
-公平锁是指多个线程按照申请锁的顺序来获取锁。
-非公平锁是指多个线程获取锁的顺序并不是按照申请锁的顺序，有可能后申请的线程比先申请的线程优先获取锁。有可能会造成优先级反转或者饥饿现象。
+(1)公平锁是指多个线程按照申请锁的顺序来获取锁。
+(2)非公平锁是指多个线程获取锁的顺序并不是按照申请锁的顺序，有可能后申请的线程比先申请的线程优先获取锁。有可能会造成优先级反转或者饥饿现象。
+
 对于Java ReentrantLock而言，通过构造函数指定该锁是否是公平锁，默认是非公平锁。非公平锁的优点在于吞吐量比公平锁大。
 对于Synchronized而言，也是一种非公平锁。由于其并不像ReentrantLock是通过AQS的来实现线程调度，所以并没有任何办法使其变成公平锁。
 
-2.可重入锁：可重入锁又名递归锁，是指在同一个线程在外层方法获取锁的时候，在进入内层方法会自动获取锁。
-对于Java ReentrantLock而言, 从名字就可以看出是一个可重入锁，其名字是Re entrant Lock重新进入锁。
+2.可重入锁
+
+可重入锁又名递归锁，是指在同一个线程在外层方法获取锁的时候，在进入内层方法会自动获取锁。对于Java ReentrantLock而言, 从名字就可以看出是一个可重入锁。
 对于Synchronized而言，也是一个可重入锁。可重入锁的一个好处是可一定程度避免死锁。下面的代码就是一个可重入锁的一个特点，如果不是可重入锁的话，setB可能不会被当前线程执行，可能造成死锁。
 
     synchronized void setA() throws Exception{
@@ -866,27 +872,18 @@ N.参考
 
 3.独享锁/共享锁
 
-独享锁是指该锁一次只能被一个线程所持有。共享锁是指该锁可被多个线程所持有。
-对于Java ReentrantLock而言，其是独享锁。但是对于Lock的另一个实现类ReadWriteLock，其读锁是共享锁，其写锁是独享锁。读锁的共享锁可保证并发读是非常高效的，读写，写读 ，写写的过程是互斥的。
+(1)独享锁是指该锁一次只能被一个线程所持有。对于Java ReentrantLock而言，其是独享锁、互斥锁。对于Synchronized而言，当然是独享锁。
+(2)共享锁是指该锁可被多个线程所持有。对于Lock的另一个实现类读写锁ReadWriteLock，其读锁是共享锁，其写锁是独享锁。读锁的共享锁可保证并发读是非常高效的，读写，写读 ，写写的过程是互斥的。
+
 独享锁与共享锁也是通过AQS来实现的，通过实现不同的方法，来实现独享或者共享。
-对于Synchronized而言，当然是独享锁。
 
-4.互斥锁/读写锁
-
-上面讲的独享锁/共享锁就是一种广义的说法，互斥锁/读写锁就是具体的实现。
-互斥锁在Java中的具体实现就是ReentrantLock。
-读写锁在Java中的具体实现就是ReadWriteLock。
-
-5.乐观锁/悲观锁
+4.乐观锁/悲观锁
 
 乐观锁与悲观锁不是指具体的什么类型的锁，而是指看待并发同步的角度。
-悲观锁认为对于同一个数据的并发操作，一定是会发生修改的，哪怕没有修改，也会认为修改。因此对于同一个数据的并发操作，悲观锁采取加锁的形式。悲观的认为，不加锁的并发操作一定会出问题。
-乐观锁则认为对于同一个数据的并发操作，是不会发生修改的。在更新数据的时候，会采用尝试更新，不断重试的方式更新数据。乐观的认为，不加锁的并发操作是没有事情的。
-从上面的描述我们可以看出，悲观锁适合写操作非常多的场景，乐观锁适合读操作非常多的场景，不加锁会带来大量的性能提升。
-悲观锁在Java中的使用，就是利用各种锁。
-乐观锁在Java中的使用，是无锁编程，常常采用的是CAS算法，典型的例子就是原子类，通过CAS自旋实现原子操作的更新。
+(1)悲观锁：认为对于同一个数据的并发操作，一定是会发生修改的，哪怕没有修改，也会认为修改。因此对于同一个数据的并发操作，悲观锁采取加锁的形式。悲观的认为，不加锁的并发操作一定会出问题。悲观锁在Java中的使用，就是利用各种锁。悲观锁适合写操作非常多的场景。
+(2)乐观锁则认为对于同一个数据的并发操作，是不会发生修改的。在更新数据的时候，会采用尝试更新，不断重试的方式更新数据。乐观的认为，不加锁的并发操作是没有事情的。乐观锁在Java中的使用，是无锁编程，常常采用的是CAS算法，典型的例子就是原子类，通过CAS自旋实现原子操作的更新。乐观锁适合读操作非常多的场景，不加锁会带来大量的性能提升。
 
-6.分段锁
+5.分段锁
 
 分段锁其实是一种锁的设计，并不是具体的一种锁，对于ConcurrentHashMap而言，其并发的实现就是通过分段锁的形式来实现高效的并发操作。
 我们以ConcurrentHashMap来说一下分段锁的含义以及设计思想，ConcurrentHashMap中的分段锁称为Segment，它即类似于HashMap（JDK7与JDK8中HashMap的实现）的结构，即内部拥有一个Entry数组，数组中的每个元素又是一个链表；同时又是一个ReentrantLock（Segment继承了ReentrantLock)。
@@ -894,28 +891,30 @@ N.参考
 但是，在统计size的时候，可就是获取hashmap全局信息的时候，就需要获取所有的分段锁才能统计。
 分段锁的设计目的是细化锁的粒度，当操作不需要更新整个数组的时候，就仅仅针对数组中的一项进行加锁操作。
 
-7.偏向锁/轻量级锁/重量级锁
+6.偏向锁/轻量级锁/重量级锁
 
 这三种锁是指锁的状态，并且是针对Synchronized。
 在Java 5通过引入锁升级的机制来实现高效Synchronized。这三种锁的状态是通过对象监视器在对象头中的字段来表明的。
-偏向锁是指一段同步代码一直被一个线程所访问，那么该线程会自动获取锁。降低获取锁的代价。
-轻量级锁是指当锁是偏向锁的时候，被另一个线程所访问，偏向锁就会升级为轻量级锁，其他线程会通过自旋的形式尝试获取锁，不会阻塞，提高性能。
-重量级锁是指当锁为轻量级锁的时候，另一个线程虽然是自旋，但自旋不会一直持续下去，当自旋一定次数的时候，还没有获取到锁，就会进入阻塞，该锁膨胀为重量级锁。重量级锁会让其他申请的线程进入阻塞，性能降低。
 
-8.自旋锁
+(1)偏向锁是指一段同步代码一直被一个线程所访问，那么该线程会自动获取锁。降低获取锁的代价。
+(2)轻量级锁是指当锁是偏向锁的时候，被另一个线程所访问，偏向锁就会升级为轻量级锁，其他线程会通过自旋的形式尝试获取锁，不会阻塞，提高性能。
+(3)重量级锁是指当锁为轻量级锁的时候，另一个线程虽然是自旋，但自旋不会一直持续下去，当自旋一定次数的时候，还没有获取到锁，就会进入阻塞，该锁膨胀为重量级锁。重量级锁会让其他申请的线程进入阻塞，性能降低。
+
+7.自旋锁
 
 在Java中，自旋锁是指尝试获取锁的线程不会立即阻塞，而是采用循环的方式去尝试获取锁，这样的好处是减少线程上下文切换的消耗，缺点是循环会消耗CPU。
 
-9.监视器
+8.监视器
 
-监视器和锁在Java虚拟机中是一块使用的。监视器监视一块同步代码块，确保一次只有一个线程执行同步代码块。每一个监视器都和一个对象引用相关联。线程在获取锁之前不允许执行同步代码。java还提供了显式监视器(Lock)和隐式监视器(synchronized)两种锁方案。
+监视器和锁在Java虚拟机中是一块使用的。监视器监视一块同步代码块，确保一次只有一个线程执行同步代码块。每一个监视器都和一个对象引用相关联。线程在获取锁之前不允许执行同步代码。
+java还提供了显式监视器(Lock)和隐式监视器(synchronized)两种锁方案。
 
-10.死锁
+9.死锁
 
 两个线程或两个以上线程都在等待对方执行完毕才能继续往下执行的时候就发生了死锁。结果就是这些线程都陷入了无限的等待中。
-多线程产生死锁的四个必要条件：
-互斥条件：一个资源每次只能被一个进程使用。
-保持和请求条件：一个进程因请求资源而阻塞时，对已获得资源保持不放。
-不可剥夺性：进程已获得资源，在未使用完成前，不能被剥夺。
-循环等待条件（闭环）：若干进程之间形成一种头尾相接的循环等待资源关系。
-只要破坏其中任意一个条件，就可以避免死锁，一种非常简单的避免死锁的方式就是：指定获取锁的顺序，并强制线程按照指定的顺序获取锁。因此，如果所有的线程都是以同样的顺序加锁和释放锁，就不会出现死锁了。
+多线程产生死锁的四个必要条件。只要破坏其中任意一个条件，就可以避免死锁，一种非常简单的避免死锁的方式就是：指定获取锁的顺序，并强制线程按照指定的顺序获取锁。因此，如果所有的线程都是以同样的顺序加锁和释放锁，就不会出现死锁了。
+
+(1)互斥条件：一个资源每次只能被一个进程使用。
+(2)保持和请求条件：一个进程因请求资源而阻塞时，对已获得资源保持不放。
+(3)不可剥夺性：进程已获得资源，在未使用完成前，不能被剥夺。
+(4)循环等待条件（闭环）：若干进程之间形成一种头尾相接的循环等待资源关系。

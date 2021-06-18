@@ -28,7 +28,6 @@ tags: [Interview]
         
         @Test
         public void test01() {
-            //
             String str1 = new StringBuilder("hello").append("World").toString();
             System.out.println(str1.intern());
             System.out.println(str1 == str1.intern());
@@ -92,7 +91,7 @@ tags: [Interview]
 
 4.抽象
 
-(1)抽象类中不一定包含抽象方法，但是有抽象方法的类必定是抽象类。
+抽象类中不一定包含抽象方法，但是有抽象方法的类必定是抽象类。
 
 5.Object类的方法
 
@@ -267,51 +266,60 @@ N.参考
 # Java IO
 
 1.InputStream：
-三种基本的介质流ByteArrayInputStream，StringBufferInputStream，FileInputStream，它们分别从Byte数组、StringBuffer、和本地文件中读取数据。
-PipedInputStream从与其它线程共用的管道中读取数据。
-ObjectInputStream和所有FilterInputStream的子类都是装饰流。
-FilterInputStream子类包括BufferedInputStream能为输入流提供缓冲区，DataInputStream可以从输入流中读取Java基本类型数据，PushBackInputStream可以把读取到的字节重新推回到InputStream中。
 
-2.OutputStream：ByteArrayOutputStream、FileOutputStream是两种基本的介质流，它们分别向Byte数组和本地文件中写入数据。
-PipedOutputStream是向与其它线程共用的管道中写入数据。
-ObjectOutputStream 和所有FilterOutputStream的子类都是装饰流。
+    ByteArrayInputStream，StringBufferInputStream，FileInputStream，三种基本的介质流它们分别从Byte数组、StringBuffer、和本地文件中读取数据。
+    PipedInputStream从与其它线程共用的管道中读取数据。
+    ObjectInputStream和所有FilterInputStream的子类都是装饰流。
+    FilterInputStream子类包括BufferedInputStream能为输入流提供缓冲区，DataInputStream可以从输入流中读取Java基本类型数据，PushBackInputStream可以把读取到的字节重新推回到InputStream中。
+
+2.OutputStream：
+
+    ByteArrayOutputStream、FileOutputStream是两种基本的介质流，它们分别向Byte数组和本地文件中写入数据。
+    PipedOutputStream是向与其它线程共用的管道中写入数据。
+    ObjectOutputStream 和所有FilterOutputStream的子类都是装饰流。
 
 3.File类
 
 (1)创建：
-createNewFile()在指定位置创建一个空文件，成功就返回true，如果已存在就不创建，然后返回false。
-mkdir() 在指定位置创建一个单级文件夹。
-mkdirs() 在指定位置创建一个多级文件夹。
-renameTo(File dest)如果目标文件与源文件是在同一个路径下，那么renameTo的作用是重命名， 如果目标文件与源文件不是在同一个路径下，那么renameTo的作用就是剪切，而且还不能操作文件夹。
+
+    createNewFile()在指定位置创建一个空文件，成功就返回true，如果已存在就不创建，然后返回false。
+    mkdir() 在指定位置创建一个单级文件夹。
+    mkdirs() 在指定位置创建一个多级文件夹。
+    renameTo(File dest)如果目标文件与源文件是在同一个路径下，那么renameTo的作用是重命名， 如果目标文件与源文件不是在同一个路径下，那么renameTo的作用就是剪切，而且还不能操作文件夹。
 
 (2)删除：
-delete() 删除文件或者一个空文件夹，不能删除非空文件夹，马上删除文件，返回一个布尔值。
-deleteOnExit()jvm退出时删除文件或者文件夹，用于删除临时文件，无返回值。
+
+    delete() 删除文件或者一个空文件夹，不能删除非空文件夹，马上删除文件，返回一个布尔值。
+    deleteOnExit()jvm退出时删除文件或者文件夹，用于删除临时文件，无返回值。
 
 (3)判断：
-exists() 文件或文件夹是否存在。
-isFile() 是否是一个文件，如果不存在，则始终为false。
-isDirectory() 是否是一个目录，如果不存在，则始终为false。
-isHidden() 是否是一个隐藏的文件或是否是隐藏的目录。
-isAbsolute() 测试此抽象路径名是否为绝对路径名。
+
+    exists() 文件或文件夹是否存在。
+    isFile() 是否是一个文件，如果不存在，则始终为false。
+    isDirectory() 是否是一个目录，如果不存在，则始终为false。
+    isHidden() 是否是一个隐藏的文件或是否是隐藏的目录。
+    isAbsolute() 测试此抽象路径名是否为绝对路径名。
 
 (4)获取：
-getName() 获取文件或文件夹的名称，不包含上级路径。
-getAbsolutePath()获取文件的绝对路径，与文件是否存在没关系
-length() 获取文件的大小（字节数），如果文件不存在则返回0L，如果是文件夹也返回0L。
-getParent() 返回此抽象路径名父目录的路径名字符串；如果此路径名没有指定父目录，则返回null。
-lastModified()获取最后一次被修改的时间。
+
+    getName() 获取文件或文件夹的名称，不包含上级路径。
+    getAbsolutePath()获取文件的绝对路径，与文件是否存在没关系
+    length() 获取文件的大小（字节数），如果文件不存在则返回0L，如果是文件夹也返回0L。
+    getParent() 返回此抽象路径名父目录的路径名字符串；如果此路径名没有指定父目录，则返回null。
+    lastModified()获取最后一次被修改的时间。
 
 (5)文件夹相关：
-static File[] listRoots()列出所有的根目录（Window中就是所有系统的盘符）
-list() 返回目录下的文件或者目录名，包含隐藏文件。对于文件这样操作会返回null。
-listFiles() 返回目录下的文件或者目录对象（File类实例），包含隐藏文件。对于文件这样操作会返回null。
-list(FilenameFilter filter)返回指定当前目录中符合过滤条件的子文件或子目录。对于文件这样操作会返回null。
-listFiles(FilenameFilter filter)返回指定当前目录中符合过滤条件的子文件或子目录。对于文件这样操作会返回null。
+
+    static File[] listRoots()列出所有的根目录（Window中就是所有系统的盘符）
+    list() 返回目录下的文件或者目录名，包含隐藏文件。对于文件这样操作会返回null。
+    listFiles() 返回目录下的文件或者目录对象（File类实例），包含隐藏文件。对于文件这样操作会返回null。
+    list(FilenameFilter filter)返回指定当前目录中符合过滤条件的子文件或子目录。对于文件这样操作会返回null。
+    listFiles(FilenameFilter filter)返回指定当前目录中符合过滤条件的子文件或子目录。对于文件这样操作会返回null。
 
 4.序列化与反序列化
 
 (1)序列化：对象序列化的最主要的用处就是在传递和保存对象的时候，保证对象的完整性和可传递性。序列化是把对象转换成有序字节流，以便在网络上传输或者保存在本地文件中。核心作用是对象状态的保存与重建。
+
 (2)反序列化：客户端从文件中或网络上获得序列化后的对象字节流，根据字节流中所保存的对象状态及描述信息，通过反序列化重建对象。
 
     public class ObjectOutputStreamDemo { //序列化
@@ -329,13 +337,15 @@ listFiles(FilenameFilter filter)返回指定当前目录中符合过滤条件的
         }
     }
     
-为什么需要序列化与反序列化？
+(3)为什么需要序列化与反序列化？
 
-(1)对象序列化可以实现分布式对象。主要应用例如：RMI(即远程调用Remote Method Invocation)要利用对象序列化运行远程主机上的服务，就像在本地机上运行对象时一样。
-(2)java对象序列化不仅保留一个对象的数据，而且递归保存对象引用的每个对象的数据。可以将整个对象层次写入字节流中，可以保存在文件中或在网络连接上传递。利用对象序列化可以进行对象的"深复制"，即复制对象本身及引用的对象本身。序列化一个对象可能得到整个对象序列。
-(3)序列化可以将内存中的类写入文件或数据库中。
+(a)对象序列化可以实现分布式对象。主要应用例如：RMI(即远程调用Remote Method Invocation)要利用对象序列化运行远程主机上的服务，就像在本地机上运行对象时一样。
+(b)java对象序列化不仅保留一个对象的数据，而且递归保存对象引用的每个对象的数据。可以将整个对象层次写入字节流中，可以保存在文件中或在网络连接上传递。利用对象序列化可以进行对象的"深复制"，即复制对象本身及引用的对象本身。序列化一个对象可能得到整个对象序列。
+(c)序列化可以将内存中的类写入文件或数据库中。
 
-5.零拷贝：如果简单用java里面对象的概念来理解的话，其实就是使用的都是对象的引用，每个引用对象的地方对其改变就都能改变此对象，永远只存在一份对象。
+5.零拷贝
+
+如果简单用java里面对象的概念来理解的话，其实就是使用的都是对象的引用，每个引用对象的地方对其改变就都能改变此对象，永远只存在一份对象。
 MappedByteBuffer：java nio提供的FileChannel提供了map()方法，该方法可以在一个打开的文件和MappedByteBuffer之间建立一个虚拟内存映射，MappedByteBuffer继承于ByteBuffer，类似于一个基于内存的缓冲区，只不过该对象的数据元素存储在磁盘的一个文件中；调用get()方法会从磁盘中获取数据，此数据反映该文件当前的内容，调用put()方法会更新磁盘上的文件，并且对文件做的修改对其他阅读者也是可见的。
 
     public class MappedByteBufferTest {  
@@ -361,11 +371,13 @@ MappedByteBuffer：java nio提供的FileChannel提供了map()方法，该方法�
 serialVersionUID适用于Java的序列化机制。简单来说，Java的序列化机制是通过判断类的serialVersionUID来验证版本一致性的。在进行反序列化时，JVM会把传来的字节流中的serialVersionUID与本地相应实体类的serialVersionUID进行比较，如果相同就认为是一致的，可以进行反序列化，否则就会出现序列化版本不一致的异常，即是InvalidCastException。
 
 生成方式：
+
 默认的1L，比如：private static final long serialVersionUID = 1L;
 根据类名、接口名、成员方法及属性等来生成一个64位的哈希字段，比如：private static final  long   serialVersionUID = xxxxL;
 当实现java.io.Serializable接口的类没有显式地定义一个serialVersionUID变量时候，Java序列化机制会根据编译的Class自动生成一个serialVersionUID作序列化版本比较用，这种情况下，如果Class文件(类名，方法明等)没有发生变化(增加空格，换行，增加注释等等)，就算再编译多次，serialVersionUID也不会变化的。
 
 几种情况：
+
 情况一：A端序列化后传输到B端反序列化。如果A端增加一个字段，A端增加的字段丢失(被B端忽略)。
 情况二：A端序列化后传输到B端反序列化。如果B端减少一个字段，A端不变，A端多的字段值丢失(被B端忽略)。
 情况三：A端序列化后传输到B端反序列化。如果B端增加一个字段，A端不变，B端新增加的int字段被赋予了默认值0。
@@ -383,7 +395,7 @@ BIO/NIO/AIO
 NIO线程模型
 
 (a)Reactor单线程模型：由一个线程监听连接事件、读写事件，并完成数据读写。
-(b)Reactor多线程模型：一个Acceptor线程专门监听各种事件，再由专门的线程池负责处理真正的IO数据读写
+(b)Reactor多线程模型：一个Acceptor线程专门监听各种事件，再由专门的线程池负责处理真正的IO数据读写。
 (c)主从Reactor多线程模型：一个线程监听连接事件，线程池的多个线程监听已经建立连接的套接字的数据读写事件，另外和多线程模型一样有专门的线程池处理真正的IO操作。
 
 # Java集合
@@ -431,14 +443,13 @@ ArrayList、HashMap、TreeMap和HashTable类提供对元素的随机访问。
 
 4.哪些集合类是线程安全的？
 
-Vector、HashTable、Properties和Stack是同步类，所以它们是线程安全的，可以在多线程环境下使用。
-Java1.5并发包（java.util.concurrent）包含线程安全集合类，允许在迭代时修改集合，是fail-safe的，不会抛出ConcurrentModificationException。
-一部分类为：CopyOnWriteArrayList、 ConcurrentHashMap、CopyOnWriteArraySet。
+(a)Vector、HashTable、Properties和Stack是同步类，所以它们是线程安全的，可以在多线程环境下使用。
+(b)Java1.5并发包（java.util.concurrent）包含线程安全集合类，允许在迭代时修改集合，是fail-safe的，不会抛出ConcurrentModificationException。一部分类为：CopyOnWriteArrayList、 ConcurrentHashMap、CopyOnWriteArraySet。
 
 5.当一个集合被作为参数传递给一个函数时，如何才可以确保函数不能修改它？
 
-UnsupportedOperationException是用于表明操作不支持的异常。在JDK类中已被大量运用，在集合框架java.util.Collections.UnmodifiableCollection将会在所有add和remove操作中抛出这个异常。
 在作为参数传递之前，我们可以使用Collections.unmodifiableCollection(Collection c)方法创建一个只读集合，这将确保改变集合的任何操作都会抛出UnsupportedOperationException。
+UnsupportedOperationException是用于表明操作不支持的异常。在JDK类中已被大量运用，在集合框架java.util.Collections.UnmodifiableCollection将会在所有add和remove操作中抛出这个异常。
 
 6.Iterator
 
@@ -470,13 +481,25 @@ Iterator接口定义了遍历集合的方法，但它的实现则是集合实现
 
 Collection是一个集合接口。它提供了对集合对象进行基本操作的通用接口方法。Collection接口在Java类库中有很多具体的实现。Collection接口的意义是为各种具体的集合提供了最大化的统一操作方式，其直接继承接口有List与Set。
 Collections则是集合类的一个工具类，其中提供了一系列静态方法，用于对集合中元素进行排序、搜索以及线程安全等各种操作。
-常见的函数
 
-    sort(Collection),shuffle(Collection),reverse(Collection),
-    fill(Collection,Object),copy(List, List),rotate(Collection,int),swap(List,int,int),
-    indexOfSublist(List,List),lastIndexOfSublist(List,List),max(Collection,Comparator),min(Collection,Comparator)
+常见的函数：
+
+    sort(Collection)
+    shuffle(Collection)
+    reverse(Collection)
+    fill(Collection,Object)
+    copy(List, List)
+    rotate(Collection,int)
+    swap(List,int,int)
+    indexOfSublist(List,List)
+    lastIndexOfSublist(List,List)
+    max(Collection,Comparator)
+    min(Collection,Comparator)
+    unmodifiableCollection(Collection c)
+    synchronizedMap(Map<K,V> m)
 
 8.为何Collection不实现Cloneable和Serializable接口？
+
 当与具体实现打交道的时候，克隆或序列化的语义和含义才发挥作用。所以，具体实现应该决定如何对它进行克隆或序列化，或它是否可以被克隆或序列化。在所有的实现中授权克隆和序列化，最终导致更少的灵活性和更多的限制。
 
 9.为何Map接口不继承Collection接口？
@@ -487,7 +510,9 @@ Collections则是集合类的一个工具类，其中提供了一系列静态方
 10.Map接口提供了哪些不同的集合视图？
 
 (1)Set keySet()：返回map中包含的所有key的一个Set视图。集合是受map支持的，map的变化会在集合中反映出来，反之亦然。当一个迭代器正在遍历一个集合时，若map被修改了（除迭代器自身的移除操作以外），迭代器的结果会变为未定义。
+
 (2)Collection values()：返回一个map中包含的所有value的一个Collection视图。这个collection受map支持的，map的变化会在collection中反映出来，反之亦然。当一个迭代器正在遍历一个collection时，若map被修改了（除迭代器自身的移除操作以外），迭代器的结果会变为未定义。
+
 (3)Set<Map.Entry<K,V>> entrySet()：返回一个map包含的所有映射的一个集合视图。这个集合受map支持的，map的变化会在集合中反映出来，反之亦然。当一个迭代器正在遍历一个集合时，若map被修改了（除迭代器自身的移除操作，以及对迭代器返回的entry进行setValue外），迭代器的结果会变为未定义。
 
 11.HashMap
@@ -528,10 +553,11 @@ int和String的好处在于hash出来的值不会改变。如果是一个对象�
         if (s.equals("2"))  
             map.remove("2");  
     }
-
-HashMap为什么不直接使用对象的原始hash值呢?通过如下方法，而不是通过key.hashCode()方法获取。通过移位和异或运算，可以让hash变得更复杂，进而影响 hash 的分布性。
+    
+HashMap为什么不直接使用对象的原始hash值呢?通过如下方法，而不是通过key.hashCode()方法获取。通过移位和异或运算，可以让hash变得更复杂，进而影响hash的分布性。
 
     static final int hash(Object key) {
+
         int h;
         return (key == null) ? 0 : (h = key.hashCode()) ^ (h >>> 16);
     }
@@ -539,7 +565,9 @@ HashMap为什么不直接使用对象的原始hash值呢?通过如下方法，�
 12.HashMap中的链表与红黑树
 
 链表树化：
-指的就是把链表转换成红黑树，树化需要满足以下两个条件：(1)链表长度大于等于8链表树化。桶中数量少于6则从树转成链表。(2)table数组长度大于等于64。为什么table数组容量大于等于64才树化？因为当table数组容量比较小时，键值对节点hash的碰撞率可能会比较高，进而导致链表长度较长。这个时候应该优先扩容，而不是立马树化。
+指的就是把链表转换成红黑树，树化需要满足以下两个条件：
+(1)链表长度大于等于8链表树化。桶中数量少于6则从树转成链表。
+(2)table数组长度大于等于64。为什么table数组容量大于等于64才树化？因为当table数组容量比较小时，键值对节点hash的碰撞率可能会比较高，进而导致链表长度较长。这个时候应该优先扩容，而不是立马树化。
 
 链表过深问题为什么不用二叉查找树代替，而选择红黑树？为什么不一直使用红黑树？
 之所以选择红黑树是为了解决二叉查找树的缺陷，二叉查找树在特殊情况下会变成一条线性结构（这就跟原来使用链表结构一样了，造成很深的问题），遍历查找会非常慢。
@@ -597,7 +625,7 @@ ConcurrentHashMap的限制：
 诸如size、isEmpty和containsValue等聚合方法，在并发下可能会反映ConcurrentHashMap的中间状态。因此在并发情况下，这些方法的返回值只能用作参考，而不能用于流程控制。如果需要确保需要手动加锁。诸如putAll这样的聚合方法也不能确保原子性，在putAll的过程中去获取数据可能会获取到部分数据。
 ConcurrentHashMap这篮子本身，可以确保多个工人在装东西进去时，不会相互影响干扰，但无法确保工人A看到还需要装100个桔子但是还未装时，工人B就看不到篮子中的桔子数量。你往这个篮子装100个桔子的操作不是原子性的，在别人看来可能会有一个瞬间篮子里有964个桔子，还需要补36个桔子。
 
-HashMap&ConcurrentHashMap 的区别？
+HashMap&ConcurrentHashMap的区别？
 除了加锁，原理上无太大区别。另外，HashMap的键值对允许有null，但是ConCurrentHashMap都不允许。
 
 ConcurrentHashMap的并发度是什么？
@@ -606,7 +634,7 @@ ConcurrentHashMap的并发度是什么？
 16.HashTable与ConcurrentHashMap
 
 同样是线程安全，HashTable是使用synchronize关键字加锁的原理（就是对对象加锁），使用一把锁（锁住整个链表结构）处理并发问题，多个线程竞争一把锁，容易阻塞。
-ConcurrentHashMap，在JDK1.7中使用分段锁（ReentrantLock + Segment + HashEntry），相当于把一个 HashMap 分成多个段，每段分配一把锁，这样支持多线程访问。锁粒度：基于Segment，包含多个HashEntry。在JDK1.8 中使用CAS + synchronized + Node + 红黑树。锁粒度：Node（首结点）（实现 Map.Entry<K,V>）。锁粒度降低了。
+ConcurrentHashMap，在JDK1.7中使用分段锁（ReentrantLock + Segment + HashEntry），相当于把一个HashMap分成多个段，每段分配一把锁，这样支持多线程访问。锁粒度：基于Segment，包含多个HashEntry。在JDK1.8 中使用CAS + synchronized + Node + 红黑树。锁粒度：Node（首结点）（实现 Map.Entry<K,V>）。锁粒度降低了。
 
 17.关于ConcurrentHashMap类中使用的volatile
 
@@ -717,7 +745,7 @@ CopyOnWriteArrayList虽然是一个线程安全版的ArrayList，但其每次修
 24.HashSet的实现原理
 
 (1)HashSet是基于HashMap实现的，默认构造函数是构建一个初始容量为16，负载因子为0.75 的HashMap。封装了一个HashMap对象来存储所有的集合元素，所有放入HashSet中的集合元素实际上由HashMap的key来保存，而HashMap的value则存储了一个PRESENT，它是一个静态的Object对象。
-(2)当我们试图把某个类的对象当成HashMap的key，或试图将这个类的对象放入HashSet中保存时，重写该类的equals(Object obj)方法和hashCode()方法很重要，而且这两个方法的返回值必须保持一致：当该类的两个的 hashCode() 返回值相同时，它们通过equals()方法比较也应该返回true。通常来说，所有参与计算hashCode()返回值的关键属性，都应该用于作为equals()比较的标准。
+(2)当我们试图把某个类的对象当成HashMap的key，或试图将这个类的对象放入HashSet中保存时，重写该类的equals(Object obj)方法和hashCode()方法很重要，而且这两个方法的返回值必须保持一致：当该类的两个的hashCode()返回值相同时，它们通过equals()方法比较也应该返回true。通常来说，所有参与计算hashCode()返回值的关键属性，都应该用于作为equals()比较的标准。
 (3)HashSet的其他操作都是基于HashMap的。
 
 N.参考
@@ -728,17 +756,15 @@ N.参考
 
 (3)[Java容器（实现）](https://cloud.tencent.com/developer/article/1334702)
 
-(4)[【16期】你能谈谈HashMap怎样解决hash冲突吗](https://mp.weixin.qq.com/s/dgYriZ-obbm1CoUDjHofhg)
+(4)[HashMap？ConcurrentHashMap？相信看完这篇没人能难住你！](https://blog.csdn.net/weixin_44460333/article/details/86770169)
 
-(5)[HashMap？ConcurrentHashMap？相信看完这篇没人能难住你！](https://blog.csdn.net/weixin_44460333/article/details/86770169)
+(5)[ConcurrentHashMap底层实现原理(JDK1.7 & 1.8)](https://www.jianshu.com/p/865c813f2726)
 
-(6)[ConcurrentHashMap底层实现原理(JDK1.7 & 1.8)](https://www.jianshu.com/p/865c813f2726)
+(6)[JDK7与JDK8中HashMap的实现](https://my.oschina.net/hosee/blog/618953)
 
-(7)[JDK7与JDK8中HashMap的实现](https://my.oschina.net/hosee/blog/618953)
+(7)[ConcurrentHashMap总结](https://my.oschina.net/hosee/blog/675884)
 
-(8)[ConcurrentHashMap总结](https://my.oschina.net/hosee/blog/675884)
-
-(9)[30个Java集合面试必备的问题和答案](https://mp.weixin.qq.com/s/5JbhrM677q3aDQmErnYAGw)
+(8)[30个Java集合面试必备的问题和答案](https://mp.weixin.qq.com/s/5JbhrM677q3aDQmErnYAGw)
 
 # Java反射
 
@@ -757,14 +783,13 @@ N.参考
 
 3.字节码实例
 
-bype/char/short/int/long
-/boolean/float/double.class及void.class
-数组int[].class及String[].class
-对象MyObject.class
+    bype/char/short/int/long/boolean/float/double.class及void.class
+    数组int[].class及String[].class
+    对象MyObject.class
 
 4.常用方法
 
-    Class clazz = Class.forName("className"); // className必须为全名，也就是得包含包名
+    Class clazz = Class.forName("some.package.MyClassName"); // className必须为全名，也就是得包含包名
     Object obj= clazz.newInstance(); //如果类有无参数公共构造函数，直接可以使用类的字节码实例就创建对象的实例。否则用constructor对象调用newInstance(Object... initargs)
 
     //--------------------------- Class对象的方法（即clazz的方法）---------------------------
@@ -772,7 +797,7 @@ bype/char/short/int/long
     Constructor getConstructor(Class[] params) //根据指定参数获得public构造器
     Constructor[] getConstructors() //获得public的所有构造器
     Constructor getDeclaredConstructor(Class[] params) //根据指定参数获得public和非public的构造器
-    Constructor[] getDeclaredConstructors() //获得public的所有构造器
+    Constructor[] getDeclaredConstructors() //获得public和非public的所有构造器
 
     // 方法Method有invoke方法
     Method getMethod(String name, Class[] params) //根据方法名，参数类型获得方法
@@ -795,16 +820,20 @@ N.参考
 1.JSP和Servlet
 
 JSP是Servlet技术的扩展，本质上就是Servlet的简易方式。JSP编译后是“类servlet”。Servlet和JSP最主要的不同点在于，Servlet的应用逻辑是在Java文件中，并且完全从表示层中的HTML里分离开来。而JSP的情况是Java和HTML可以组合成一个扩展名为.jsp的文件。JSP侧重于视图，Servlet主要用于控制逻辑。
-JSP执行过程：当服务器启动后，当Web浏览器端发送过来一个页面请求时，Web服务器先判断是否是JSP页面请求。如果该页面只是一般的HTML/XML页面请求，则直接将HTML/XML页面代码传给Web浏览器端。如果请求的页面是JSP页面，则由JSP引擎检查该JSP页面，如果该页面是第一次被请求、或不是第一次被请求但已被修改，则JSP引擎将此JSP页面代码转换成Servlet代码，然后JSP引擎调用服务器端的Java编译器对Servlet代码进行编译，把它变成字节码(.class)文件，然后再调用JAVA虚拟机执行该字节码文件，然后将执行结果传给Web浏览器端。如果该JSP页面不是第一次被请求，且没有被修改过，则直接由JSP引擎调用JAVA虚拟机执行已编译过的字节码.class文件，然后将结果传送Web浏览器端。
+JSP执行过程：当服务器启动后，当Web浏览器端发送过来一个页面请求时，Web服务器先判断是否是JSP页面请求。如果该页面只是一般的HTML/XML页面请求，则直接将HTML/XML页面代码传给Web浏览器端。
+如果请求的页面是JSP页面，则由JSP引擎检查该JSP页面，如果该页面是第一次被请求、或不是第一次被请求但已被修改，则JSP引擎将此JSP页面代码转换成Servlet代码，然后JSP引擎调用服务器端的Java编译器对Servlet代码进行编译，把它变成字节码(.class)文件，然后再调用JAVA虚拟机执行该字节码文件，然后将执行结果传给Web浏览器端。
+如果该JSP页面不是第一次被请求，且没有被修改过，则直接由JSP引擎调用JAVA虚拟机执行已编译过的字节码.class文件，然后将结果传送Web浏览器端。
 
 2.JSP的4种作用域
 
-(1)page:代表页面上下文，范围是一个页面及其静态包含的内容
-(2)request:代表请求上下文，范围是一个请求涉及的几个页面，通常是一个页面和其包含的内容以及forward动作转向的页面
-(3)session:代表客户的一次会话上下文，范围是一个用户在会话有效期内多次请求所涉及的页面
-(4)application:全局作用域，代表Web应用程序上下文，范围是整个Web应用中所有请求所涉及的页面
+(1)page:代表页面上下文，范围是一个页面及其静态包含的内容。
+(2)request:代表请求上下文，范围是一个请求涉及的几个页面，通常是一个页面和其包含的内容以及forward动作转向的页面。
+(3)session:代表客户的一次会话上下文，范围是一个用户在会话有效期内多次请求所涉及的页面。
+(4)application:全局作用域，代表Web应用程序上下文，范围是整个Web应用中所有请求所涉及的页面。
 
 3.JSP内置对象
+
+9个内置对象：
 
 pageContext:网页的属性在这里管理。
 page：表示从该页面产生的一个servlet实例。
@@ -815,6 +844,23 @@ response:表示HttpServletResponse对象，并提供了几个用于设置送回�
 session：表示一个请求的javax.servlet.http.HttpSession对象，session可以存储用户的状态信息。
 application:表示一个javax.servlet.ServletContext对象，这有助于查找有关servlet引擎和servlet环境的信息。
 exception：针对错误网页，未捕捉的例外。
+
+4.过滤器和拦截器
+
+(1)Filter需要在web.xml中配置，依赖于Servlet；Interceptor需要在SpringMVC中配置，依赖于框架。
+(2)Filter的执行顺序在Interceptor之前，具体的流程
+
+    Filter1.doFilter()的chain.doFilter(request, response)之前逻辑
+    Filter2.doFilter()的chain.doFilter(request, response)之前逻辑
+    Interceptor1.preHandle()
+    Interceptor2.preHandle()
+    正常业务逻辑
+    Interceptor2.postHandle()
+    Interceptor1.postHandle()
+    Interceptor2.afterCompletion()
+    Interceptor1.afterCompletion()
+    Filter2.doFilter()的chain.doFilter(request, response)之后逻辑
+    Filter1.doFilter()的chain.doFilter(request, response)之后逻辑 
 
 N.参考
 
@@ -827,14 +873,17 @@ N.参考
 1.异常的分类：
 
 (1)Throwable：
+
 所有错误与异常的超类。两个子类：Error（错误）和 Exception（异常），包含了其线程创建时线程执行堆栈的快照，它提供了printStackTrace()等接口用于获取堆栈跟踪数据等信息。
 
 (2)Error：
+
 程序中无法处理的错误，表示运行应用程序中出现了严重的错误。
 此类错误一般表示代码运行时JVM出现问题。通常有VirtualMachineError（虚拟机运行错误）（比如 OutOfMemoryError：内存不足错误；StackOverflowError：栈溢出错误）、NoClassDefFoundError（类定义错误）等。此类错误发生时，JVM将终止线程。
 这些错误是不受检异常，非代码性错误。因此，当此类错误发生时，应用程序不应该去处理此类错误。按照Java惯例，我们是不应该实现任何新的Error子类的！
 
 (3)Exception：
+
 程序本身可以捕获并且可以处理的异常。分为两类：运行时异常和编译时异常。
 
 RuntimeException：运行时异常表示JVM在运行期间可能出现的异常。这类异常是编程人员的逻辑问题。
@@ -847,7 +896,8 @@ Java编译器会检查它。如果程序中出现此类异常，要么通过thro
 例如Exception，FileNotFoundException，IOException，SQLException。
 
 (4)受检异常与非受检异常
-Java 的所有异常可以分为受检异常（checked exception）和非受检异常（unchecked exception）。
+
+Java的所有异常可以分为受检异常（checked exception）和非受检异常（unchecked exception）。
 
 受检异常：编译器要求必须处理的异常。正确的程序在运行过程中，经常容易出现的、符合预期的异常情况。一旦发生此类异常，就必须采用某种方式进行处理。除RuntimeException及其子类外，其他的Exception异常都属于受检异常。编译器会检查此类异常，也就是说当编译器检查到应用中的某处可能会此类异常时，将会提示你处理本异常——要么使用try-catch捕获，要么使用方法签名中用throws关键字抛出，否则编译不通过。
 非受检异常：编译器不会进行检查并且不要求必须处理的异常，也就说当程序中出现此类异常时，即使我们没有try-catch捕获它，也没有使用throws抛出该异常，编译也会正常通过。该类异常包括运行时异常（RuntimeException极其子类）和错误（Error）。
@@ -856,7 +906,7 @@ Java 的所有异常可以分为受检异常（checked exception）和非受检�
 
 try – 用于监听。将要被监听的代码(可能抛出异常的代码)放在try语句块之内，当try语句块内发生异常时，异常就被抛出。
 catch – 用于捕获异常。catch用来捕获try语句块中发生的异常。
-finally – finally语句块总是会被执行。它主要用于回收在try块里打开的物力资源(如数据库连接、网络连接和磁盘文件)。只有finally块，执行完成之后，才会回来执行try或者catch块中的return或者throw语句，如果finally中使用了return或者throw等终止方法的语句，则就不会跳回执行，直接停止。
+finally – finally语句块总是会被执行。它主要用于回收在try块里打开的物理资源(如数据库连接、网络连接和磁盘文件)。只有finally块，执行完成之后，才会回来执行try或者catch块中的return或者throw语句，如果finally中使用了return或者throw等终止方法的语句，则就不会跳回执行，直接停止。
 throw – 用在方法内部，只能用于抛出一种异常，用来抛出方法或代码块中的异常，受查异常和非受查异常都可以被抛出。
 throws – 用在方法签名中，用于声明该方法可能抛出的异常。
 
@@ -876,7 +926,7 @@ throw和throws都是消极处理异常的方式，只是抛出或者可能抛出
             是 --> 声明受检异常
             否 --> 抛出运行时异常
 
-4.自定义异常：当需要一些跟特定业务相关的异常信息类时。可以继承继承Exception来定义一个受检异常。也可以继承自RuntimeException或其子类来定义一个非受检异常。
+4.自定义异常：当需要一些跟特定业务相关的异常信息类时。可以继承Exception来定义一个受检异常。也可以继承自RuntimeException或其子类来定义一个非受检异常。
 
 5.finally中改变返回值的做法是不好的，因为如果存在finally代码块，try中的return语句不会立马返回调用者，而是记录下返回值待finally代码块执行完毕之后再向调用者返回其值，然后如果在finally中修改了返回值，就会返回修改后的值。显然，在finally中返回或者修改返回值会对程序造成很大的困扰。
 即使catch中包含了return语句，finally子句依然会执行。若finally中也包含return语句，finally中的return会覆盖前面的return。
@@ -932,12 +982,12 @@ throw和throws都是消极处理异常的方式，只是抛出或者可能抛出
     
 7.NoClassDefFoundError和ClassNotFoundException区别？
 
-NoClassDefFoundError是一个Error类型的异常，是由JVM 引起的，不应该尝试捕获这个异常。引起该异常的原因是JVM或ClassLoader尝试加载某类时在内存中找不到该类的定义，该动作发生在运行期间，即编译时该类存在，但是在运行时却找不到了，可能是变异后被删除了等原因导致。
+NoClassDefFoundError是一个Error类型的异常，是由JVM引起的，不应该尝试捕获这个异常。引起该异常的原因是JVM或ClassLoader尝试加载某类时在内存中找不到该类的定义，该动作发生在运行期间，即编译时该类存在，但是在运行时却找不到了，可能是变异后被删除了等原因导致。
 ClassNotFoundException是一个受查异常，需要显式地使用try-catch对其进行捕获和处理，或在方法签名中用throws关键字进行声明。当使用Class.forName, ClassLoader.loadClass或ClassLoader.findSystemClass动态加载类到内存的时候，通过传入的类路径参数没有找到该类，就会抛出该异常；另一种抛出该异常的可能原因是某个类已经由一个类加载器加载至内存中，另一个加载器又尝试去加载它。
 
 8.try-catch-finally中哪个部分可以省略？
 
-catch 可以省略。更为严格的说法其实是：try只适合处理运行时异常，try+catch适合处理运行时异常+普通异常（受检异常）。
+catch可以省略。更为严格的说法其实是：try只适合处理运行时异常，try+catch适合处理运行时异常+普通异常（受检异常）。
 也就是说，如果你只用try去处理普通异常却不加以catch处理，编译是通不过的，因为编译器硬性规定，普通异常如果选择捕获，则必须用catch显示声明以便进一步处理。
 而运行时异常在编译时没有如此规定，所以catch可以省略，你加上catch编译器也觉得无可厚非。
 理论上，编译器看任何代码都不顺眼，都觉得可能有潜在的问题，所以你即使对所有代码加上try，代码在运行期时也只不过是在正常运行的基础上加一层皮。但是你一旦对一段代码加上try，就等于显示地承诺编译器，对这段代码可能抛出的异常进行捕获而非向上抛出处理。如果是普通异常，编译器要求必须用catch捕获以便进一步处理；如果运行时异常，捕获然后丢弃并且+finally扫尾处理，或者加上catch捕获以便进一步处理。
