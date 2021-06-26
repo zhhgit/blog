@@ -291,14 +291,68 @@ HTTP请求的起始行称为请求行，形如GET /index.html HTTP/1.1。HTTP响
 
 3.单例模式
 
+保证一个类仅有一个实例，并提供一个访问它的全局访问点。
+
 (1)饱汉模式：第一次使用的时候再初始化，即“懒加载”。存在线程不安全问题。
-可能解决方案：(a)静态方法getInstance上增加synchronized。(b)getInstance方法中外层套了一层check，加上synchronized内层的check，即所谓“双重检查锁”（Double Check Lock，简称DCL）。DCL仍然是线程不安全的，由于指令重排序，你可能会得到“半个对象”，即”部分初始化“问题，一部分域被初始化了。(c)DCL 2.0，在instance上增加了volatile关键字。
 
-(2)饿汉模式：类加载时初始化单例，以后访问时直接返回即可。
-(3)Holder模式：通过静态的Holder类持有真正实例，间接实现了懒加载。
-(4)枚举模式：本质上和饿汉模式相同，区别仅在于公有的静态成员变量。
+(a)静态方法getInstance上增加synchronized。这种写法能够在多线程中很好的工作，而且看起来它也具备很好的lazy loading，但是，遗憾的是，效率很低，99%情况下不需要同步。
 
-为什么是双重校验锁实现单例模式呢？
+    public class Singleton {
+    private static Singleton instance;
+    private Singleton (){}
+    
+        public static synchronized Singleton getInstance() {
+        if (instance == null) {
+            instance = new Singleton();
+        }
+        return instance;
+        }
+    }
+(b)getInstance方法中外层套了一层check，加上synchronized内层的check，即所谓“双重检查锁”（Double Check Lock，简称DCL）。DCL仍然是线程不安全的，由于指令重排序，你可能会得到“半个对象”，即”部分初始化“问题，一部分域被初始化了。
+(c)DCL 2.0，在instance上增加了volatile关键字。见下个问题。
+
+(2)饿汉模式
+
+类加载时初始化单例，以后访问时直接返回即可。
+这种方式基于classloder机制避免了多线程的同步问题，instance在类装载时就实例化。目前java单例是指一个虚拟机的范围，因为装载类的功能是虚拟机的，所以一个虚拟机在通过自己的ClassLoader装载饿汉式实现单例类的时候就会创建一个类的实例。
+这就意味着一个虚拟机里面有很多ClassLoader，而这些classloader都能装载某个类的话，就算这个类是单例，也能产生很多实例。当然如果一台机器上有很多虚拟机，那么每个虚拟机中都有至少一个这个类的实例的话，那这样 就更不会是单例了。(这里讨论的单例不适合集群！)
+
+    public class Singleton {  
+        private static Singleton instance = new Singleton();  
+        private Singleton (){}  
+        public static Singleton getInstance() {  
+            return instance;  
+        }  
+    }
+
+(3)Holder模式（静态内部类）
+
+通过静态的Holder类持有真正实例，间接实现了懒加载。
+这种方式同样利用了classloder的机制来保证初始化instance时只有一个线程，这种方式是Singleton类被装载了，instance不一定被初始化。因为SingletonHolder类没有被主动使用，只有显示通过调用getInstance方法时，才会显示装载SingletonHolder类，从而实例化instance。
+想象一下，如果实例化instance很消耗资源，我想让他延迟加载！这个时候，这种方式相比饿汉模式就显得很合理。
+
+    public class Singleton {  
+        private static class SingletonHolder {  
+            private static final Singleton INSTANCE = new Singleton();  
+        }  
+        private Singleton (){}  
+        public static final Singleton getInstance() {  
+            return SingletonHolder.INSTANCE;  
+        }  
+    }
+
+(4)枚举模式
+
+本质上和饿汉模式相同，区别仅在于公有的静态成员变量。
+这种方式是Effective Java作者Josh Bloch提倡的方式，它不仅能避免多线程同步问题，而且还能防止反序列化重新创建新的对象，可谓是很坚强的壁垒啊，不过，个人认为由于1.5中才加入enum特性，用这种方式写不免让人感觉生疏，在实际工作中，也很少看见有人这么写过。
+
+    public enum Singleton {
+        INSTANCE;
+        public void whateverMethod() {
+        }
+    }
+
+4.为什么是双重校验锁实现单例模式呢？
 
     public class Singleton {
     
@@ -346,30 +400,30 @@ HTTP请求的起始行称为请求行，形如GET /index.html HTTP/1.1。HTTP响
 资源共享的情况下，避免由于资源操作时导致的性能或损耗等。如上述中的日志文件，应用配置。
 控制资源的情况下，方便资源之间的互相通信。如线程池等。
 
-4.工厂模式
+5.工厂模式
 
 这种类型的设计模式属于创建型模式，它提供了一种创建对象的最佳方式。
 意图：定义一个创建对象的接口，让其子类自己决定实例化哪一个工厂类，工厂模式使其创建过程延迟到子类进行。
 所谓的工厂方法模式，就是定义一个工厂方法，通过传入的参数，返回某个实例，然后通过该实例来处理后续的业务逻辑。一般的，工厂方法的返回值类型是一个接口类型，而选择具体子类实例的逻辑则封装到了工厂方法中了。通过这种方式，来将外层调用逻辑与具体的子类的获取逻辑进行分离。
 
-5.观察者模式
+6.观察者模式
 
 当对象间存在一对多关系时，则使用观察者模式（Observer Pattern）。比如，当一个对象被修改时，则会自动通知它的依赖对象。观察者模式属于行为型模式。
 意图：定义对象间的一种一对多的依赖关系，当一个对象的状态发生改变时，所有依赖于它的对象都得到通知并被自动更新。
 
-6.装饰器模式
+7.装饰器模式
 
 装饰器模式（Decorator Pattern）允许向一个现有的对象添加新的功能，同时又不改变其结构。这种类型的设计模式属于结构型模式，它是作为现有的类的一个包装。
 意图：动态地给一个对象添加一些额外的职责。就增加功能来说，装饰器模式相比生成子类更为灵活。
 主要解决：一般的，我们为了扩展一个类经常使用继承方式实现，由于继承为类引入静态特征，并且随着扩展功能的增多，子类会很膨胀。
 
-7.策略模式
+8.策略模式
 
 策略模式就是一个接口下有多个实现类，而每种实现类会处理某一种情况。
 
-8.实现低耦合就是对两类之间进行解耦，解耦的本质就是将类之间的直接关系转换成间接关系，不管是类向上转型，接口回调还是适配器模式都是在类之间加了一层，将原来的直接关系变成间接关系，使得两类对中间层是强耦合，两类之间变成弱耦合关系。
+9.实现低耦合就是对两类之间进行解耦，解耦的本质就是将类之间的直接关系转换成间接关系，不管是类向上转型，接口回调还是适配器模式都是在类之间加了一层，将原来的直接关系变成间接关系，使得两类对中间层是强耦合，两类之间变成弱耦合关系。
 
-9.设计模式的7大原则
+10.设计模式的7大原则
 
 开放-封闭原则；
 单一职责原则；
