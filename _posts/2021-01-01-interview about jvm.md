@@ -198,18 +198,23 @@ Java堆中会单独划分出一块内存空间作为句柄池，这么一来栈�
 栈是运行时的需要，比如方法执行到结束，栈只能向上增长，因此会限制住栈存储内容的能力，而堆中的对象是可以根据需要动态增长的。
 
 15.栈的起始点是哪
+
 main函数，也是程序的起始点。
 
 16.为什么基本类型不放在堆里
+
 因为基本类型占用的空间一般都是1-8个字节（所需空间很少），而且因为是基本类型，所以不会出现动态增长的情况（长度是固定的），所以存到栈上是比较合适的。反而存到可动态增长的堆上意义不大。
 
 17.Java参数传递是值传递还是引用传递
+
 值传递。基本类型作为参数被传递时肯定是值传递；引用类型作为参数被传递时也是值传递，只不过“值”为对应的引用。假设方法参数是个对象引用，当进入被调用方法的时候，被传递的这个引用的值会被程序解释到堆中的对象，这个时候才对应到真正的对象，若此时进行修改，修改的是引用对应的对象，而不是引用本身，也就是说修改的是堆中的数据，而不是栈中的引用。
 
 18.为什么不推荐递归
+
 因为递归一直在入栈入栈，短时间无法出栈，导致栈的压力会很大，栈也有深度的，容易爆掉，所以效率低下。
 
 19.为什么参数大于2个要放到对象里
+
 因为除了double和long类型占用局部变量表2个slot外，其他类型都占用1个slot大小，如果参数太多的话会导致这个栈帧变大，因为slot大。
 放个对象的引用上去的话只会占用1个slot（一个slot4字节），增加堆的压力减少栈的压力，堆自带GC，所以这点压力可以忽略。
 
@@ -309,10 +314,52 @@ GC：垃圾收集，GC能帮助我们释放jvm内存，可以一定程度避免O
 
 6.对象的引用类型有哪几种，分别介绍下
 
-强引用：发生GC的时候不会回收强引用所关联的对象。比如new就是强引用。
-软引用：有用但非必须的对象，在OOM之前会把这些对象列进回收范围之中进行第二次回收，若第二次回收还没有足够的内存，则会抛出OOM。也就是第一次快要发生OOM的时候不会立马抛出OOM，而是会回收掉这些软引用，然后再看内存是否足够，若还不够才会抛出OOM。
-弱引用：有用但非必须的对象，比软引用更弱一些，只要开始GC，不管你内存够不够，都会将弱引用所关联的对象给回收掉。
-虚引用：也叫幽灵引用/幻影引用，无法通过虚引用获得对象，它的意义在于能在这个对象被GC掉时收到一个系统通知，仅此而已。
+Reference对象定义如下。
+
+    public abstract class Reference<T> {
+        //引用的对象
+        private T referent;
+        //回收队列，由使用者在Reference的构造函数中指定
+        volatile ReferenceQueue<? super T> queue;
+         //当该引用被加入到queue中的时候，该字段被设置为queue中的下一个元素，以形成链表结构
+        volatile Reference next;
+        //在GC时，JVM底层会维护一个叫DiscoveredList的链表，存放的是Reference对象，discovered字段指向的就是链表中的下一个元素，由JVM设置
+        transient private Reference<T> discovered;
+        //进行线程同步的锁对象
+        static private class Lock { }
+        private static Lock lock = new Lock();
+        //等待加入queue的Reference对象，在GC时由JVM设置，会有一个java层的线程(ReferenceHandler)源源不断的从pending中提取元素加入到queue
+        private static Reference<Object> pending = null;
+    }
+
+一个Reference对象的生命周期：主要分为Native层和Java层两个部分。
+Native层在GC时将需要被回收的Reference对象加入到DiscoveredList中（代码在referenceProcessor.cpp中process_discovered_references方法），然后将DiscoveredList的元素移动到PendingList中（代码在referenceProcessor.cpp中enqueue_discovered_ref_helper方法）,PendingList的队首就是Reference类中的pending对象。
+Java层流程比较简单：就是源源不断的从PendingList中提取出元素，然后将其加入到ReferenceQueue中去，开发者可以通过从ReferenceQueue中poll元素感知到对象被回收的事件。另外需要注意的是，对于Cleaner类型（继承自虚引用）的对象会有额外的处理：在其指向的对象被回收时，会调用clean方法，该方法主要是用来做对应的资源回收，在堆外内存DirectByteBuffer中就是用Cleaner进行堆外内存的回收，这也是虚引用在java中的典型应用。
+
+(1)强引用：
+
+发生GC的时候不会回收强引用所关联的对象。比如new就是强引用。
+
+(2)软引用SoftReference：
+
+有用但非必须的对象，在OOM之前会把这些对象列进回收范围之中进行第二次回收，若第二次回收还没有足够的内存，则会抛出OOM。也就是第一次快要发生OOM的时候不会立马抛出OOM，而是会回收掉这些软引用，然后再看内存是否足够，若还不够才会抛出OOM。
+软引用会在内存不足时被回收，内存不足的定义和该引用对象get的时间以及当前堆可用内存大小都有关系。
+软引用的实现很简单，就多了两个字段：clock和timestamp。clock是个静态变量，每次GC时都会将该字段设置成当前时间。timestamp字段则会在每次调用get方法时将其赋值为clock（如果不相等且对象没被回收）。
+refs_lists中存放了本次GC发现的某种引用类型（虚引用、软引用、弱引用等），而process_discovered_reflist方法的作用就是将不需要被回收的对象从refs_lists移除掉，refs_lists最后剩下的元素全是需要被回收的元素，最后会将其第一个元素赋值给上文提到过的Reference.java#pending字段。
+ReferencePolicy一共有4种实现：NeverClearPolicy，AlwaysClearPolicy，LRUCurrentHeapPolicy，LRUMaxHeapPolicy。
+其中NeverClearPolicy永远返回false，代表永远不回收SoftReference，在JVM中该类没有被使用，AlwaysClearPolicy则永远返回true。SoftReference到底什么时候被回收，和使用的策略（默认应该是LRUCurrentHeapPolicy），堆可用大小，该SoftReference上一次调用get方法的时间都有关系。
+
+(3)弱引用WeakReference：
+
+有用但非必须的对象，比软引用更弱一些，只要开始GC，不管你内存够不够，都会将弱引用所关联的对象给回收掉。
+WeakReference在Java层只是继承了Reference，没有做任何的改动。那referent字段是什么时候被置为null的呢？对象不可达后，引用字段就会被置为null，然后对象就会被回收。
+
+(4)虚引用PhantomReference：
+
+也叫幽灵引用/幻影引用，无法通过虚引用获得对象，它的意义在于能在这个对象被GC掉时收到一个系统通知，仅此而已。
+可以看到虚引用的get方法永远返回null，虚引用能够在指向对象不可达时得到一个'通知'（其实所有继承References的类都有这个功能）。
+严格的说，虚引用是会影响对象生命周期的，如果不做任何处理，只要虚引用不被回收，那其引用的对象永远不会被回收。所以一般来说，从ReferenceQueue中获得PhantomReference对象后，如果PhantomReference对象不会被回收的话（比如被其他GC ROOT可达的对象引用），需要调用clear方法解除PhantomReference和其引用对象的引用关系。
+虚引用在Jdk中有哪些场景下用到了呢？DirectByteBuffer中是用虚引用的子类Cleaner.java来实现堆外内存回收的。
 
 7.垃圾收集算法有哪些
 
@@ -411,7 +458,6 @@ JVM允许将线程私有的对象分配在栈上，而不是分配在堆上。�
        User user = new User();
     }
     
-
 16.TLAB
 
 全称是Thread Local Allocation Buffer，即线程本地分配缓存区，这是一个线程专用的内存分配区域。
@@ -558,3 +604,4 @@ G1常用参数
     GCTimeRatio：GC时间建议比例，G1会根据这个值调整堆空间
     ConcGCThreads：线程数量
     InitiatingHeapOccupancyPercent：启动G1的堆空间占用比例
+    

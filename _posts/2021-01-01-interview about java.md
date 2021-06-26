@@ -51,6 +51,13 @@ tags: [Interview]
     false // 因为"java"本来就存在与常量池中，左侧是new出来的对象，右侧是已经存在在常量池中的对象
     hello
     false // 因为hello此前已经存在常量池中，左侧是new出来的对象，右侧是在前面已经存在在常量池中的对象
+    
+    "a" + "b" + "c"得到的"abc"也在常量池中。
+    
+    String st1 = "ab";
+    String st2 = "abc";
+    String st3 = st1 + "c";
+    此时st3并非常量池中的"abc"，任何数据和字符串进行加号（+）运算，最终得到是一个拼接的新的字符串。这个拼接的原理是由StringBuilder或者StringBuffer类和里面的append方法实现拼接，然后调用toString（）把拼接的对象转换成字符串对象，最后把得到字符串对象的地址赋值给变量。
 
 2.运算
 
@@ -342,6 +349,13 @@ N.参考
 (a)对象序列化可以实现分布式对象。主要应用例如：RMI(即远程调用Remote Method Invocation)要利用对象序列化运行远程主机上的服务，就像在本地机上运行对象时一样。
 (b)java对象序列化不仅保留一个对象的数据，而且递归保存对象引用的每个对象的数据。可以将整个对象层次写入字节流中，可以保存在文件中或在网络连接上传递。利用对象序列化可以进行对象的"深复制"，即复制对象本身及引用的对象本身。序列化一个对象可能得到整个对象序列。
 (c)序列化可以将内存中的类写入文件或数据库中。
+
+(4)实现序列化和反序列化为什么要实现Serializable接口，为什么还要显示指定serialVersionUID的值
+
+在Java中实现了Serializable接口后，JVM会在底层帮我们实现序列化和反序列化。
+如果不显示指定serialVersionUID, JVM在序列化时会根据属性自动生成一个serialVersionUID, 然后与属性一起序列化, 再进行持久化或网络传输. 在反序列化时, JVM会再根据属性自动生成一个新版serialVersionUID, 然后将这个新版serialVersionUID与序列化时生成的旧版serialVersionUID进行比较, 如果相同则反序列化成功, 否则报错。
+如果显示指定了serialVersionUID, JVM在序列化和反序列化时仍然都会生成一个serialVersionUID, 但值为我们显示指定的值, 这样在反序列化时新旧版本的serialVersionUID就一致了。
+在实际开发中, 不显示指定serialVersionUID的情况会导致什么问题? 如果我们的类写完后不再修改, 那当然不会有问题, 但这在实际开发中是不可能的, 我们的类会不断迭代, 一旦类被修改了, 那旧对象反序列化就会报错. 所以在实际开发中, 我们都会显示指定一个serialVersionUID, 值是多少无所谓, 只要不变就行。
 
 5.零拷贝
 
@@ -983,7 +997,7 @@ throw和throws都是消极处理异常的方式，只是抛出或者可能抛出
 7.NoClassDefFoundError和ClassNotFoundException区别？
 
 NoClassDefFoundError是一个Error类型的异常，是由JVM引起的，不应该尝试捕获这个异常。引起该异常的原因是JVM或ClassLoader尝试加载某类时在内存中找不到该类的定义，该动作发生在运行期间，即编译时该类存在，但是在运行时却找不到了，可能是变异后被删除了等原因导致。
-ClassNotFoundException是一个受查异常，需要显式地使用try-catch对其进行捕获和处理，或在方法签名中用throws关键字进行声明。当使用Class.forName, ClassLoader.loadClass或ClassLoader.findSystemClass动态加载类到内存的时候，通过传入的类路径参数没有找到该类，就会抛出该异常；另一种抛出该异常的可能原因是某个类已经由一个类加载器加载至内存中，另一个加载器又尝试去加载它。
+ClassNotFoundException是一个受查异常，需要显式地使用try-catch对其进行捕获和处理，或在方法签名中用throws关键字进行声明。当使用Class.forName, ClassLoader.loadClass或ClassLoader.findSystemClass动态加载类到内存的时候，通过传入的类路径参数没有找到该类，那么就会导致JVM抛出ClassNotFoundException；另一种抛出该异常的可能原因是某个类已经由一个类加载器加载至内存中，另一个加载器又尝试去加载它。
 
 8.try-catch-finally中哪个部分可以省略？
 

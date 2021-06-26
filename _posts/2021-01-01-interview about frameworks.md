@@ -281,6 +281,34 @@ global session：全局的web域，类似于servlet中的application。
     // 全局异常处理
     @ControllerAdvice：包含@Component。可以被扫描到。统一处理异常。
     @ExceptionHandler（Exception.class）：用在方法上面表示遇到这个异常就执行以下方法。
+    
+12.BeanFactory和FactoryBean的区别
+
+(1)BeanFactory
+
+BeanFactory以Factory结尾，表示它是一个工厂类接口， 它负责生产和管理bean的一个工厂。在Spring中，BeanFactory是IOC容器的核心接口，它的职责包括：实例化、定位、配置应用程序中的对象及建立这些对象间的依赖。
+BeanFactory只是个接口，并不是IOC容器的具体实现，但是Spring容器给出了很多种实现，如 DefaultListableBeanFactory、XmlBeanFactory、ApplicationContext等，其中XmlBeanFactory就是常用的一个，该实现将以XML方式描述组成应用的对象及对象间的依赖关系。XmlBeanFactory类将持有此XML配置元数据，并用它来构建一个完全可配置的系统或应用。
+BeanFacotry是spring中比较原始的Factory。原始的BeanFactory无法支持spring的许多插件，如AOP功能、Web应用等。
+BeanFactory和ApplicationContext就是spring框架的两个IOC容器，现在一般使用ApplicationnContext，其不但包含了BeanFactory的作用，同时还进行更多的扩展。ApplicationContext包含BeanFactory的所有功能，通常建议比BeanFactory优先。ApplicationContext以一种更向面向框架的方式工作以及对上下文进行分层和实现继承。
+BeanFactory提供的方法及其简单，仅提供了六种方法供客户调用：
+
+    boolean containsBean(String beanName) 判断工厂中是否包含给定名称的bean定义，若有则返回true
+    Object getBean(String) 返回给定名称注册的bean实例。根据bean的配置情况，如果是singleton模式将返回一个共享实例，否则将返回一个新建的实例，如果没有找到指定bean,该方法可能会抛出异常
+    Object getBean(String, Class) 返回以给定名称注册的bean实例，并转换为给定class类型
+    Class getType(String name) 返回给定名称的bean的Class,如果没有找到指定的bean实例，则排除NoSuchBeanDefinitionException异常
+    boolean isSingleton(String) 判断给定名称的bean定义是否为单例模式
+    String[] getAliases(String name) 返回给定bean名称的所有别名
+
+(2)FactoryBean
+
+一般情况下，Spring通过反射机制利用<bean>的class属性指定实现类实例化Bean，在某些情况下，实例化Bean过程比较复杂，如果按照传统的方式，则需要在<bean>中提供大量的配置信息。配置方式的灵活性是受限的，这时采用编码的方式可能会得到一个简单的方案。
+Spring为此提供了一个org.springframework.bean.factory.FactoryBean的工厂类接口，用户可以通过实现该接口定制实例化Bean的逻辑。FactoryBean接口对于Spring框架来说占用重要的地位，Spring自身就提供了70多个FactoryBean的实现。它们隐藏了实例化一些复杂Bean的细节，给上层应用带来了便利。从Spring3.0开始，FactoryBean开始支持泛型，即接口声明改为FactoryBean<T>的形式
+以Bean结尾，表示它是一个Bean，不同于普通Bean的是：它是实现了FactoryBean<T>接口的Bean，FactoryBean是一个接口，当在IOC容器中的Bean实现了FactoryBean后，通过getBean(String BeanName)获取到的Bean对象并不是FactoryBean的实现类对象，而是这个实现类中的getObject()方法返回的对象。要想获取FactoryBean的实现类，就要getBean(&BeanName)，在BeanName之前加上&。
+在该接口中还定义了以下3个方法：
+
+    T getObject()：返回由FactoryBean创建的Bean实例，如果isSingleton()返回true，则该实例会放到Spring容器中单实例缓存池中；
+    boolean isSingleton()：返回由FactoryBean创建的Bean实例的作用域是singleton还是prototype；
+    Class<T> getObjectType()：返回FactoryBean创建的Bean类型。
 
 N.参考
 
@@ -970,3 +998,19 @@ getCurrentIndex()：返回已经获取了多少条数据。
 N.参考
 
 (1)[【250期】关于Mybatis知识点，面试可以问的都在这里了！](https://mp.weixin.qq.com/s/kReDxX3pA_ygyxzeWJDtoQ)
+
+# Netty
+
+1.什么是Netty的零拷贝
+
+“零拷贝”是指计算机操作的过程中，CPU不需要为数据在内存之间的拷贝消耗资源。而它通常是指计算机在网络上发送文件时，不需要将文件内容拷贝到用户空间（User Space）而直接在内核空间（Kernel Space）中传输到网络的方式。
+Zero Copy的模式中，避免了数据在用户空间和内存空间之间的拷贝，从而提高了系统的整体性能。Linux中的sendfile()以及Java NIO中的FileChannel.transferTo()方法都实现了零拷贝的功能，而在Netty中也通过在FileRegion中包装了NIO的FileChannel.transferTo()方法实现了零拷贝。
+
+而在Netty中还有另一种形式的零拷贝，即Netty允许我们将多段数据合并为一整段虚拟数据供用户使用，而过程中不需要对数据进行拷贝操作。在实际应用中，很有可能一条完整的消息被分割为多个数据包进行网络传输，而单个的数据包对你而言是没有意义的，只有当这些数据包组成一条完整的消息时你才能做出正确的处理，而Netty可以通过零拷贝的方式将这些数据包组合成一条完整的消息供你来使用。而此时，零拷贝的作用范围仅在用户空间中。
+以Netty 3.8.0.Final的源代码来进行说明ChannelBuffer接口，Netty为需要传输的数据制定了统一的ChannelBuffer接口。该接口的主要设计思路如下：
+(1)使用getByte(int index)方法来实现随机访问。
+(2)使用双指针的方式实现顺序访问。每个Buffer都有一个读指针（readIndex）和写指针（writeIndex），在读取数据时读指针后移，在写入数据时写指针后移。
+
+定义了统一的接口之后，就是来做各种实现了。Netty主要实现了HeapChannelBuffer,ByteBufferBackedChannelBuffer等等，下面我们就来讲讲与Zero Copy直接相关的CompositeChannelBuffer类。CompositeChannelBuffer类的作用是将多个ChannelBuffer组成一个虚拟的ChannelBuffer来进行操作。
+为什么说是虚拟的呢，因为CompositeChannelBuffer并没有将多个ChannelBuffer真正的组合起来，而只是保存了他们的引用，这样就避免了数据的拷贝，实现了Zero Copy。
+所谓的CompositeChannelBuffer实际上就是将一系列的Buffer通过数组保存起来，然后实现了ChannelBuffer的接口，使得在上层看来，操作这些Buffer就像是操作一个单独的Buffer一样。

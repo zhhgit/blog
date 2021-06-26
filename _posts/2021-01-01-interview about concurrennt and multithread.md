@@ -34,21 +34,41 @@ tags: [Interview]
 
 4.创建线程方式
 
-(1)继承Thread类。
+(1)继承Thread类
+
 (2)实现Runnable接口。
+
 (3)应用程序可以使用Executor框架来创建线程池。
+
 (4)实现Callable接口，通过如下方式获取线程执行结果。
 
-    FutureTask<Boolean> futureTask = new FutureTask<Boolean>(new SubscribeThreadWithResult(product, config));
+    private class MyCallable implements Callable<Boolean> {
+
+        private String product;
+        private JSONObject config;
+
+        public MyCallable(String product, JSONObject config) {
+            this.product = product;
+            this.config = config;
+        }
+
+        @Override
+        public Boolean call() throws Exception {
+            return false;
+        }
+    }
+
+    FutureTask<Boolean> futureTask = new FutureTask<Boolean>(new MyCallable(product, config));
     Thread thread = new Thread(futureTask);
     thread.start();
     bollean result = futureTask.get();
-    
-实现Runnable接口这种方式更受欢迎，因为这不需要继承Thread类。在应用设计中已经继承了别的对象的情况下，这需要多继承（而Java不支持多继承），只能实现接口。同时，线程池也是非常高效的，很容易实现和使用。
+
+采用实现Runnable、Callable接口的方式创建多线程时，优势是线程类只是实现了Runnable接口或Callable接口，还可以继承其他类。在这种方式下，多个线程可以共享同一个target对象，所以非常适合多个相同线程来处理同一份资源的情况，从而可以将CPU、代码和数据分开，形成清晰的模型，较好地体现了面向对象的思想。
+线程池也是非常高效的，很容易实现和使用。
 
 5.线程状态
 
-(1)新建(new)：新创建了一个线程对象。
+(1)新建(new)：新创建了一个线程对象。当线程创建完成时为新建状态，即new Thread(…)，还没有调用start方法时，线程处于新建状态。
 (2)可运行(runnable)：线程对象创建后，其他线程(比如main线程）调用了该对象的start()方法。该状态的线程位于可运行线程池中，等待被线程调度选中，获取CPU的使用权。
 (3)运行(running)：可运行状态(runnable )的线程获得了CPU时间片（timeslice），执行程序代码。
 (4)阻塞(blocked)：阻塞状态是指线程因为某种原因放弃了CPU使用权，也即让出了CPU timeslice ，暂时停止运行。直到线程进入可运行(runnable)状态，才有机会再次获得cpu timeslice转到运行(running)状态。阻塞的情况分三种：
@@ -62,69 +82,7 @@ tags: [Interview]
 同步方法默认用this或者当前类class对象作为锁。
 同步代码块可以选择以什么来加锁，比同步方法要更细颗粒度，我们可以选择只同步会发生同步问题的部分代码而不是整个方法。
 
-7.线程池
-
-(1)线程池优点：
-
-(a)线程池的重用:线程的创建和销毁的开销是巨大的，而通过线程池的重用大大减少了这些不必要的开销，当然既然少了这么多消费内存的开销，其线程执行速度也是突飞猛进的提升。
-(b)控制线程池的并发数:控制线程池的并发数可以有效的避免大量的线程池争夺CPU资源而造成堵塞。
-(c)线程池可以对线程进行管理：线程池可以提供定时、定期、单线程、并发数控制等功能。
-
-(2)ThreadPoolExecutor，构造函数如下
-
-    public ThreadPoolExecutor(int corePoolSize,  
-                              int maximumPoolSize,  
-                              long keepAliveTime,  
-                              TimeUnit unit,  
-                              BlockingQueue<Runnable> workQueue,  
-                              ThreadFactory threadFactory,  
-                              RejectedExecutionHandler handler)
-                               
-七个参数的含义：
-corePoolSize 线程池中核心线程的数量；
-maximumPoolSize 线程池中最大线程数量；
-keepAliveTime 非核心线程的超时时长，当系统中非核心线程闲置时间超过keepAliveTime之后，则会被回收。如果ThreadPoolExecutor的allowCoreThreadTimeOut属性设置为true，则该参数也表示核心线程的超时时长；
-unit 第三个参数的单位，有纳秒、微秒、毫秒、秒、分、时、天等；
-workQueue 线程池中的任务队列，该队列主要用来存储已经被提交但是尚未执行的任务。存储在这里的任务是由ThreadPoolExecutor的execute方法提交来的。
-threadFactory 为线程池提供创建新线程的功能，这个我们一般使用默认即可；
-handler 拒绝策略，当线程无法执行新任务时（一般是由于线程池中的线程数量已经达到最大数或者线程池关闭导致的），默认情况下，当线程池无法处理新线程时，会抛出一个RejectedExecutionException。
-
-执行流程：
-当currentSize<corePoolSize时，没什么好说的，直接启动一个核心线程并执行任务。
-当currentSize>=corePoolSize、并且workQueue未满时，添加进来的任务会被安排到workQueue中等待执行。
-当workQueue已满，但是currentSize<maximumPoolSize时，会立即开启一个非核心线程来执行任务。
-当currentSize>=corePoolSize、workQueue已满、并且currentSize>maximumPoolSize时，调用handler，执行线程池饱和策略，默认抛出RejectExecutionExpection异常。
-
-线程池饱和策略分为以下几种：
-AbortPolicy:直接抛出一个异常，默认策略
-DiscardPolicy: 直接丢弃任务
-DiscardOldestPolicy:抛弃下一个将要被执行的任务(最旧任务)
-CallerRunsPolicy:主线程中执行任务
-
-几种典型的工作队列：
-ArrayBlockingQueue:使用数组实现的有界阻塞队列，特性先进先出
-LinkedBlockingQueue:使用链表实现的阻塞队列，特性先进先出，可以设置其容量，默认为Interger.MAX_VALUE，特性先进先出
-PriorityBlockingQueue:使用平衡二叉树堆，实现的具有优先级的无界阻塞队列
-DelayQueue:无界阻塞延迟队列，队列中每个元素均有过期时间，当从队列获取元素时，只有过期元素才会出队列。队列头元素是最块要过期的元素。
-SynchronousQueue:一个不存储元素的阻塞队列，每个插入操作，必须等到另一个线程调用移除操作，否则插入操作一直处于阻塞状态。
-
-几种典型的线程池：
-FixedThreadPool:Fixed中文解释为固定。结合在一起解释固定的线程池，说的更全面点就是，有固定数量线程的线程池。其corePoolSize=maximumPoolSize，且keepAliveTime为0，适合线程稳定的场景。使用LinkedBlockingQueue。
-SingleThreadPool:Single中文解释为单一。结合在一起解释单一的线程池，说的更全面点就是，有固定数量线程的线程池，且数量为一，从数学的角度来看SingleThreadPool应该属于FixedThreadPool的子集。其corePoolSize=maximumPoolSize=1,且keepAliveTime为0，适合线程同步操作的场所。使用LinkedBlockingQueue。
-CachedThreadPool:Cached中文解释为储存。结合在一起解释储存的线程池，说的更通俗易懂，既然要储存，其容量肯定是很大，所以它的corePoolSize=0，maximumPoolSize=Integer.MAX_VALUE(2^32-1一个很大的数字)。使用SynchronousQueue。
-ScheduledThreadPool:Scheduled中文解释为计划。结合在一起解释计划的线程池，顾名思义既然涉及到计划，必然会涉及到时间。所以ScheduledThreadPool是一个具有定时定期执行任务功能的线程池。使用DelayedWorkQueue。
-
-使用无界队列的线程池会导致内存飙升吗？
-会的，newFixedThreadPool使用了无界的阻塞队列LinkedBlockingQueue，如果线程获取一个任务后，任务的执行时间比较长，会导致队列的任务越积越多，导致机器内存使用不停飙升， 最终导致OOM。
-
-线程回收：
-ThreadPoolExecutor回收工作线程，一条线程getTask()返回null，就会被回收。分两种场景。
-(1)未调用shutdown() ，RUNNING状态下全部任务执行完成的场景：线程数量大于corePoolSize，线程获取任务但超时阻塞，超时唤醒后CAS减少工作线程数，如果CAS成功，返回null，线程回收。否则进入下一次循环。当工作者线程数量小于等于corePoolSize，就可以一直阻塞了。
-(2)调用shutdown() ，全部任务执行完成的场景：shutdown()会向所有线程发出中断信号，这时有两种可能。
-(2.1)所有线程都在阻塞，中断唤醒，进入循环，都符合第一个if判断条件（线程池的状态已经是STOP，TIDYING, TERMINATED，或者是SHUTDOWN且工作队列为空），都返回null，所有线程回收。
-(2.2)任务还没有完全执行完，至少会有一条线程被回收。在processWorkerExit(Worker w, boolean completedAbruptly)方法里会调用tryTerminate()，向任意空闲线程发出中断信号。所有被阻塞的线程，最终都会被一个个唤醒，回收。
-
-8.ThreadLocal
+7.ThreadLocal
 
     static final ThreadLocal<T> sThreadLocal = new ThreadLocal<T>();
     sThreadLocal.set(T)
@@ -136,7 +94,7 @@ ThreadLocal的静态内部类ThreadLocalMap为每个Thread都维护了一个数�
 对于同一线程的不同ThreadLocal来讲，这些ThreadLocal实例共享一个table数组，然后每个ThreadLocal实例在table中的索引i是不同的。
 ThreadLocal和Synchronized都是为了解决多线程中相同变量的访问冲突问题，不同的点是Synchronized是通过线程等待，牺牲时间来解决访问冲突。ThreadLocal是通过每个线程单独一份存储空间，牺牲空间来解决冲突，并且相比于Synchronized，ThreadLocal具有线程隔离的效果，只有在线程内才能获取到对应的值，线程外则不能访问到想要的值。
 
-9.Java的线程安全与不安全
+8.Java的线程安全与不安全
 
 多个线程之间是不能直接传递数据进行交互的，它们之间的交互只能通过共享变量来实现。
 例如在多个线程之间共享了Count类的一个实例，这个对象是被创建在主内存（堆内存）中，每个线程都有自己的工作内存（线程栈），工作内存存储了主内存count对象的一个副本，当线程操作count对象时，首先从主内存复制count对象到工作内存中，然后执行代码count.count()，改变了num值，最后用工作内存中的count刷新主内存的count。当一个对象在多个工作内存中都存在副本时，如果一个工作内存刷新了主内存中的共享变量，其它线程也应该能够看到被修改后的值，此为可见性。
@@ -148,7 +106,7 @@ Servlet不是线程安全的。要解释为什么Servlet为什么不是线程安
 像Servlet这样的类，在Web容器中创建以后，会被传递给每个访问Web应用的用户线程执行，这个类就不是线程安全的。但这并不意味着一定会引发线程安全问题，如果Servlet类里没有成员变量，即使多线程同时执行这个Servlet实例的方法，也不会造成成员变量冲突。
 这种对象被称作无状态对象，也就是说对象不记录状态，执行这个对象的任何方法都不会改变对象的状态，也就不会有线程安全问题了。事实上，Web开发实践中，常见的Service类、DAO类，都被设计成无状态对象，所以虽然我们开发的Web应用都是多线程的应用，因为Web容器一定会创建多线程来执行我们的代码，但是我们开发中却可以很少考虑线程安全的问题。
 
-10.多线程的常见应用场景
+9.多线程的常见应用场景
 
 吞吐量：WEB容器帮你做了多线程，但是只能帮做请求层面的。简单的说，可能就是一个请求一个线程。或多个请求一个线程。如果是单线程，那同时只能处理一个用户的请求。
 伸缩性：可以通过增加CPU核数来提升性能。如果是单线程，那程序执行到死也就利用了单核，肯定没办法通过增加CPU核数来提升性能。
@@ -157,7 +115,7 @@ Servlet不是线程安全的。要解释为什么Servlet为什么不是线程安
 异步处理，例如：发微博、记录日志等；
 分布式计算。
 
-11.为什么Java线程没有Running状态？
+10.为什么Java线程没有Running状态？
 
 Java虚拟机层面所暴露给我们的状态，与操作系统底层的线程状态是两个不同层面的事。有人常觉得Java线程状态中还少了个running状态，这其实是把两个不同层面的状态混淆了。对Java线程状态而言，不存在所谓的running状态，它的runnable状态包含了running状态。
 Java线程状态均来自于Thread类下的State这一内部枚举类中所定义的状态，包括6种，New/Runnable/Blocked/Waiting/Timed_Waiting/Terminated。
@@ -171,9 +129,11 @@ Java线程状态均来自于Thread类下的State这一内部枚举类中所定�
 Java线程状态的改变通常只与自身显式引入的机制有关，如果JVM中的线程状态发生改变了，通常是自身机制引发的。比如synchronized机制有可能让线程进入BLOCKED状态，sleep，wait等方法则可能让其进入WATING之类的状态。
 至少我们看到了，进行传统上的IO操作时，口语上我们也会说“阻塞”，但这个“阻塞”与线程的 BLOCKED 状态是两码事！线程状态其实是Runnable。处于IO阻塞，只是说cpu不执行线程了，但网卡可能还在监听呀，虽然可能暂时没有收到数据。所以JVM认为线程还在执行。而操作系统的线程状态是围绕着cpu这一核心去述说的，这与JVM的侧重点是有所不同的。
 
-12.Java线程之间通信方式
+11.Java线程之间通信方式
 
-分布式系统中说的两种通信机制：共享内存机制和消息通信机制。synchronized关键字和while轮询 “属于” 共享内存机制。wait/notify机制、管道通信，是消息传递机制，管道通信通过管道将一个线程中的消息发送给另一个。
+分布式系统中说的两种通信机制：共享内存机制和消息通信机制。
+synchronized关键字和while轮询属于共享内存机制。
+wait/notify机制、管道通信，是消息传递机制，管道通信通过管道将一个线程中的消息发送给另一个。
 
 (1)同步
 
@@ -404,7 +364,7 @@ Java线程状态的改变通常只与自身显式引入的机制有关，如果J
 
 就是使用java.io.PipedInputStream和java.io.PipedOutputStream进行通信。
 
-13.如何停止一个正在运行的线程
+12.如何停止一个正在运行的线程
 
 3种方法：
 (1)使用退出标志，使线程正常退出，也就是当run方法完成后线程终止。
@@ -836,6 +796,342 @@ stop()方法已经作废，因为如果强制让线程停止有可能使一些�
 
 不过还是建议使用“抛异常”的方法来实现线程的停止，因为在catch块中还可以将异常向上抛，使线程停止事件得以传播。
 
+13.Synchronized
+
+(1)无Synchronized修饰普通方法：线程1和线程2是同时执行。
+(2)Synchronized修饰普通方法：线程2需要等待线程1的method1执行完成才能开始执行method2方法。
+(3)Synchronized修饰静态方法：对静态方法的同步本质上是对类的同步（静态方法本质上是属于类的方法，而不是对象上的方法），所以即使test和test2属于不同的对象，但是它们都属于SynchronizedTest类的实例，所以也只能顺序的执行method1和method2，不能并发执行。
+(4)Synchronized修饰代码块：虽然线程1和线程2都进入了对应的方法开始执行，但是线程2在进入同步块之前，需要等待线程1中同步块执行完成。
+
+Synchronized的实现原理：
+Synchronized的语义底层是通过一个monitor的对象来完成，其实wait/notify等方法也依赖于monitor对象，这就是为什么只有在同步的块或者方法中才能调用wait/notify等方法，否则会抛出java.lang.IllegalMonitorStateException的异常的原因。
+从反编译的结果来看，方法的同步并没有通过指令monitorenter和monitorexit来完成（理论上其实也可以通过这两条指令来实现），不过相对于普通方法，其常量池中多了ACC_SYNCHRONIZED标示符。
+JVM就是根据该标示符来实现方法的同步的：当方法调用时，调用指令将会检查方法的ACC_SYNCHRONIZED访问标志是否被设置，如果设置了，执行线程将先获取monitor，获取成功之后才能执行方法体，方法执行完后再释放monitor。
+在方法执行期间，其他任何线程都无法再获得同一个monitor对象。其实本质上没有区别，只是方法的同步是一种隐式的方式来实现，无需通过字节码来完成。
+
+monitorenter指令：
+每个对象有一个监视器锁（monitor）。当monitor被占用时就会处于锁定状态，线程执行monitorenter指令时尝试获取monitor的所有权，过程如下：
+如果monitor的进入数为0，则该线程进入monitor，然后将进入数设置为1，该线程即为monitor的所有者。如果线程已经占有该monitor，只是重新进入，则进入monitor的进入数加1。
+如果其他线程已经占用了monitor，则该线程进入阻塞状态，直到monitor的进入数为0，再重新尝试获取monitor的所有权。
+
+monitorexit指令：　
+执行monitorexit的线程必须是objectref所对应的monitor的所有者。
+指令执行时，monitor的进入数减1，如果减1后进入数为0，那线程退出monitor，不再是这个monitor的所有者。其他被这个monitor阻塞的线程可以尝试去获取这个monitor的所有权。
+
+14.wait/notify/notifyAll
+
+(1)wait
+
+wait()方法的作用是将当前运行的线程挂起（即让其进入阻塞状态），直到notify或notifyAll方法来唤醒线程。
+wait(long timeout)，该方法与wait()方法类似，唯一的区别就是在指定时间内，如果没有notify或notifAll方法的唤醒，也会自动唤醒。
+wait(long timeout,long nanos)，本意在于更精确的控制调度时间，不过从目前版本来看，该方法貌似没有完整的实现该功能，从源码来看，JDK8中对纳秒的处理，只做了四舍五入，所以还是按照毫秒来处理的，可能在未来的某个时间点会用到纳秒级别的精度。
+虽然JDK提供了这三个版本，其实最后都是调用wait(long timeout)方法来实现的，wait()方法与wait(0)等效，而wait(long timeout,int nanos)从上面的源码可以看到也是通过wait(long timeout)来完成的。
+wait方法的使用必须在同步的范围内，否则就会抛出IllegalMonitorStateException异常。wait方法是一个本地方法，其底层是通过一个叫做监视器锁的对象来完成的。之所以会抛出异常IllegalMonitorStateException，是因为在调用wait方式时没有获取到monitor对象的所有权。
+那如何获取monitor对象所有权？Java中只能通过Synchronized关键字来完成，修改包含wait的函数或者代码库，增加Synchronized关键字。
+调用wait方法后，线程是会释放对monitor对象的所有权的。
+
+(2)notify/notifyAll
+
+有了对wait方法原理的理解，notify方法和notifyAll方法就很容易理解了。既然wait方式是通过对象的monitor对象来实现的，所以只要在同一对象上去调用notify/notifyAll方法，就可以唤醒对应对象monitor上等待的线程了。
+notify和notifyAll的区别在于前者只能唤醒monitor上的一个线程，对其他线程没有影响，而notifyAll则唤醒所有的线程，看下面的例子很容易理解这两者的差别：
+一个通过wait方法阻塞的线程，必须同时满足以下两个条件才能被真正执行：线程需要被唤醒（超时唤醒或调用notify/notifyll）。线程唤醒后需要竞争到锁（monitor）。
+
+15.sleep/yield/join
+
+这几个方法都位于Thread类中，而wait/notify/notifyAll都位于Object类中。
+
+(1)sleep
+
+sleep方法的作用是让当前线程暂停指定的时间（毫秒），sleep方法是最简单的方法，在上述的例子中也用到过，比较容易理解。唯一需要注意的是其与wait方法的区别。
+最简单的区别是，wait方法依赖于同步，而sleep方法可以直接调用。而更深层次的区别在于sleep方法只是暂时让出CPU的执行权，并不释放锁。而wait方法则需要释放锁。
+通过sleep方法实现的暂停，程序是顺序进入同步块的，只有当上一个线程执行完成的时候，下一个线程才能进入同步方法，sleep暂停期间一直持有monitor对象锁，其他线程是不能进入的。
+而wait方法则不同，当调用wait方法后，当前线程会释放持有的monitor对象锁，因此，其他线程还可以进入到同步方法，线程被唤醒后，需要竞争锁，获取到锁之后再继续执行。
+
+(2)yield
+
+yield方法的作用是暂停当前线程，以便其他线程有机会执行，不过不能指定暂停的时间，并且也不能保证当前线程马上停止。yield方法只是将Running状态转变为Runnable状态。
+通过yield方法来实现两个线程的交替执行。不过请注意：这种交替并不一定能得到保证。
+调度器可能会忽略该方法。使用的时候要仔细分析和测试，确保能达到预期的效果。很少有场景要用到该方法，主要使用的地方是调试和测试。　　
+
+(3)join方法
+
+join方法的作用是父线程等待子线程执行完成后再执行，换句话说就是将异步执行的线程合并为同步的线程。
+JDK中提供三个版本的join方法，其实现与wait方法类似，join()方法实际上执行的join(0)，而join(long millis, int nanos)也与wait(long millis, int nanos)的实现方式一致，暂时对纳秒的支持也是不完整的。
+join方法就是通过wait方法来将线程的阻塞，如果join的线程还在执行，则将当前线程阻塞起来，直到join的线程执行完成，当前线程才能执行。
+不过有一点需要注意，这里的join只调用了wait方法，却没有对应的notify方法，原因是Thread的start方法中做了相应的处理，所以当join的线程执行完成以后，会自动唤醒主线程继续往下执行。
+在没有使用join方法之前，线程是并发执行的，而使用join方法后，所有线程是顺序执行的。
+
+16.volatile
+
+(1)防止重排序，有序性
+
+从一个最经典的例子来分析重排序问题。大家应该都很熟悉单例模式的实现，而在并发环境下的单例实现方式，我们通常可以采用双重检查加锁（DCL）的方式来实现。
+现在我们分析一下为什么要在变量singleton之间加上volatile关键字。要理解这个问题，先要了解对象的构造过程，实例化一个对象其实可以分为三个步骤：分配内存空间。初始化对象。将内存空间的地址赋值给对应的引用。
+但是由于操作系统可以对指令进行重排序，所以上面的过程也可能会变成如下过程：分配内存空间。将内存空间的地址赋值给对应的引用。初始化对象。如果是这个流程，多线程环境下就可能将一个未初始化的对象引用暴露出来，从而导致不可预料的结果。因此，为了防止这个过程的重排序，我们需要将变量设置为volatile类型的变量。
+有序性原理：
+Java中的happen-before规则通俗一点说就是如果a happen-before b，则a所做的任何操作对b是可见的。（这一点大家务必记住，因为happen-before这个词容易被误解为是时间的前后）。
+同一个线程中的，前面的操作happen-before后续的操作。（即单线程内按代码顺序执行。但是，在不影响在单线程环境执行结果的前提下，编译器和处理器可以进行重排序，这是合法的。换句话说，这一是规则无法保证编译重排和指令重排）。
+监视器上的解锁操作happen-before其后续的加锁操作。（Synchronized 规则）
+对volatile变量的写操作happen-before后续的读操作。（volatile 规则）
+线程的start()方法happen-before该线程所有的后续操作。（线程启动规则）
+线程所有的操作happen-before其他线程在该线程上调用join返回成功后的操作。
+如果a happen-before b，b happen-before c，则a happen-before c（传递性）。
+
+    public class Singleton {
+        public static volatile Singleton singleton;
+
+        /**
+         * 构造函数私有，禁止外部实例化
+         */
+        private Singleton() {};
+
+        public static Singleton getInstance() {
+            if (singleton == null) {
+                synchronized (singleton) {
+                    if (singleton == null) {
+                        singleton = new Singleton();
+                    }
+                }
+            }
+            return singleton;
+        }
+    }
+
+(2)实现可见性
+
+可见性问题主要指一个线程修改了共享变量值，而另一个线程却看不到。引起可见性问题的主要原因是每个线程拥有自己的一个高速缓存区——线程工作内存。volatile关键字能有效的解决这个问题。
+一个线程修改数据，另一个线程打印，如果将a和b都改成volatile类型的变量再执行，则再也不会出现b=3;a=1的结果了。
+可见性实现：线程本身并不直接与主内存进行数据的交互，而是通过线程的工作内存来完成相应的操作。这也是导致线程间数据不可见的本质原因。因此要实现volatile变量的可见性，直接从这方面入手即可。
+对volatile变量的写操作与普通变量的主要区别有两点：修改volatile变量时会强制将修改后的值刷新的主内存中。修改volatile变量后会导致其他线程工作内存中对应的变量值失效。因此，再读取该变量值的时候就需要重新从读取主内存中的值。
+
+(3)保证原子性
+
+对volatile变量的单次读/写操作可以保证原子性的。但是不能保证i++这种操作的原子性，因为本质上i++是读、写两次操作。
+因为long和double两种数据类型的操作可分为高32位和低32位两部分，因此普通的long或double类型读/写可能不是原子的。因此，鼓励大家将共享的long和double变量设置为volatile类型，这样能保证任何情况下对long和double的单次读/写操作都具有原子性。
+由1000个线程执行i++操作，结果并非1000。volatile是无法保证i++是具有原子性的，我们可以通过AtomicInteger或者Synchronized来保证+1操作的原子性。
+
+(4)内存屏障
+
+为了实现volatile可见性和happen-befor的语义。JVM底层是通过一个叫做“内存屏障”的东西来完成。内存屏障，也叫做内存栅栏，是一组处理器指令，用于实现对内存操作的顺序限制。
+下面是完成上述规则所要求的内存屏障：
+
+    LoadLoad 屏障
+    执行顺序：Load1—>Loadload—>Load2
+    确保Load2及后续Load指令加载数据之前能访问到Load1加载的数据。
+    
+    StoreStore 屏障
+    执行顺序：Store1—>StoreStore—>Store2
+    确保Store2以及后续Store指令执行前，Store1操作的数据对其它处理器可见。
+    
+    LoadStore 屏障
+    执行顺序：Load1—>LoadStore—>Store2
+    确保Store2和后续Store指令执行前，可以访问到Load1加载的数据。
+    
+    StoreLoad 屏障
+    执行顺序: Store1—> StoreLoad—>Load2
+    确保Load2和后续的Load指令读取之前，Store1的数据对其他处理器是可见的。
+    
+17.线程池
+
+(1)线程池优点/为什么使用线程池
+
+为每个请求创建新线程的服务器在创建和销毁线程上花费的时间和消耗的系统资源要比花在处理实际的用户请求的时间和资源更多。容易引起资源不足，造成浪费。为解决单个任务处理时间很短而请求的数目巨大的问题，引出线程池。
+通过对多个任务重用线程，线程创建的开销被分摊到了多个任务上。其好处是，因为在请求到达时线程已经存在，所以无意中也消除了线程创建所带来的延迟，使应用程序响应更快；
+通过适当地调整线程池中的线程数目，也就是当请求的数目超过某个阈值时，就强制其它任何新到的请求一直等待，直到获得一个线程来处理为止，从而可以防止资源不足。控制线程池的并发数可以有效的避免大量的线程池争夺CPU资源而造成堵塞。
+线程池可以对线程进行管理：线程池可以提供定时、定期、单线程、并发数控制等功能。
+
+(2)使用线程池的风险
+
+用线程池构建的应用程序容易遭受任何其它多线程应用程序容易遭受的所有并发风险，诸如同步错误和死锁，它还容易遭受特定于线程池的少数其它风险，诸如与池有关的死锁、资源不足和线程泄漏。
+
+(a)死锁：任何多线程应用程序都有死锁风险。当一组进程或线程中的每一个都在等待一个只有该组中另一个进程才能引起的事件时，我们就说这组进程或线程死锁了。
+虽然任何多线程程序中都有死锁的风险，但线程池却引入了另一种死锁可能，在那种情况下，所有池线程都在执行已阻塞的等待队列中另一任务的执行结果的任务，但这一任务却因为没有未被占用的线程而不能运行。
+
+(b)资源不足：线程池的一个优点在于，相对于其它替代调度机制而言，它们通常执行得很好。但只有恰当地调整了线程池大小时才是这样的。
+线程消耗包括内存和其它系统资源在内的大量资源。除了Thread对象所需的内存之外，每个线程都需要两个可能很大的执行调用堆栈。除此以外，JVM可能会为每个Java线程创建一个本机线程，这些本机线程将消耗额外的系统资源。最后，虽然线程之间切换的调度开销很小，但如果有很多线程，环境切换也可能严重地影响程序的性能。
+如果线程池太大，那么被那些线程消耗的资源可能严重地影响系统性能。在线程之间进行切换将会浪费时间，而且使用超出比您实际需要的线程可能会引起资源匮乏问题，因为池线程正在消耗一些资源，而这些资源可能会被其它任务更有效地利用。除了线程自身所使用的资源以外，服务请求时所做的工作可能需要其它资源，例如JDBC连接、套接字或文件。这些也都是有限资源，有太多的并发请求也可能引起失效，例如不能分配JDBC连接。
+
+(c)线程泄漏：各种类型的线程池中一个严重的风险是线程泄漏，当从池中除去一个线程以执行一项任务，而在任务完成后该线程却没有返回池时，会发生这种情况。发生线程泄漏的一种情形出现在任务抛出一个RuntimeException或一个Error时。如果池类没有捕捉到它们，那么线程只会退出而线程池的大小将会永久减少一个。当这种情况发生的次数足够多时，线程池最终就为空，而且系统将停止，因为没有可用的线程来处理任务。
+有些任务可能会永远等待某些资源或来自用户的输入，而这些资源又不能保证变得可用，用户可能也已经回家了，诸如此类的任务会永久停止，而这些停止的任务也会引起和线程泄漏同样的问题。如果某个线程被这样一个任务永久地消耗着，那么它实际上就被从池除去了。对于这样的任务，应该要么只给予它们自己的线程，要么只让它们等待有限的时间。
+
+(3)有效使用线程池的准则
+
+不要对那些同步等待其它任务结果的任务排队。这可能会导致上面所描述的那种形式的死锁，在那种死锁中，所有线程都被一些任务所占用，这些任务依次等待排队任务的结果，而这些任务又无法执行，因为所有的线程都很忙。
+在为时间可能很长的操作使用合用的线程时要小心。如果程序必须等待诸如 I/O 完成这样的某个资源，那么请指定最长的等待时间，以及随后是失效还是将任务重新排队以便稍后执行。这样做保证了：通过将某个线程释放给某个可能成功完成的任务，从而将最终取得某些进展。
+理解任务。要有效地调整线程池大小，您需要理解正在排队的任务以及它们正在做什么。它们是 CPU 限制的（CPU-bound）吗？它们是 I/O 限制的（I/O-bound）吗？您的答案将影响您如何调整应用程序。如果您有不同的任务类，这些类有着截然不同的特征，那么为不同任务类设置多个工作队列可能会有意义，这样可以相应地调整每个池。
+
+(4)线程池的大小设置
+
+调整线程池的大小基本上就是避免两类错误：线程太少或线程太多。
+虽然线程池大小的设置受到很多因素影响，但是这里给出一个参考公式：最佳线程数目 = （（线程等待时间+线程CPU时间）/线程CPU时间 ）* CPU数目
+比如平均每个线程CPU运行时间为0.5s，而线程等待时间（非CPU运行时间，比如IO）为1.5s，CPU核心数为8，那么根据上面这个公式估算得到：((0.5+1.5)/0.5)*8=32。这个公式进一步转化为：最佳线程数目 = （线程等待时间与线程CPU时间之比 + 1）* CPU数目
+线程等待时间所占比例越高，需要越多线程。线程CPU时间所占比例越高，需要越少线程。
+
+18.ThreadPoolExecutor
+
+ThreadPoolExecutor里面使用到JUC同步器框架AbstractQueuedSynchronizer（俗称AQS）、大量的位操作、CAS操作。ThreadPoolExecutor提供了固定活跃线程（核心线程）、额外的线程（线程池容量 - 核心线程数这部分额外创建的线程，下面称为非核心线程）、任务队列以及拒绝策略这几个重要的功能。
+
+构造函数及七个参数的含义：
+
+    public ThreadPoolExecutor(int corePoolSize,  
+                              int maximumPoolSize,  
+                              long keepAliveTime,  
+                              TimeUnit unit,  
+                              BlockingQueue<Runnable> workQueue,  
+                              ThreadFactory threadFactory,  
+                              RejectedExecutionHandler handler)
+
+    corePoolSize 线程池中核心线程的数量；
+    maximumPoolSize 线程池中最大线程数量；
+    keepAliveTime 非核心线程的超时时长，当系统中非核心线程闲置时间超过keepAliveTime之后，则会被回收。如果ThreadPoolExecutor的allowCoreThreadTimeOut属性设置为true，则该参数也表示核心线程的超时时长；
+    unit 第三个参数的单位，有纳秒、微秒、毫秒、秒、分、时、天等；
+    workQueue 线程池中的任务队列，该队列主要用来存储已经被提交但是尚未执行的任务。存储在这里的任务是由ThreadPoolExecutor的execute方法提交来的。
+    threadFactory 为线程池提供创建新线程的功能，这个我们一般使用默认即可；
+    handler 拒绝策略，当线程无法执行新任务时（一般是由于线程池中的线程数量已经达到最大数或者线程池关闭导致的），默认情况下，当线程池无法处理新线程时，会抛出一个RejectedExecutionException。
+
+执行流程：
+当currentSize<corePoolSize时，没什么好说的，直接启动一个核心线程并执行任务。
+当currentSize>=corePoolSize、并且workQueue未满时，添加进来的任务会被安排到workQueue中等待执行。
+当workQueue已满，但是currentSize<maximumPoolSize时，会立即开启一个非核心线程来执行任务。
+当currentSize>=corePoolSize、workQueue已满、并且currentSize>maximumPoolSize时，调用handler，执行线程池饱和策略，默认抛出RejectExecutionExpection异常。
+
+线程池饱和策略分为以下几种：
+AbortPolicy:直接抛出一个异常，默认策略
+DiscardPolicy: 直接丢弃任务
+DiscardOldestPolicy:抛弃下一个将要被执行的任务(最旧任务)
+CallerRunsPolicy:主线程中执行任务
+
+几种典型的工作队列：
+ArrayBlockingQueue:使用数组实现的有界阻塞队列，特性先进先出
+LinkedBlockingQueue:使用链表实现的阻塞队列，特性先进先出，可以设置其容量，默认为Interger.MAX_VALUE，特性先进先出
+PriorityBlockingQueue:使用平衡二叉树堆，实现的具有优先级的无界阻塞队列
+DelayQueue:无界阻塞延迟队列，队列中每个元素均有过期时间，当从队列获取元素时，只有过期元素才会出队列。队列头元素是最块要过期的元素。
+SynchronousQueue:一个不存储元素的阻塞队列，每个插入操作，必须等到另一个线程调用移除操作，否则插入操作一直处于阻塞状态。
+
+使用无界队列的线程池会导致内存飙升吗？
+会的，newFixedThreadPool使用了无界的阻塞队列LinkedBlockingQueue，如果线程获取一个任务后，任务的执行时间比较长，会导致队列的任务越积越多，导致机器内存使用不停飙升， 最终导致OOM。
+
+线程回收：
+ThreadPoolExecutor回收工作线程，一条线程getTask()返回null，就会被回收。分两种场景。
+(1)未调用shutdown() ，RUNNING状态下全部任务执行完成的场景：线程数量大于corePoolSize，线程获取任务但超时阻塞，超时唤醒后CAS减少工作线程数，如果CAS成功，返回null，线程回收。否则进入下一次循环。当工作者线程数量小于等于corePoolSize，就可以一直阻塞了。
+(2)调用shutdown() ，全部任务执行完成的场景：shutdown()会向所有线程发出中断信号，这时有两种可能。
+(2.1)所有线程都在阻塞，中断唤醒，进入循环，都符合第一个if判断条件（线程池的状态已经是STOP，TIDYING, TERMINATED，或者是SHUTDOWN且工作队列为空），都返回null，所有线程回收。
+(2.2)任务还没有完全执行完，至少会有一条线程被回收。在processWorkerExit(Worker w, boolean completedAbruptly)方法里会调用tryTerminate()，向任意空闲线程发出中断信号。所有被阻塞的线程，最终都会被一个个唤醒，回收。
+
+19.典型的线程池
+
+(1)newFixedThreadPool
+
+创建一个指定工作线程数量的线程池。每当提交一个任务就创建一个工作线程，如果工作线程数量达到线程池初始的最大数，则将提交的任务存入到池队列中。
+其corePoolSize=maximumPoolSize，且keepAliveTime为0，适合线程稳定的场景。使用LinkedBlockingQueue。
+FixedThreadPool是一个典型且优秀的线程池，它具有线程池提高程序效率和节省创建线程时所耗的开销的优点。但是，在线程池空闲时，即线程池中没有可运行任务时，它不会释放工作线程，还会占用一定的系统资源。
+
+    public class ThreadPoolExecutorTest {
+     public static void main(String[] args) {
+      ExecutorService fixedThreadPool = Executors.newFixedThreadPool(3);
+      for (int i = 0; i < 10; i++) {
+       final int index = i;
+       fixedThreadPool.execute(new Runnable() {
+        public void run() {
+         try {
+          System.out.println(index);
+          Thread.sleep(2000);
+         } catch (InterruptedException e) {
+          e.printStackTrace();
+         }
+        }
+       });
+      }
+     }
+    }
+
+(2)newSingleThreadExecutor
+
+Single中文解释为单一。结合在一起解释单一的线程池，说的更全面点就是，有固定数量线程的线程池，且数量为一，从数学的角度来看SingleThreadPool应该属于FixedThreadPool的子集。其corePoolSize=maximumPoolSize=1,且keepAliveTime为0，适合线程同步操作的场所。使用LinkedBlockingQueue。
+创建一个单线程化的Executor，即只创建唯一的工作者线程来执行任务，它只会用唯一的工作线程来执行任务，保证所有任务按照指定顺序(FIFO, LIFO, 优先级)执行。如果这个线程异常结束，会有另一个取代它，保证顺序执行。单工作线程最大的特点是可保证顺序地执行各个任务，并且在任意给定的时间不会有多个线程是活动的。
+
+    public class ThreadPoolExecutorTest {
+     public static void main(String[] args) {
+      ExecutorService singleThreadExecutor = Executors.newSingleThreadExecutor();
+      for (int i = 0; i < 10; i++) {
+       final int index = i;
+       singleThreadExecutor.execute(new Runnable() {
+        public void run() {
+         try {
+          System.out.println(index);
+          Thread.sleep(2000);
+         } catch (InterruptedException e) {
+          e.printStackTrace();
+         }
+        }
+       });
+      }
+     }
+    }
+
+(3)newCachedThreadPool
+
+Cached中文解释为储存。结合在一起解释储存的线程池，说的更通俗易懂，既然要储存，其容量肯定是很大，所以它的corePoolSize=0，maximumPoolSize=Integer.MAX_VALUE(2^32-1一个很大的数字)。使用SynchronousQueue。
+创建一个可缓存线程池，如果线程池长度超过处理需要，可灵活回收空闲线程，若无可回收，则新建线程。这种类型的线程池特点是：工作线程的创建数量几乎没有限制(其实也有限制的,数目为Interger. MAX_VALUE), 这样可灵活的往线程池中添加线程。
+如果长时间没有往线程池中提交任务，即如果工作线程空闲了指定的时间(默认为1分钟)，则该工作线程将自动终止。终止后，如果你又提交了新的任务，则线程池重新创建一个工作线程。
+在使用CachedThreadPool时，一定要注意控制任务的数量，否则，由于大量线程同时运行，很有会造成系统瘫痪。
+
+    public class ThreadPoolExecutorTest {
+     public static void main(String[] args) {
+      ExecutorService cachedThreadPool = Executors.newCachedThreadPool();
+      for (int i = 0; i < 10; i++) {
+       final int index = i;
+       try {
+        Thread.sleep(index * 1000);
+       } catch (InterruptedException e) {
+        e.printStackTrace();
+       }
+       cachedThreadPool.execute(new Runnable() {
+        public void run() {
+         System.out.println(index);
+        }
+       });
+      }
+     }
+    }
+
+(4)newScheduleThreadPool
+
+创建一个定长的线程池，而且支持定时的以及周期性的任务执行，支持定时及周期性任务执行。
+Scheduled中文解释为计划。结合在一起解释计划的线程池，顾名思义既然涉及到计划，必然会涉及到时间。所以ScheduledThreadPool是一个具有定时定期执行任务功能的线程池。使用DelayedWorkQueue。
+
+    // 表示延迟1秒后每3秒执行一次
+    public class ThreadPoolExecutorTest {
+     public static void main(String[] args) {
+      ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(5);
+      scheduledThreadPool.scheduleAtFixedRate(new Runnable() {
+       public void run() {
+        System.out.println("delay 1 seconds, and excute every 3 seconds");
+       }
+      }, 1, 3, TimeUnit.SECONDS);
+     }
+    }
+    // 延迟3秒执行
+    public class ThreadPoolExecutorTest {
+     public static void main(String[] args) {
+      ScheduledExecutorService scheduledThreadPool = Executors.newScheduledThreadPool(5);
+      scheduledThreadPool.schedule(new Runnable() {
+       public void run() {
+        System.out.println("delay 3 seconds");
+       }
+      }, 3, TimeUnit.SECONDS);
+     }
+    }
+
+20.线程池中多余的线程回收
+
+ThreadPoolExecutor回收工作线程，一条线程getTask()返回null，就会被回收。两种场景如下：
+
+(1)未调用shutdown()，RUNNING状态下全部任务执行完成的场景：线程数量大于corePoolSize，线程超时阻塞，超时唤醒后CAS减少工作线程数，如果CAS成功，返回null，线程回收。否则进入下一次循环。当工作者线程数量小于等于corePoolSize，就可以一直阻塞了。
+(2)调用shutdown()，全部任务执行完成的场景：shutdown()会向所有线程发出中断信号，这时有两种可能。
+    (a)所有线程都在阻塞，中断唤醒，进入循环，都符合第一个if判断条件，都返回null，所有线程回收。
+    (b)任务还没有完全执行完，至少会有一条线程被回收。在processWorkerExit(Worker w, boolean completedAbruptly)方法里会调用tryTerminate()，向任意空闲线程发出中断信号。所有被阻塞的线程，最终都会被一个个唤醒，回收。
+
 N.参考
 
 (1)[线程进程区别](https://www.cnblogs.com/toria/p/11123130.html)
@@ -903,6 +1199,8 @@ N.参考
 7.自旋锁
 
 在Java中，自旋锁是指尝试获取锁的线程不会立即阻塞，而是采用循环的方式去尝试获取锁，这样的好处是减少线程上下文切换的消耗，缺点是循环会消耗CPU。
+java线程其实是映射在内核之上的，线程的挂起和恢复会极大的影响开销。并且jdk官方人员发现，很多线程在等待锁的时候，在很短的一段时间就获得了锁，所以它们在线程等待的时候，并不需要把线程挂起，而是让它无目的的循环，一般设置10次。这样就避免了线程切换的开销，极大的提升了性能。
+而适应性自旋，是赋予了自旋一种学习能力，它并不固定自旋10次一下。可以根据它前面线程的自旋情况，从而调整它的自旋，甚至是不经过自旋而直接挂起。
 
 8.监视器
 
@@ -918,3 +1216,127 @@ java还提供了显式监视器(Lock)和隐式监视器(synchronized)两种锁�
 (2)保持和请求条件：一个进程因请求资源而阻塞时，对已获得资源保持不放。
 (3)不可剥夺性：进程已获得资源，在未使用完成前，不能被剥夺。
 (4)循环等待条件（闭环）：若干进程之间形成一种头尾相接的循环等待资源关系。
+
+10.Lock
+
+synchronized与Lock的区别
+
+    类别	synchronized	            Lock
+    存在层次	Java的关键字，在jvm层面上	            是一个类
+    锁的释放	1、以获取锁的线程执行完同步代码，释放锁 2、线程执行发生异常，jvm会让线程释放锁	            在finally中必须释放锁，不然容易造成线程死锁
+    锁的获取	假设A线程获得锁，B线程等待。如果A线程阻塞，B线程会一直等待	            分情况而定，Lock有多个锁获取的方式，具体下面会说道，大致就是可以尝试获得锁，线程可以不用一直等待
+    锁状态	无法判断	            可以判断
+    锁类型	可重入 不可中断 非公平	            可重入 可判断 可公平（两者皆可）
+    性能	少量同步	大量同步
+
+
+Lock主要方法
+
+    lock()：获取锁，如果锁被暂用则一直等待
+    unlock()：释放锁
+    tryLock(): 注意返回类型是boolean，如果获取锁的时候锁被占用就返回false，否则返回true
+    tryLock(long time, TimeUnit unit)：比起tryLock()就是给了一个时间期限，保证等待参数时间
+    lockInterruptibly()：用该锁的获得方式，如果线程在获取锁的阶段进入了等待，那么可以中断此线程，先去做别的事
+
+例子，注意ReentrantLock是Lock接口的实现。ReentrantLock默认的是非公平锁。
+
+lock()：
+
+    public class LockTest {
+        private Lock lock = new ReentrantLock();
+    
+        //需要参与同步的方法
+        private void method(Thread thread){
+            lock.lock();
+            try {
+                System.out.println("线程名"+thread.getName() + "获得了锁");
+            }catch(Exception e){
+                e.printStackTrace();
+            } finally {
+                System.out.println("线程名"+thread.getName() + "释放了锁");
+                lock.unlock();
+            }
+        }
+    
+        public static void main(String[] args) {
+            LockTest lockTest = new LockTest();
+    
+            //线程1
+            Thread t1 = new Thread(new Runnable() {
+    
+                @Override
+                public void run() {
+                    lockTest.method(Thread.currentThread());
+                }
+            }, "t1");
+    
+            Thread t2 = new Thread(new Runnable() {
+    
+                @Override
+                public void run() {
+                    lockTest.method(Thread.currentThread());
+                }
+            }, "t2");
+    
+            t1.start();
+            t2.start();
+        }
+    }
+    //执行情况：线程名t1获得了锁
+    //         线程名t1释放了锁
+    //         线程名t2获得了锁
+    //         线程名t2释放了锁
+
+tryLock()：
+    
+    public class LockTest {
+        private Lock lock = new ReentrantLock();
+    
+        //需要参与同步的方法
+        private void method(Thread thread){    
+            if(lock.tryLock()){
+                try {
+                    System.out.println("线程名"+thread.getName() + "获得了锁");
+                }catch(Exception e){
+                    e.printStackTrace();
+                } finally {
+                    System.out.println("线程名"+thread.getName() + "释放了锁");
+                    lock.unlock();
+                }
+            }else{
+                System.out.println("我是"+Thread.currentThread().getName()+"有人占着锁，我就不要啦");
+            }
+        }
+    
+        public static void main(String[] args) {
+            LockTest lockTest = new LockTest();
+    
+            //线程1
+            Thread t1 = new Thread(new Runnable() {
+    
+                @Override
+                public void run() {
+                    lockTest.method(Thread.currentThread());
+                }
+            }, "t1");
+    
+            Thread t2 = new Thread(new Runnable() {
+    
+                @Override
+                public void run() {
+                    lockTest.method(Thread.currentThread());
+                }
+            }, "t2");
+    
+            t1.start();
+            t2.start();
+        }
+    }
+    //执行结果： 线程名t2获得了锁
+    //         我是t1有人占着锁，我就不要啦
+    //         线程名t2释放了锁
+
+11.锁消除
+
+锁消除就是把不必要的同步在编译阶段进行移除。
+这里所说的锁消除并不一定指代是你写的代码的锁消除，通过指针逃逸分析（就是变量不会外泄），发现在这段代码并不存在线程安全问题，这个时候就会把这个同步锁消除。
