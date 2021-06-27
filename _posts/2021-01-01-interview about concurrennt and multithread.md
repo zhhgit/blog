@@ -1340,3 +1340,89 @@ tryLock()：
 
 锁消除就是把不必要的同步在编译阶段进行移除。
 这里所说的锁消除并不一定指代是你写的代码的锁消除，通过指针逃逸分析（就是变量不会外泄），发现在这段代码并不存在线程安全问题，这个时候就会把这个同步锁消除。
+
+# JUC
+
+1.JUC
+
+J.U.C即java.util.concurrent包，为我们提供了很多高性能的并发类，可以说是java并发的核心。
+Concurrent包下所有类底层都是依靠CAS操作来实现，而sun.misc.Unsafe为我们提供了一系列的CAS操作。
+AQS框架是J.U.C中实现锁及同步机制的基础，其底层是通过调用LockSupport.unpark()和LockSupport.park()实现线程的阻塞和唤醒。
+J.U.C的整个框架分为5个部分：tools、locks、collections、executor和atomic。
+
+(1)Atomic
+
+该包下主要是一些原子变量类，仅依赖于Unsafe，并且被其他模块所依赖。
+
+(2)Locks
+
+该包下主要是关于锁及其相关类，仅依赖于Unsafe或内部依赖，并且被其他高级模块所依赖。由于LockSupport类底层逻辑简单且仅依赖Unsafe，同时为其他高级模块所依赖，所以需要先了解LockSupport类的运行原理，然后重点研究AbstractQueuedSynchronizer框架，理解独占锁和共享锁的实现原理，并清楚Condition如何与AbstractQueuedSynchronizer进行协作，最后很容易就能理解ReentrantLock是如何实现的。
+
+(3)Collections
+
+该包会依赖Unsafe和前两个基础模块，并且模块内部各个容器间相互较为独立，所以没有固定的学习顺序，理解编程中常用的集合类原理即可：
+ConcurrentHashMap、CopyOnWriteArrayList、CopyOnWriteArraySet、ArrayBlockingQueue、LinkedBlockingQueue（阻塞队列在线程池中有使用，所以理解常用阻塞队列的特性很重要）。
+
+(4)Executor
+
+这一部分的核心是线程池的运行原理，也是实际应用中较多的部分，会依赖于前几个模块。首先了解Callable、Future、RunnableFuture三个接口间的关系以及FutureTask的实现原理，然后研究如何创建ThreadPoolExecutor，如何运行一个任务，如何管理自身的线程，同时了解RejectedExecutionHandler的四种实现差异，最后，在实际应用中学习如何通过调整ThreadPoolExecutor的参数来优化线程池。
+
+(5)Tools
+
+这一部分是以前面几个模块为基础的高级特性模块，实际应用的场景相对较少，主要应用在多线程间相互依赖执行结果场景，没有具体的学习顺序。
+最好CountDownLatch、CyclicBarrier、Semaphore、Exchanger、Executors都了解下，对后面学习Guava的框架有帮助。
+
+2.AQS
+
+(1)可重入锁
+
+ReentrantLock是可重入锁，可重入锁就是当前持有该锁的线程能够多次获取该锁，无需等待。可重入锁是如何实现的呢？这要从ReentrantLock的一个内部类Sync的父类说起，Sync的父类是AbstractQueuedSynchronizer（AQS，抽象队列同步器）。
+AQS是JDK1.5提供的一个基于FIFO等待队列实现的一个用于实现同步器的基础框架，这个基础框架的重要性可以这么说，JUC包里面几乎所有的有关锁、多线程并发以及线程同步器等重要组件的实现都是基于AQS这个框架。
+AQS的核心思想是基于volatile int state这样的一个属性同时配合Unsafe工具对其原子性的操作来实现对当前锁的状态进行修改。当state的值为0的时候，标识该Lock不被任何线程所占有。
+ReentrantLock的架构主要包括一个Sync的内部抽象类以及Sync抽象类的两个实现类。
+AQS的父类AOS(AbstractOwnableSynchronizer)主要提供一个exclusiveOwnerThread属性，用于关联当前持有该锁的线程。
+另外、Sync的两个实现类分别是NonfairSync和FairSync，一个是用于实现公平锁，一个是用于实现非公平锁。那么Sync为什么要被设计成内部类呢？Sync被设计成为安全的外部不可访问的内部类，使得ReentrantLock中所有涉及对AQS的访问都要经过Sync，其实，Sync被设计成为内部类主要是为了安全性考虑，这也是作者在AQS的comments上强调的一点。
+
+(2)AQS框架
+
+AQS维护了一个volatile int state域和一个FIFO线程等待队列（利用双向链表实现，多线程争用资源被阻塞时会进入此队列）。
+主要的域如下：
+
+    private transient volatile Node head; //同步队列的head节点
+    private transient volatile Node tail; //同步队列的tail节点
+    private volatile int state; //同步状态
+
+AQS提供的可以修改同步状态的3个方法：
+
+    protected final int getState();　　//获取同步状态
+    protected final void setState(int newState);　　//设置同步状态
+    protected final boolean compareAndSetState(int expect, int update);　　//CAS设置同步状态
+
+这三种叫做均是原子操作，其中compareAndSetState的实现依赖于Unsafe的compareAndSwapInt()方法。代码实现如下：
+
+    private volatile int state;
+    protected final int getState() {
+        return state;
+    }
+    protected final void setState(int newState) {
+        state = newState;
+    }
+    protected final boolean compareAndSetState(int expect, int update) {
+        // See below for intrinsics setup to support this
+        return unsafe.compareAndSwapInt(this, stateOffset, expect, update);
+    }
+
+(3)自定义资源共享方式
+
+AQS定义两种资源共享方式：Exclusive（独占，只有一个线程能执行，如ReentrantLock）和Share（共享，多个线程可同时执行，如Semaphore/CountDownLatch(CountDownLatch是并发的)）。
+不同的自定义同步器争用共享资源的方式也不同。自定义同步器在实现时只需要实现共享资源state的获取与释放方式即可，至于具体线程等待队列的维护（如获取资源失败入队/唤醒出队等），AQS已经在顶层实现好了。自定义同步器实现时主要实现以下几种方法：
+
+    isHeldExclusively()：该线程是否正在独占资源。只有用到condition才需要去实现它。
+    tryAcquire(int)：独占方式。尝试获取资源，成功则返回true，失败则返回false。
+    tryRelease(int)：独占方式。尝试释放资源，成功则返回true，失败则返回false。
+    tryAcquireShared(int)：共享方式。尝试获取资源。负数表示失败；0表示成功，但没有剩余可用资源；正数表示成功，且有剩余资源。
+    tryReleaseShared(int)：共享方式。尝试释放资源，如果释放后允许唤醒后续等待结点返回true，否则返回false。
+
+以ReentrantLock为例，state初始化为0，表示未锁定状态。A线程lock()时，会调用tryAcquire()独占该锁并将state+1。此后，其他线程再tryAcquire()时就会失败，直到A线程unlock()到state=0（即释放锁）为止，其它线程才有机会获取该锁。当然，释放锁之前，A线程自己是可以重复获取此锁的（state会累加），这就是可重入的概念。但要注意，获取多少次就要释放多么次，这样才能保证state是能回到零态的。
+再以CountDownLatch以例，任务分为N个子线程去执行，state也初始化为N（注意N要与线程个数一致）。这N个子线程是并行执行的，每个子线程执行完后countDown()一次，state会CAS减1。等到所有子线程都执行完后(即state=0)，会unpark()主调用线程，然后主调用线程就会从await()函数返回，继续后余动作。
+一般来说，自定义同步器要么是独占方法，要么是共享方式，他们也只需实现tryAcquire-tryRelease、tryAcquireShared-tryReleaseShared中的一种即可。但AQS也支持自定义同步器同时实现独占和共享两种方式，如ReentrantReadWriteLock。
