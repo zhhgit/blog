@@ -352,6 +352,30 @@ HTTP请求的起始行称为请求行，形如GET /index.html HTTP/1.1。HTTP响
         }
     }
 
+(5)两个问题需要注意
+
+如果单例由不同的类装载器装入，那便有可能存在多个单例类的实例。假定不是远端存取，例如一些servlet容器对每个servlet使用完全不同的类装载器，这样的话如果有两个servlet访问一个单例类，它们就都会有各自的实例。修复办法：
+
+    private static Class getClass(String classname) throws ClassNotFoundException {   
+        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+    
+          if(classLoader == null)   
+             classLoader = Singleton.class.getClassLoader();   
+    
+          return (classLoader.loadClass(classname));   
+        }   
+    }
+
+如果Singleton实现了java.io.Serializable接口，那么这个类的实例就可能被序列化和复原。不管怎样，如果你序列化一个单例类的对象，接下来复原多个那个对象，那你就会有多个单例类的实例。修复办法：
+
+    public class Singleton implements java.io.Serializable {   
+        public static Singleton INSTANCE = new Singleton();
+        protected Singleton() {}   
+        private Object readResolve() {   
+            return INSTANCE;   
+        }  
+    }
+
 4.为什么是双重校验锁实现单例模式呢？
 
     public class Singleton {
