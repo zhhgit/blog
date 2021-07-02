@@ -23,6 +23,9 @@ tags: [Interview]
 
 3.倒排索引
 
+term：关键词。
+postings list：所有包含特定term文档的id的集合。再说id的范围，在存储数据的时候，在每一个shard里面，ES会将数据存入不同的segment，这是一个比shard 更小的分片单位，这些segment会定期合并。在每一个segment里面都会保存最多2^31个文档，每个文档被分配一个唯一的id，从0到(2^31)-1。
+
 在搜索引擎中，每个文档都有一个对应的文档ID，文档内容被表示为一系列关键词的集合。例如，文档1经过分词，提取了20个关键词，每个关键词都会记录它在文档中出现的次数和出现位置。
 那么，倒排索引就是关键词到文档ID的映射，每个关键词都对应着一系列的文件，这些文件中都出现了关键词。例如：
 
@@ -125,7 +128,7 @@ buffer每refresh 一次，就会产生一个segment file ，所以默认情况�
     Document Values
     Cache
 
-Inverted Index：
+(1)Inverted Index：
 
 主要包括两部分：一个有序的数据字典Dictionary（包括单词Term和它出现的频率）。与单词Term对应的Postings（即存在这个单词的文件）。当我们搜索的时候，首先将搜索的内容分解，然后在字典里找到对应Term，从而查找到与搜索相关的文件内容。
 自动补全（AutoCompletion-Prefix）：如果想要查找以字母“c”开头的字母，可以简单的通过二分查找（Binary Search）在Inverted Index表中找到例如“choice”、“coming”这样的词（Term）。
@@ -136,12 +139,12 @@ Inverted Index：
     (60.6384, 6.5017) -> u4u8gyykk 对于GEO位置信息，可以将它转换为GEO Hash。
     123 -> {1-hundreds, 12-tens, 123} 对于简单的数字，可以为它生成多重形式的Term。
 
-Stored Field：
+(2)Stored Field：
 
 当我们想要查找包含某个特定标题内容的文件时，Inverted Index就不能很好的解决这个问题，所以Lucene提供了另外一种数据结构Stored Fields来解决这个问题。
 本质上，Stored Fields是一个简单的键值对key-value。默认情况下，ElasticSearch会存储整个文件的JSON source。
 
-Document Values：
+(3)Document Values：
 
 即使这样，我们发现以上结构仍然无法解决诸如：排序、聚合、facet，因为我们可能会要读取大量不需要的信息。
 所以，另一种数据结构解决了此种问题：Document Values。这种结构本质上就是一个列式的存储，它高度优化了具有相同类型的数据的存储结构。
