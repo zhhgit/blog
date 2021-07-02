@@ -36,7 +36,28 @@ SOA：大块业务逻辑、通常松耦合、公司架构任何类型、着重�
 优点：松耦合，聚焦单一业务功能，无关开发语言，团队规模降低。在开发中，不需要了解多有业务，只专注于当前功能，便利集中，功能小而精。微服务一个功能受损，对其他功能影响并不是太大，可以快速定位问题。微服务只专注于当前业务逻辑代码，不会和html、css或其他界面进行混合。可以灵活搭配技术，独立性比较舒服。
 缺点：随着服务数量增加，管理复杂，部署复杂，服务器需要增多，服务通信和调用压力增大，运维工程师压力增大，人力资源增多，系统依赖增强，数据一致性，性能监控。
 
-N.参考
+3.CAP定理
+
+CAP理论告诉我们，一个分布式系统不可能同时满足一致性，可用性和分区容错性这三个基本需求，最多只能同时满足其中的2个。
+Consistency：中文叫做"一致性"。意思是，写操作之后的读操作，必须返回该值。举例来说，某条记录是v0，用户向G1发起一个写操作，将其改为v1，接下来，用户的读操作就会得到v1。这就叫一致性。
+Availability：中文叫做"可用性"，意思是只要收到用户的请求，服务器就必须给出回应。用户可以选择向G1或G2发起读操作。不管是哪台服务器，只要收到请求，就必须告诉用户，到底是v0还是v1，否则就不满足可用性。
+Partition tolerance：中文叫做"分区容错"，大多数分布式系统都分布在多个子网络。每个子网络就叫做一个区（partition）。分区容错的意思是，区间通信可能失败。比如，一台服务器放在中国，另一台服务器放在美国，这就是两个区，它们之间可能无法通信。
+
+CA：满足原子和可用，放弃分区容错，说白了就是一个整体的应用。
+CP：满足原子和分区容错，放弃可用性。当系统被分区，为了保证原子性，必须放弃可用性，让服务停用。
+AP：满足可用性和分区容错，放弃原子性。当出现分区，必须让节点继续对外服务，导致失去原子性。
+
+在一般情况下，都是要满足分区容错性的。
+Eureka的AP特性：Eureka各个节点都是平等的，几个节点挂掉不会影响正常节点的工作，剩余的节点依然可以提供注册和查询服务。而Eureka的客户端在向某个Eureka注册或时如果发现连接失败，则会自动切换至其它节点，只要有一台Eureka还在，就能保证注册服务可用(保证可用性)，只不过查到的信息可能不是最新的(不保证强一致性)，其中说明了，eureka是不满足强一致性，但还是会保证最终一致性，所以可以得出一个结论，eureka不是不满足一致性，只是在同等情况下，eureka会首先保证可用性，在一定程度内再去进行一致性的同步。eureka是AP原则，可用性和分区容错性。eureka各个节点是平等的，一个节点挂掉，其他节点仍会正常保证服务。
+Zookeeper的CP特性：同样我们来看zookeeper，zookeeper在选举leader时，会停止服务，直到选举成功之后才会再次对外提供服务，这个时候就说明了服务不可用，但是在选举成功之后，因为一主多从的结构，zookeeper在这时还是一个高可用注册中心，只是在优先保证一致性的前提下，zookeeper才会顾及到可用性。zookeeper是CP原则，强一致性和分区容错性。zookeeper当主节点故障时，zk会在剩余节点重新选择主节点，耗时过长，虽然最终能够恢复，但是选取主节点期间会导致服务不可用，这是不能容忍的。
+CAP其实在分布式系统中，是优先保证满足其中两个特性，而不是传统意义上的单纯只满足其中两个特性而舍弃另一个特性。
+
+4.BASE理论
+
+即使无法做到强一致性，但每个应用都可以根据自身业务特点，采用适当的方式来使系统达到最终一致性。也就是牺牲数据的一致性来满足系统的高可用性，系统中一部分数据不可用或者不一致时，仍需要保持系统整体“主要可用”。
+基本可用(basically available)：是指分布式系统在出现不可预知故障的时候，允许损失部分可用性。但是，这绝不等价于系统不可用。响应时间上的损失：正常情况下，一个在线搜索引擎需要在0.5秒之内返回给用户相应的查询结果，但由于出现故障，查询结果的响应时间增加了1~2秒。系统功能上的损失：正常情况下，在一个电子商务网站上进行购物的时候，消费者几乎能够顺利完成每一笔订单，但是在一些节日大促购物高峰的时候，由于消费者的购物行为激增，为了保护购物系统的稳定性，部分消费者可能会被引导到一个降级页面。
+软状态(soft-state)：指允许系统中的数据存在中间状态，并认为该中间状态的存在不会影响系统的整体可用性，即允许系统在不同节点的数据副本之间进行数据同步的过程存在延时
+最终一致性(eventually consistent)：强调的是系统中所有的数据副本，在经过一段时间的同步后，最终能够达到一个一致的状态。因此，最终一致性的本质是需要系统保证最终数据能够达到一致，而不需要实时保证系统数据的强一致性。
 
 # 系统设计
 
@@ -217,6 +238,109 @@ Java秒杀场景的针对性优化：对大流量的Web系统做静态化改造�
 
 服务熔断的作用类似于我们家用的保险丝，当某服务出现不可用或响应超时的情况时，为了防止整个系统出现雪崩，暂时停止对该服务的调用。
 服务降级是从整个系统的负荷情况出发和考虑的，对某些负荷会比较高的情况，为了预防某些功能（业务场景）出现负荷过载或者响应慢的情况，在其内部暂时舍弃对一些非核心的接口和数据的请求，而直接返回一个提前准备好的fallback（退路）错误处理信息。这样，虽然提供的是一个有损的服务，但却保证了整个系统的稳定性和可用性。
+
+7.项目是如何处理重复请求/并发请求的？
+
+(1)重复的场景有可能是：
+
+    黑客拦截了请求，重放
+    前端/客户端因为某些原因请求重复发送了，或者用户在很短的时间内重复点击了。
+    网关重发
+
+(2)方案
+
+计算请求参数的摘要作为参数标识。
+    
+    String KEY = "dedup:U="+userId + "M=" + method + "P=" + reqParamMD5;
+    
+实例：
+    
+    public class ReqDedupHelper {
+    
+        /**
+         *
+         * @param reqJSON 请求的参数，这里通常是JSON
+         * @param excludeKeys 请求参数里面要去除哪些字段再求摘要
+         * @return 去除参数的MD5摘要
+         */
+        public String dedupParamMD5(final String reqJSON, String... excludeKeys) {
+            String decreptParam = reqJSON;
+    
+            TreeMap paramTreeMap = JSON.parseObject(decreptParam, TreeMap.class);
+            if (excludeKeys!=null) {
+                List<String> dedupExcludeKeys = Arrays.asList(excludeKeys);
+                if (!dedupExcludeKeys.isEmpty()) {
+                    for (String dedupExcludeKey : dedupExcludeKeys) {
+                        paramTreeMap.remove(dedupExcludeKey);
+                    }
+                }
+            }
+    
+            String paramTreeMapJSON = JSON.toJSONString(paramTreeMap);
+            String md5deDupParam = jdkMD5(paramTreeMapJSON);
+            log.debug("md5deDupParam = {}, excludeKeys = {} {}", md5deDupParam, Arrays.deepToString(excludeKeys), paramTreeMapJSON);
+            return md5deDupParam;
+        }
+    
+        private static String jdkMD5(String src) {
+            String res = null;
+            try {
+                MessageDigest messageDigest = MessageDigest.getInstance("MD5");
+                byte[] mdBytes = messageDigest.digest(src.getBytes());
+                res = DatatypeConverter.printHexBinary(mdBytes);
+            } catch (Exception e) {
+                log.error("",e);
+            }
+            return res;
+        }
+    }
+    
+    public static void main(String[] args) {
+        //两个请求一样，但是请求时间差一秒
+        String req = "{\n" +
+                "\"requestTime\" :\"20190101120001\",\n" +
+                "\"requestValue\" :\"1000\",\n" +
+                "\"requestKey\" :\"key\"\n" +
+                "}";
+    
+        String req2 = "{\n" +
+                "\"requestTime\" :\"20190101120002\",\n" +
+                "\"requestValue\" :\"1000\",\n" +
+                "\"requestKey\" :\"key\"\n" +
+                "}";
+    
+        //全参数比对，所以两个参数MD5不同
+        String dedupMD5 = new ReqDedupHelper().dedupParamMD5(req);
+        String dedupMD52 = new ReqDedupHelper().dedupParamMD5(req2);
+        System.out.println("req1MD5 = "+ dedupMD5+" , req2MD5="+dedupMD52);
+    
+        //去除时间参数比对，MD5相同
+        String dedupMD53 = new ReqDedupHelper().dedupParamMD5(req,"requestTime");
+        String dedupMD54 = new ReqDedupHelper().dedupParamMD5(req2,"requestTime");
+        System.out.println("req1MD5 = "+ dedupMD53+" , req2MD5="+dedupMD54);
+    
+    }
+
+完整的去重解决方案，如下：
+
+    String userId= "12345678";//用户
+    String method = "pay";//接口名
+    String dedupMD5 = new ReqDedupHelper().dedupParamMD5(req,"requestTime");//计算请求参数摘要，其中剔除里面请求时间的干扰
+    String KEY = "dedup:U=" + userId + "M=" + method + "P=" + dedupMD5;
+    
+    long expireTime =  1000;// 1000毫秒过期，1000ms内的重复请求会认为重复
+    long expireAt = System.currentTimeMillis() + expireTime;
+    String val = "expireAt@" + expireAt;
+    
+    // NOTE:直接SETNX不支持带过期时间，所以设置+过期不是原子操作，极端情况下可能设置了就不过期了，后面相同请求可能会误以为需要去重，所以这里使用底层API，保证SETNX+过期时间是原子操作
+    Boolean firstSet = stringRedisTemplate.execute((RedisCallback<Boolean>) connection -> connection.set(KEY.getBytes(), val.getBytes(), Expiration.milliseconds(expireTime), RedisStringCommands.SetOption.SET_IF_ABSENT));
+    // 是否重复请求标识
+    final boolean isConsiderDup;
+    if (firstSet != null && firstSet) {
+        isConsiderDup = false;
+    } else {
+        isConsiderDup = true;
+    }
 
 N.参考
 

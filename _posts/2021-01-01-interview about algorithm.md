@@ -437,9 +437,176 @@ N.参考
  
 (1)[【228期】面试高频：Java常用的八大排序算法一网打尽！](https://mp.weixin.qq.com/s/4_huQurXRYuR6Kq2pERqIQ)
 
+# 算法——链表
+
+1.整个链表翻转
+
+    public ListNode reverseList(ListNode head) {
+        if(head == null){
+            return null;
+        }
+        ListNode prev = null;
+        ListNode curr = head;
+        while (curr != null){
+            ListNode nextNode = curr.next;
+            curr.next = prev;
+            prev = curr;
+            curr = nextNode;
+        }
+        return prev;
+    }
+    
+2.反转链表中的第m至第n个节点
+
+    public ListNode reverseBetween(ListNode head, int m, int n) {
+        if(head == null){
+            return null;
+        }
+        ListNode fakeHead = new ListNode(0);
+        fakeHead.next = head;
+        ListNode curr = fakeHead;
+        for(int i = 0;i<m-1;i++){
+            curr = curr.next;
+        }
+        ListNode beforeHead = curr;
+        curr = fakeHead;
+        for(int i = 0;i<n+1;i++){
+            curr = curr.next;
+        }
+        ListNode afterTail = curr;
+        beforeHead.next = reverseAll(beforeHead.next,n - m + 1);
+        curr = fakeHead;
+        while (curr.next!= null){
+            curr = curr.next;
+        }
+        curr.next = afterTail;
+        return fakeHead.next;
+    }
+
+    public ListNode reverseAll(ListNode head,int num){
+        if(head == null){
+            return null;
+        }
+        ListNode prev = null;
+        ListNode curr = head;
+        for(int i = 0;i<num;i++){
+            ListNode nextNode = curr.next;
+            curr.next = prev;
+            prev = curr;
+            curr = nextNode;
+        }
+        return prev;
+    }
+
+3.求两个链表之间的交点
+
+    public ListNode getIntersectionNode(ListNode headA, ListNode headB) {
+        if(headA == null || headB == null){
+            return null;
+        }
+        int len1 = getListLen(headA);
+        int len2 = getListLen(headB);
+        ListNode pointerA = headA;
+        ListNode pointerB = headB;
+        //补足长度差别
+        int gap = Math.abs(len1 - len2);
+        for(int i=0;i<gap;i++){
+            if(len1 > len2){
+                pointerA = pointerA.next;
+            }
+            else{
+                pointerB = pointerB.next;
+            }
+        }
+        //不同向后移动，直到找到同一个
+        while(pointerA != null && pointerB != null && pointerA != pointerB){
+            pointerA = pointerA.next;
+            pointerB = pointerB.next;
+        }
+        return pointerA;
+    }
+
+    public int getListLen(ListNode head){
+        if(head == null){
+            return 0;
+        }
+        int len1 = 0;
+        int i = 0;
+        ListNode pointerA = head;
+        while(pointerA != null){
+            pointerA = pointerA.next;
+            i++;
+        }
+        return i;
+    }
+}
+
+4.判断链表是否有环；如果有环，给出环所在的起始节点及环的长度。
+
+快慢指针位置重遇后，将一个移动到head，再移动相同步就能找到开头位置。
+
+    public ListNode detectCycle(ListNode head) {
+        if (head == null || head.next == null){
+            return null;
+        }
+        ListNode fast = head;
+        ListNode slow = head;
+        while (slow.next != null && fast.next != null && fast.next.next != null){
+            slow = slow.next;
+            fast = fast.next.next;
+            if (slow == fast){
+                slow = head;
+                while (slow != fast){
+                    fast = fast.next;
+                    slow = slow.next;
+                }
+                return fast;
+            }
+        }
+        return null;
+    }
+
+5.将链表换分为以某个值x为界限的前后两部分
+
+链表划分依据：链表前面的部门小于x，后面部分大于等于x，且原有节点的相对顺序不变。如：将1->3-7->2->5->3->6-9-2划分为以5为界限的前后两部分：1->3->2->3->2 ->7->5->6->9
+
+    public ListNode partition(ListNode head, int x) {
+        ListNode fakeHeadLeft = new ListNode(0);
+        ListNode fakeHeadRight = new ListNode(0);
+        ListNode left = fakeHeadLeft;
+        ListNode right = fakeHeadRight;
+        partitionEach(left,right,head,x);
+        left = fakeHeadLeft;
+        while (left.next!= null){
+            left = left.next;
+        }
+        left.next = fakeHeadRight.next;
+        return fakeHeadLeft.next;
+    }
+
+    public void partitionEach(ListNode left,ListNode right,ListNode remain,int x){
+        if(remain != null){
+            ListNode nextNode = remain.next;
+            if(remain.val < x){
+                left.next = remain;
+                left = left.next;
+            }
+            else{
+                right.next = remain;
+                right = right.next;
+            }
+            partitionEach(left,right,nextNode,x);
+        }
+        else{
+            left.next = null;
+            right.next = null;
+        }
+    }
+
 # 其他
 
 1.密钥交换IKE（Internet Key Exchange）通常是指双方通过交换密钥来实现数据加密和解密。
+
 DH（Diffie-Hellman）算法是一种密钥交换算法，其既不用于加密，也不产生数字签名。DH算法通过双方共有的参数、私有参数和算法信息来进行加密，然后双方将计算后的结果进行交换，交换完成后再和属于自己私有的参数进行特殊算法，经过双方计算后的结果是相同的，此结果即为密钥。
 
     A有p和g两个参数，A还有一个属于自己的私有参数x；
