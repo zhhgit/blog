@@ -1053,6 +1053,63 @@ N.参考
     Field getDeclaredField(String name) //根据方法名获得public和非public变量
     Field[] getDeclaredFields() //获得类中所有的public和非public方法
 
+5.什么是SPI
+
+(1)SPI
+
+全称为Service Provider Interface，是一种服务发现机制。它通过在ClassPath路径下的META-INF/services文件夹查找文件，自动加载文件里所定义的类。
+这一机制为很多框架扩展提供了可能，比如在Dubbo、JDBC中都使用到了SPI机制。我们先通过一个很简单的例子来看下它是怎么用的。
+回忆一下JDBC获取数据库连接的过程。在早期版本中，需要先设置数据库驱动的连接，再通过DriverManager.getConnection获取一个Connection。 在较新版本中设置数据库驱动连接这一步骤就不再需要，那么它是怎么分辨是哪种数据库的呢？答案就在SPI。
+java spi提供这样的一个机制：为某个接口寻找服务实现的机制。有点类似IOC的思想，就是将装配的控制权移到代码之外。
+即SPI机制就是有一个接口，然后有几个实现类，代码运行的时候要确定运行哪个实现类，而这些实现类也是可插拔的。
+当服务的提供者(provider)，提供了一个接口多种实现时，一般会在jar包的META-INF/services/目录下，创建该接口的同名文件。该文件里面的内容就是该服务接口的具体实现类的名称。
+而当外部加载这个模块的时候，就能通过该jar包META-INF/services/里的配置文件得到具体的实现类名，并加载实例化，完成模块的装配。
+
+(2)实例
+
+写一个接口Command
+
+    public interface Command {  
+        public void execute();  
+    }
+
+分别写两个接口的实现类 TurnOnCommand和TurnOffCommand
+
+    public class TurnOnCommand implements Command {
+        public void execute() {  
+            System.out.println("Trun on....");
+        }  
+    }
+    
+    public class TurnOffCommand implements Command {
+        public void execute() {  
+            System.out.println("Trun off....");
+        }  
+    }
+
+在项目的resources\\META-INF\\services目录下新建一个com.abc.spi.Command的spi配置文件，内容为接口的两个实现类
+
+    com.abc.spi.TurnOnCommand
+    com.abc.spi.TurnOffCommand
+
+编写测试类Test
+
+    public class Test {
+        public static void main(String[] args) {
+            // 加载jdk的spi接口Command.class
+            ServiceLoader<Command> serviceLoader=ServiceLoader.load(Command.class);
+            // 遍历加载的jdk的接口
+            for(Command command:serviceLoader){
+                command.execute();  
+            }  
+        }
+    }
+
+(3)JDK的SPI机制的缺点
+
+JDK标准的SPI会一次性实例化扩展点所有实现，如果有扩展实现初始化很耗时，但如果没用上也加载，会很浪费资源；
+JDK的SPI机制没有Ioc和AOP的支持，因此dubbo用了自己的spi机制：增加了对扩展点IoC和AOP的支持，一个扩展点可以直接setter注入其它扩展点。
+
 N.参考
 
 (1)[什么是反射](https://www.cnblogs.com/abcdjava/p/11146473.html)

@@ -640,6 +640,63 @@ Dubbo默认使用Netty框架，也是推荐的选择，另外内容还集成有M
 (2)注册中心宕掉后，注册中心仍能通过缓存提供服务列表查询，但不能注册新服务。
 (3)服务提供者无状态，任意一台宕掉后，不影响使用。服务提供者全部宕掉后，服务消费者应用将无法使用，并无限次重连等待服务提供者恢复。
 
+8.Dubbo的spi的约定
+
+(1)dubbo的spi文件存放在哪里？
+
+生成的dubbo的jar包下的dubbo-2.5.3.jar\META-INF\dubbo\internal目录下的文件全部是spi的扩展机制。
+
+(2)dubbo的SPI有哪些约定
+
+spi文件存储路径在META-INF\dubbo\internal目录下，并且文件名为接口的全路径名，就是=接口的包名+接口名，例如：dubbo-2.5.3.jar\META-INF\dubbo\internal\com.alibaba.dubbo.rpc.Protocol。
+每个spi文件里面的格式定义为：扩展名=具体的类名，例如registries=com.alibaba.dubbo.registry.RegistriesPageHandlerpages。
+
+(3)如何扩展dubbo的spi
+
+比如自己要扩展dubbo的Protocol，要经过以下步骤:
+
+(a)新建一个工程，在src/main/resources/META-INF/dubbo目录下新建一个文件比如org.apache.dubbo.rpc.Protocol，里面内容写一个：xxxProtocal=com.abc.XxxProtocol
+(b)然后在这个工程里新建一个XxxProtocol类实现Protocol接口,并实现相关方法。
+
+    package com.xxx;
+    import org.apache.dubbo.rpc.Protocol;
+    public class XxxProtocol implements Protocol {
+        public <T> Exporter<T> export(Invoker<T> invoker) throws RpcException {
+            return new XxxExporter(invoker);
+        }
+        public <T> Invoker<T> refer(Class<T> type, URL url) throws RpcException {
+            return new XxxInvoker(type, url);
+        }
+    }
+
+    package com.xxx;
+    import org.apache.dubbo.rpc.support.AbstractExporter;
+    public class XxxExporter<T> extends AbstractExporter<T> {
+        public XxxExporter(Invoker<T> invoker) throws RemotingException{
+            super(invoker);
+            // ...
+        }
+        public void unexport() {
+            super.unexport();
+            // ...
+        }
+    }
+    
+    package com.xxx;
+    import org.apache.dubbo.rpc.support.AbstractInvoker;
+    public class XxxInvoker<T> extends AbstractInvoker<T> {
+        public XxxInvoker(Class<T> type, URL url) throws RemotingException{
+            super(type, url);
+        }
+        protected abstract Object doInvoke(Invocation invocation) throws Throwable {
+            // ...
+        }
+    }
+
+(c)可以把这个工程打包成jar包，然后在自己的dubbo provider工程里依赖刚才的那个spi的jar包，并在spring配置文件中配置如下：
+
+    <dubbo:protocol name=”XxxProtocol” port=”20000” />
+
 # Hibernate
 
 1.Hibernate的优缺点
