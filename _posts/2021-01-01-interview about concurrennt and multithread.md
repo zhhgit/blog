@@ -840,77 +840,7 @@ join方法就是通过wait方法来将线程的阻塞，如果join的线程还�
 不过有一点需要注意，这里的join只调用了wait方法，却没有对应的notify方法，原因是Thread的start方法中做了相应的处理，所以当join的线程执行完成以后，会自动唤醒主线程继续往下执行。
 在没有使用join方法之前，线程是并发执行的，而使用join方法后，所有线程是顺序执行的。
 
-15.volatile
-
-(1)防止重排序，有序性
-
-从一个最经典的例子来分析重排序问题。大家应该都很熟悉单例模式的实现，而在并发环境下的单例实现方式，我们通常可以采用双重检查加锁（DCL）的方式来实现。
-现在我们分析一下为什么要在变量singleton之间加上volatile关键字。要理解这个问题，先要了解对象的构造过程，实例化一个对象其实可以分为三个步骤：分配内存空间。初始化对象。将内存空间的地址赋值给对应的引用。
-但是由于操作系统可以对指令进行重排序，所以上面的过程也可能会变成如下过程：分配内存空间。将内存空间的地址赋值给对应的引用。初始化对象。如果是这个流程，多线程环境下就可能将一个未初始化的对象引用暴露出来，从而导致不可预料的结果。因此，为了防止这个过程的重排序，我们需要将变量设置为volatile类型的变量。
-有序性原理：
-Java中的happen-before规则通俗一点说就是如果a happen-before b，则a所做的任何操作对b是可见的。（这一点大家务必记住，因为happen-before这个词容易被误解为是时间的前后）。
-同一个线程中的，前面的操作happen-before后续的操作。（即单线程内按代码顺序执行。但是，在不影响在单线程环境执行结果的前提下，编译器和处理器可以进行重排序，这是合法的。换句话说，这一是规则无法保证编译重排和指令重排）。
-监视器上的解锁操作happen-before其后续的加锁操作。（Synchronized 规则）
-对volatile变量的写操作happen-before后续的读操作。（volatile 规则）
-线程的start()方法happen-before该线程所有的后续操作。（线程启动规则）
-线程所有的操作happen-before其他线程在该线程上调用join返回成功后的操作。
-如果a happen-before b，b happen-before c，则a happen-before c（传递性）。
-
-    public class Singleton {
-        public static volatile Singleton singleton;
-
-        /**
-         * 构造函数私有，禁止外部实例化
-         */
-        private Singleton() {};
-
-        public static Singleton getInstance() {
-            if (singleton == null) {
-                synchronized (singleton) {
-                    if (singleton == null) {
-                        singleton = new Singleton();
-                    }
-                }
-            }
-            return singleton;
-        }
-    }
-
-(2)实现可见性
-
-可见性问题主要指一个线程修改了共享变量值，而另一个线程却看不到。引起可见性问题的主要原因是每个线程拥有自己的一个高速缓存区——线程工作内存。volatile关键字能有效的解决这个问题。
-一个线程修改数据，另一个线程打印，如果将a和b都改成volatile类型的变量再执行，则再也不会出现b=3;a=1的结果了。
-可见性实现：线程本身并不直接与主内存进行数据的交互，而是通过线程的工作内存来完成相应的操作。这也是导致线程间数据不可见的本质原因。因此要实现volatile变量的可见性，直接从这方面入手即可。
-对volatile变量的写操作与普通变量的主要区别有两点：修改volatile变量时会强制将修改后的值刷新的主内存中。修改volatile变量后会导致其他线程工作内存中对应的变量值失效。因此，再读取该变量值的时候就需要重新从读取主内存中的值。
-
-(3)保证原子性
-
-对volatile变量的单次读/写操作可以保证原子性的。但是不能保证i++这种操作的原子性，因为本质上i++是读、写两次操作。
-因为long和double两种数据类型的操作可分为高32位和低32位两部分，因此普通的long或double类型读/写可能不是原子的。因此，鼓励大家将共享的long和double变量设置为volatile类型，这样能保证任何情况下对long和double的单次读/写操作都具有原子性。
-由1000个线程执行i++操作，结果并非1000。volatile是无法保证i++是具有原子性的，我们可以通过AtomicInteger或者Synchronized来保证+1操作的原子性。
-
-(4)内存屏障
-
-为了实现volatile可见性和happen-before的语义。JVM底层是通过一个叫做“内存屏障”的东西来完成。内存屏障，也叫做内存栅栏，是一组处理器指令，用于实现对内存操作的顺序限制。
-下面是完成上述规则所要求的内存屏障：
-
-    LoadLoad 屏障
-    执行顺序：Load1—>Loadload—>Load2
-    确保Load2及后续Load指令加载数据之前能访问到Load1加载的数据。
-    
-    StoreStore 屏障
-    执行顺序：Store1—>StoreStore—>Store2
-    确保Store2以及后续Store指令执行前，Store1操作的数据对其它处理器可见。
-    
-    LoadStore 屏障
-    执行顺序：Load1—>LoadStore—>Store2
-    确保Store2和后续Store指令执行前，可以访问到Load1加载的数据。
-    
-    StoreLoad 屏障
-    执行顺序: Store1—> StoreLoad—>Load2
-    确保Load2和后续的Load指令读取之前，Store1的数据对其他处理器是可见的。
-
-16.堵塞队列
+15.堵塞队列
 
 (1)什么是堵塞队列？
 
@@ -944,7 +874,7 @@ BlockingQueue本身只是一个接口，规定了堵塞队列的方法，主要�
     PriorityBlockingQueue：PriorityBlockingQueue是基于优先级的一个无界队列，底层是基于数组存储元素的，元素按照优选级顺序存储，优先级是通过Comparable的compareTo方法来实现的（自然排序），和其他堵塞队列不同的是，其只会堵塞消费者，不会堵塞生产者，数组会不断扩容，这就是一个彩蛋，使用时要谨慎。
     SynchronousQueue：SynchronousQueue是一个特殊的队列，其内部是没有容器的，所以生产者生产一个数据，就堵塞了，必须等消费者消费后，生产者才能再次生产，称其为队列有点不合适，现实生活中，多个人才能称为队，一个人称为队有些说不过去。
 
-17.线程状态转换的方法
+16.线程状态转换的方法
 
     New-->Running及Runnable
         --Thread.start()
@@ -981,7 +911,7 @@ BlockingQueue本身只是一个接口，规定了堵塞队列的方法，主要�
     Running及Runnable-->Terminated
         --执行完成
 
-18.并发特性
+17.并发特性
 
     原子性：即一个操作或者多个操作 要么全部执行并且执行的过程不会被任何因素打断，要么就都不执行。
     可见性：指当多个线程访问同一个变量时，一个线程修改了这个变量的值，其他线程能够立即看得到修改的值。
@@ -1450,6 +1380,70 @@ monitorenter指令：
 monitorexit指令：
 执行monitorexit的线程必须是objectref所对应的monitor的所有者。
 指令执行时，monitor的进入数减1，如果减1后进入数为0，那线程退出monitor，不再是这个monitor的所有者。其他被这个monitor阻塞的线程可以尝试去获取这个monitor的所有权。
+
+14.volatile
+
+volatile是轻量级的锁，它不会引起线程上下文的切换和调度。
+
+(1)防止重排序，有序性
+
+从一个最经典的例子来分析重排序问题。大家应该都很熟悉单例模式的实现，而在并发环境下的单例实现方式，我们通常可以采用双重检查加锁（DCL）的方式来实现。
+现在我们分析一下为什么要在变量singleton之间加上volatile关键字。要理解这个问题，先要了解对象的构造过程，实例化一个对象其实可以分为三个步骤：分配内存空间。初始化对象。将内存空间的地址赋值给对应的引用。
+但是由于操作系统可以对指令进行重排序，所以上面的过程也可能会变成如下过程：分配内存空间。将内存空间的地址赋值给对应的引用。初始化对象。如果是这个流程，多线程环境下就可能将一个未初始化的对象引用暴露出来，从而导致不可预料的结果。因此，为了防止这个过程的重排序，我们需要将变量设置为volatile类型的变量。
+
+    public class Singleton {
+        public static volatile Singleton singleton;
+
+        /**
+         * 构造函数私有，禁止外部实例化
+         */
+        private Singleton() {};
+
+        public static Singleton getInstance() {
+            if (singleton == null) {
+                synchronized (singleton) {
+                    if (singleton == null) {
+                        singleton = new Singleton();
+                    }
+                }
+            }
+            return singleton;
+        }
+    }
+
+(2)实现可见性
+
+可见性问题主要指一个线程修改了共享变量值，而另一个线程却看不到。引起可见性问题的主要原因是每个线程拥有自己的一个高速缓存区——线程工作内存。volatile关键字能有效的解决这个问题。
+一个线程修改数据，另一个线程打印，如果将a和b都改成volatile类型的变量再执行，则再也不会出现b=3;a=1的结果了。
+可见性实现：线程本身并不直接与主内存进行数据的交互，而是通过线程的工作内存来完成相应的操作。这也是导致线程间数据不可见的本质原因。因此要实现volatile变量的可见性，直接从这方面入手即可。
+对volatile变量的写操作与普通变量的主要区别有两点：修改volatile变量时会强制将修改后的值刷新的主内存中。修改volatile变量后会导致其他线程工作内存中对应的变量值失效。因此，再读取该变量值的时候就需要重新从读取主内存中的值。
+
+(3)保证原子性
+
+对volatile变量的单次读/写操作可以保证原子性的。但是不能保证i++这种操作的原子性，因为本质上i++是读、写两次操作。
+因为long和double两种数据类型的操作可分为高32位和低32位两部分，因此普通的long或double类型读/写可能不是原子的。因此，鼓励大家将共享的long和double变量设置为volatile类型，这样能保证任何情况下对long和double的单次读/写操作都具有原子性。
+由1000个线程执行i++操作，结果并非1000。volatile是无法保证i++是具有原子性的，我们可以通过AtomicInteger或者Synchronized来保证+1操作的原子性。
+
+(4)内存屏障
+
+为了实现volatile可见性和happen-before的语义。JVM底层是通过一个叫做“内存屏障”的东西来完成。内存屏障，也叫做内存栅栏，是一组处理器指令，用于实现对内存操作的顺序限制。
+下面是完成上述规则所要求的内存屏障：
+
+    LoadLoad 屏障
+    执行顺序：Load1—>Loadload—>Load2
+    确保Load2及后续Load指令加载数据之前能访问到Load1加载的数据。
+    
+    StoreStore 屏障
+    执行顺序：Store1—>StoreStore—>Store2
+    确保Store2以及后续Store指令执行前，Store1操作的数据对其它处理器可见。
+    
+    LoadStore 屏障
+    执行顺序：Load1—>LoadStore—>Store2
+    确保Store2和后续Store指令执行前，可以访问到Load1加载的数据。
+    
+    StoreLoad 屏障
+    执行顺序: Store1—> StoreLoad—>Load2
+    确保Load2和后续的Load指令读取之前，Store1的数据对其他处理器是可见的。
 
 # JUC
 

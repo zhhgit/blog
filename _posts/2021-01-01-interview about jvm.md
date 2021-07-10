@@ -366,9 +366,11 @@ java编译器禁止处理器重排序是通过在生成指令序列的适当位�
 如果A happens-before B，那么Java内存模型将向程序员保证—— A操作的结果将对B可见，且A的执行顺序排在B之前。
 重要的happens-before规则如下：
 
-    程序顺序规则：一个线程中的每个操作，happens-before于该线程中的任意后续操作。
-    监视器锁规则：对一个监视器锁的解锁，happens-before于随后对这个监视器锁的加锁。
-    volatile变量规则：对一个volatile域的写，happens-before于任意后续对这个volatile域的读。
+    程序顺序规则：一个线程中的每个操作，happens-before于该线程中的任意后续操作。（即单线程内按代码顺序执行。但是，在不影响在单线程环境执行结果的前提下，编译器和处理器可以进行重排序，这是合法的。换句话说，这一是规则无法保证编译重排和指令重排）。
+    监视器锁规则：对一个监视器锁的解锁，happens-before于随后对这个监视器锁的加锁。（Synchronized规则）
+    volatile变量规则：对一个volatile域的写，happens-before于任意后续对这个volatile域的读。（volatile 规则）
+    线程的start()方法happen-before该线程所有的后续操作。（线程启动规则）
+    线程所有的操作happen-before其他线程在该线程上调用join返回成功后的操作。
     传递性：如果A happens-before B，且B happens-before C，那么A happens-before C。
 
 (5)volatile关键字
