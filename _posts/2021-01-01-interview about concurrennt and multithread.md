@@ -1419,16 +1419,28 @@ tryLock()：
 
 13.Synchronized
 
-(1)无Synchronized修饰普通方法：线程1和线程2是同时执行。
-(2)Synchronized修饰普通方法：线程2需要等待线程1的method1执行完成才能开始执行method2方法。
-(3)Synchronized修饰静态方法：对静态方法的同步本质上是对类的同步（静态方法本质上是属于类的方法，而不是对象上的方法），所以即使test和test2属于不同的对象，但是它们都属于SynchronizedTest类的实例，所以也只能顺序的执行method1和method2，不能并发执行。
-(4)Synchronized修饰代码块：虽然线程1和线程2都进入了对应的方法开始执行，但是线程2在进入同步块之前，需要等待线程1中同步块执行完成。
+(1)几种情况
 
-Synchronized的实现原理：
+    无Synchronized修饰普通方法：线程1和线程2是同时执行。
+    Synchronized修饰普通方法：线程2需要等待线程1的method1执行完成才能开始执行method2方法。锁是当前实例对象。
+    Synchronized修饰静态方法：对静态方法的同步本质上是对类的同步（静态方法本质上是属于类的方法，而不是对象上的方法），所以即使test和test2属于不同的对象，但是它们都属于SynchronizedTest类的实例，所以也只能顺序的执行method1和method2，不能并发执行。锁是当前类的class对象。
+    Synchronized修饰代码块：虽然线程1和线程2都进入了对应的方法开始执行，但是线程2在进入同步块之前，需要等待线程1中同步块执行完成。锁是括号里面的对象。
+
+(2)Synchronized的实现原理
+
 Synchronized的语义底层是通过一个monitor的对象来完成，其实wait/notify等方法也依赖于monitor对象，这就是为什么只有在同步的块或者方法中才能调用wait/notify等方法，否则会抛出java.lang.IllegalMonitorStateException的异常的原因。
+synchronized是重量级锁，在JDK1.6中进行优化，如自旋锁、适应性自旋锁、锁消除、锁粗化、偏向锁、轻量级锁等技术来减少锁操作的开销。
+
+同步代码块：
+monitorenter指令插入到同步代码块的开始位置，monitorexit指令插入到同步代码块的结束位置，JVM需要保证每一个monitorenter都有一个monitorexit与之相对应。任何对象都有一个Monitor与之相关联，当且一个Monitor被持有之后，它将处于锁定状态。线程执行到monitorenter指令时，将会尝试获取对象所对应的Monitor所有权，即尝试获取对象的锁。
+
+同步方法：
+synchronized方法则会被翻译成普通的方法调用和返回指令如：invokevirtual、areturn指令，在VM字节码层面并没有任何特别的指令来实现被synchronized修饰的方法，而是在Class文件的方法表中将该方法的access_flags字段中的synchronized标志位置设置为1，表示该方法是同步方法，并使用调用该方法的对象或该方法所属的Class在JVM的内部对象表示Klass作为锁对象。
 从反编译的结果来看，方法的同步并没有通过指令monitorenter和monitorexit来完成（理论上其实也可以通过这两条指令来实现），不过相对于普通方法，其常量池中多了ACC_SYNCHRONIZED标示符。
 JVM就是根据该标示符来实现方法的同步的：当方法调用时，调用指令将会检查方法的ACC_SYNCHRONIZED访问标志是否被设置，如果设置了，执行线程将先获取monitor，获取成功之后才能执行方法体，方法执行完后再释放monitor。
 在方法执行期间，其他任何线程都无法再获得同一个monitor对象。其实本质上没有区别，只是方法的同步是一种隐式的方式来实现，无需通过字节码来完成。
+
+(3)monitorenter与monitorexit指令
 
 monitorenter指令：
 每个对象有一个监视器锁（monitor）。当monitor被占用时就会处于锁定状态，线程执行monitorenter指令时尝试获取monitor的所有权，过程如下：
