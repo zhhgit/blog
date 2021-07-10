@@ -796,29 +796,7 @@ stop()方法已经作废，因为如果强制让线程停止有可能使一些�
 
 不过还是建议使用“抛异常”的方法来实现线程的停止，因为在catch块中还可以将异常向上抛，使线程停止事件得以传播。
 
-13.Synchronized
-
-(1)无Synchronized修饰普通方法：线程1和线程2是同时执行。
-(2)Synchronized修饰普通方法：线程2需要等待线程1的method1执行完成才能开始执行method2方法。
-(3)Synchronized修饰静态方法：对静态方法的同步本质上是对类的同步（静态方法本质上是属于类的方法，而不是对象上的方法），所以即使test和test2属于不同的对象，但是它们都属于SynchronizedTest类的实例，所以也只能顺序的执行method1和method2，不能并发执行。
-(4)Synchronized修饰代码块：虽然线程1和线程2都进入了对应的方法开始执行，但是线程2在进入同步块之前，需要等待线程1中同步块执行完成。
-
-Synchronized的实现原理：
-Synchronized的语义底层是通过一个monitor的对象来完成，其实wait/notify等方法也依赖于monitor对象，这就是为什么只有在同步的块或者方法中才能调用wait/notify等方法，否则会抛出java.lang.IllegalMonitorStateException的异常的原因。
-从反编译的结果来看，方法的同步并没有通过指令monitorenter和monitorexit来完成（理论上其实也可以通过这两条指令来实现），不过相对于普通方法，其常量池中多了ACC_SYNCHRONIZED标示符。
-JVM就是根据该标示符来实现方法的同步的：当方法调用时，调用指令将会检查方法的ACC_SYNCHRONIZED访问标志是否被设置，如果设置了，执行线程将先获取monitor，获取成功之后才能执行方法体，方法执行完后再释放monitor。
-在方法执行期间，其他任何线程都无法再获得同一个monitor对象。其实本质上没有区别，只是方法的同步是一种隐式的方式来实现，无需通过字节码来完成。
-
-monitorenter指令：
-每个对象有一个监视器锁（monitor）。当monitor被占用时就会处于锁定状态，线程执行monitorenter指令时尝试获取monitor的所有权，过程如下：
-如果monitor的进入数为0，则该线程进入monitor，然后将进入数设置为1，该线程即为monitor的所有者。如果线程已经占有该monitor，只是重新进入，则进入monitor的进入数加1。
-如果其他线程已经占用了monitor，则该线程进入阻塞状态，直到monitor的进入数为0，再重新尝试获取monitor的所有权。
-
-monitorexit指令：　
-执行monitorexit的线程必须是objectref所对应的monitor的所有者。
-指令执行时，monitor的进入数减1，如果减1后进入数为0，那线程退出monitor，不再是这个monitor的所有者。其他被这个monitor阻塞的线程可以尝试去获取这个monitor的所有权。
-
-14.wait/notify/notifyAll
+13.wait/notify/notifyAll
 
 (1)wait
 
@@ -837,7 +815,7 @@ wait方法的使用必须在同步的范围内，否则就会抛出IllegalMonito
 notify和notifyAll的区别在于前者只能唤醒monitor上的一个线程，对其他线程没有影响，而notifyAll则唤醒所有的线程，看下面的例子很容易理解这两者的差别：
 一个通过wait方法阻塞的线程，必须同时满足以下两个条件才能被真正执行：线程需要被唤醒（超时唤醒或调用notify/notifyll）。线程唤醒后需要竞争到锁（monitor）。
 
-15.sleep/yield/join
+14.sleep/yield/join
 
 这几个方法都位于Thread类中，而wait/notify/notifyAll都位于Object类中。
 
@@ -862,7 +840,7 @@ join方法就是通过wait方法来将线程的阻塞，如果join的线程还�
 不过有一点需要注意，这里的join只调用了wait方法，却没有对应的notify方法，原因是Thread的start方法中做了相应的处理，所以当join的线程执行完成以后，会自动唤醒主线程继续往下执行。
 在没有使用join方法之前，线程是并发执行的，而使用join方法后，所有线程是顺序执行的。
 
-16.volatile
+15.volatile
 
 (1)防止重排序，有序性
 
@@ -931,8 +909,97 @@ Java中的happen-before规则通俗一点说就是如果a happen-before b，则a
     StoreLoad 屏障
     执行顺序: Store1—> StoreLoad—>Load2
     确保Load2和后续的Load指令读取之前，Store1的数据对其他处理器是可见的。
-    
-17.线程池
+
+16.堵塞队列
+
+(1)什么是堵塞队列？
+
+当队列为空时，消费者挂起，队列已满时，生产者挂起，这就是生产-消费者模型，堵塞其实就是将线程挂起。
+因为生产者的生产速度和消费者的消费速度之间的不匹配，就可以通过堵塞队列让速度快的暂时堵塞。
+如生产者每秒生产两个数据，而消费者每秒消费一个数据，当队列已满时，生产者就会堵塞（挂起），等待消费者消费后，再进行唤醒。
+堵塞队列会通过挂起的方式来实现生产者和消费者之间的平衡，这是和普通队列最大的区别。
+
+(2)如何实现堵塞队列？BlockingQueue如何使用？
+
+jdk其实已经帮我们提供了实现方案，java5增加了concurrent包，concurrent包中的BlockingQueue就是堵塞队列，我们不需要关心BlockingQueue如何实现堵塞，一切都帮我们封装好了，只需要做一个没有感情的API调用者就行。
+BlockingQueue本身只是一个接口，规定了堵塞队列的方法，主要依靠几个实现类实现。BlockingQueue主要方法
+
+插入数据：
+
+    offer(E e)：如果队列没满，返回true，如果队列已满，返回false（不堵塞）
+    offer(E e, long timeout, TimeUnit unit)：可以设置等待时间，如果队列已满，则进行等待。超过等待时间，则返回false
+    put(E e)：无返回值，一直等待，直至队列空出位置
+
+获取数据：
+
+    poll()：如果有数据，出队，如果没有数据，返回null
+    poll(long timeout, TimeUnit unit)：可以设置等待时间，如果没有数据，则等待，超过等待时间，则返回null
+    take()：如果有数据，出队。如果没有数据，一直等待（堵塞）
+
+(3)BlockingQueue主要实现类
+
+    ArrayBlockingQueue：ArrayBlockingQueue是基于数组实现的，通过初始化时设置数组长度，是一个有界队列，而且ArrayBlockingQueue和LinkedBlockingQueue不同的是，ArrayBlockingQueue只有一个锁对象，而LinkedBlockingQueue是两个锁对象，一个锁对象会造成要么是生产者获得锁，要么是消费者获得锁，两者竞争锁，无法并行。
+    LinkedBlockingQueue：LinkedBlockingQueue是基于链表实现的，和ArrayBlockingQueue不同的是，大小可以初始化设置，如果不设置，默认设置大小为Integer.MAX_VALUE，LinkedBlockingQueue有两个锁对象，可以并行处理。
+    DelayQueue：DelayQueue是基于优先级的一个无界队列，队列元素必须实现Delayed接口，支持延迟获取，元素按照时间排序，只有元素到期后，消费者才能从队列中取出。
+    PriorityBlockingQueue：PriorityBlockingQueue是基于优先级的一个无界队列，底层是基于数组存储元素的，元素按照优选级顺序存储，优先级是通过Comparable的compareTo方法来实现的（自然排序），和其他堵塞队列不同的是，其只会堵塞消费者，不会堵塞生产者，数组会不断扩容，这就是一个彩蛋，使用时要谨慎。
+    SynchronousQueue：SynchronousQueue是一个特殊的队列，其内部是没有容器的，所以生产者生产一个数据，就堵塞了，必须等消费者消费后，生产者才能再次生产，称其为队列有点不合适，现实生活中，多个人才能称为队，一个人称为队有些说不过去。
+
+17.线程状态转换的方法
+
+    New-->Running及Runnable
+        --Thread.start()
+
+    Running及Runnable-->Waiting
+        --Object.wait()
+        --Thread.join()
+        --LockSupport.park()
+
+    Waiting-->Running及Runnable
+        --Object.notify()
+        --Object.notifyAll()
+        --LockSupport.unpark()
+
+    Running及Runnable-->Timed_Waiting
+        --Object.wait(long)
+        --Thread.join(long)
+        --LockSupport.parkUtil()
+        --LockSupport.parkNanos()
+        --Thread.sleep(long)
+
+    Timed_Waiting-->Running及Runnable
+        --Object.notify()
+        --Object.notifyAll()
+        --LockSupport.unpark()
+        --超时时间到
+
+    Running及Runnable-->Blocked
+        --等待进入synchronized标识的方法或代码块
+
+    Blocked-->Running及Runnable
+        --获取到锁
+
+    Running及Runnable-->Terminated
+        --执行完成
+
+18.并发特性
+
+    原子性：即一个操作或者多个操作 要么全部执行并且执行的过程不会被任何因素打断，要么就都不执行。
+    可见性：指当多个线程访问同一个变量时，一个线程修改了这个变量的值，其他线程能够立即看得到修改的值。
+    有序性：即程序执行的顺序按照代码的先后顺序执行，不进行指令重排列。
+
+N.参考
+
+(1)[线程进程区别](https://www.cnblogs.com/toria/p/11123130.html)
+
+(2)[线程与进程的区别](https://www.cnblogs.com/cocoxu1992/p/10468317.html)
+
+(3)[谈谈什么是守护线程以及作用](https://www.jianshu.com/p/3d6f32af5625)
+
+(4)[ThreadLocal](https://www.jianshu.com/p/3c5d7f09dfbd)
+
+# 线程池
+
+1.线程池基础
 
 (1)线程池优点/为什么使用线程池
 
@@ -968,7 +1035,7 @@ Java中的happen-before规则通俗一点说就是如果a happen-before b，则a
 比如平均每个线程CPU运行时间为0.5s，而线程等待时间（非CPU运行时间，比如IO）为1.5s，CPU核心数为8，那么根据上面这个公式估算得到：((0.5+1.5)/0.5)*8=32。这个公式进一步转化为：最佳线程数目 = （线程等待时间与线程CPU时间之比 + 1）* CPU数目
 线程等待时间所占比例越高，需要越多线程。线程CPU时间所占比例越高，需要越少线程。
 
-18.ThreadPoolExecutor
+2.ThreadPoolExecutor
 
 ThreadPoolExecutor里面使用到JUC同步器框架AbstractQueuedSynchronizer（俗称AQS）、大量的位操作、CAS操作。ThreadPoolExecutor提供了固定活跃线程（核心线程）、额外的线程（线程池容量 - 核心线程数这部分额外创建的线程，下面称为非核心线程）、任务队列以及拒绝策略这几个重要的功能。
 
@@ -1019,7 +1086,7 @@ ThreadPoolExecutor回收工作线程，一条线程getTask()返回null，就会�
 (2.1)所有线程都在阻塞，中断唤醒，进入循环，都符合第一个if判断条件（线程池的状态已经是STOP，TIDYING, TERMINATED，或者是SHUTDOWN且工作队列为空），都返回null，所有线程回收。
 (2.2)任务还没有完全执行完，至少会有一条线程被回收。在processWorkerExit(Worker w, boolean completedAbruptly)方法里会调用tryTerminate()，向任意空闲线程发出中断信号。所有被阻塞的线程，最终都会被一个个唤醒，回收。
 
-19.典型的线程池
+3.典型的线程池
 
 (1)newFixedThreadPool
 
@@ -1124,58 +1191,14 @@ Scheduled中文解释为计划。结合在一起解释计划的线程池，顾�
      }
     }
 
-20.线程池中多余的线程回收
+4.线程池中多余的线程回收
 
 ThreadPoolExecutor回收工作线程，一条线程getTask()返回null，就会被回收。两种场景如下：
 
 (1)未调用shutdown()，RUNNING状态下全部任务执行完成的场景：线程数量大于corePoolSize，线程超时阻塞，超时唤醒后CAS减少工作线程数，如果CAS成功，返回null，线程回收。否则进入下一次循环。当工作者线程数量小于等于corePoolSize，就可以一直阻塞了。
 (2)调用shutdown()，全部任务执行完成的场景：shutdown()会向所有线程发出中断信号，这时有两种可能。
-    (a)所有线程都在阻塞，中断唤醒，进入循环，都符合第一个if判断条件，都返回null，所有线程回收。
-    (b)任务还没有完全执行完，至少会有一条线程被回收。在processWorkerExit(Worker w, boolean completedAbruptly)方法里会调用tryTerminate()，向任意空闲线程发出中断信号。所有被阻塞的线程，最终都会被一个个唤醒，回收。
-
-21.堵塞队列
-
-(1)什么是堵塞队列？
-
-当队列为空时，消费者挂起，队列已满时，生产者挂起，这就是生产-消费者模型，堵塞其实就是将线程挂起。
-因为生产者的生产速度和消费者的消费速度之间的不匹配，就可以通过堵塞队列让速度快的暂时堵塞。
-如生产者每秒生产两个数据，而消费者每秒消费一个数据，当队列已满时，生产者就会堵塞（挂起），等待消费者消费后，再进行唤醒。
-堵塞队列会通过挂起的方式来实现生产者和消费者之间的平衡，这是和普通队列最大的区别。
-
-(2)如何实现堵塞队列？BlockingQueue如何使用？
-
-jdk其实已经帮我们提供了实现方案，java5增加了concurrent包，concurrent包中的BlockingQueue就是堵塞队列，我们不需要关心BlockingQueue如何实现堵塞，一切都帮我们封装好了，只需要做一个没有感情的API调用者就行。
-BlockingQueue本身只是一个接口，规定了堵塞队列的方法，主要依靠几个实现类实现。BlockingQueue主要方法
-
-插入数据：
-
-    offer(E e)：如果队列没满，返回true，如果队列已满，返回false（不堵塞）
-    offer(E e, long timeout, TimeUnit unit)：可以设置等待时间，如果队列已满，则进行等待。超过等待时间，则返回false
-    put(E e)：无返回值，一直等待，直至队列空出位置
-
-获取数据：
-
-    poll()：如果有数据，出队，如果没有数据，返回null
-    poll(long timeout, TimeUnit unit)：可以设置等待时间，如果没有数据，则等待，超过等待时间，则返回null
-    take()：如果有数据，出队。如果没有数据，一直等待（堵塞）
-
-(3)BlockingQueue主要实现类
-
-    ArrayBlockingQueue：ArrayBlockingQueue是基于数组实现的，通过初始化时设置数组长度，是一个有界队列，而且ArrayBlockingQueue和LinkedBlockingQueue不同的是，ArrayBlockingQueue只有一个锁对象，而LinkedBlockingQueue是两个锁对象，一个锁对象会造成要么是生产者获得锁，要么是消费者获得锁，两者竞争锁，无法并行。
-    LinkedBlockingQueue：LinkedBlockingQueue是基于链表实现的，和ArrayBlockingQueue不同的是，大小可以初始化设置，如果不设置，默认设置大小为Integer.MAX_VALUE，LinkedBlockingQueue有两个锁对象，可以并行处理。
-    DelayQueue：DelayQueue是基于优先级的一个无界队列，队列元素必须实现Delayed接口，支持延迟获取，元素按照时间排序，只有元素到期后，消费者才能从队列中取出。
-    PriorityBlockingQueue：PriorityBlockingQueue是基于优先级的一个无界队列，底层是基于数组存储元素的，元素按照优选级顺序存储，优先级是通过Comparable的compareTo方法来实现的（自然排序），和其他堵塞队列不同的是，其只会堵塞消费者，不会堵塞生产者，数组会不断扩容，这就是一个彩蛋，使用时要谨慎。
-    SynchronousQueue：SynchronousQueue是一个特殊的队列，其内部是没有容器的，所以生产者生产一个数据，就堵塞了，必须等消费者消费后，生产者才能再次生产，称其为队列有点不合适，现实生活中，多个人才能称为队，一个人称为队有些说不过去。
-
-N.参考
-
-(1)[线程进程区别](https://www.cnblogs.com/toria/p/11123130.html)
-
-(2)[线程与进程的区别](https://www.cnblogs.com/cocoxu1992/p/10468317.html)
-
-(3)[谈谈什么是守护线程以及作用](https://www.jianshu.com/p/3d6f32af5625)
-
-(4)[ThreadLocal](https://www.jianshu.com/p/3c5d7f09dfbd)
+(a)所有线程都在阻塞，中断唤醒，进入循环，都符合第一个if判断条件，都返回null，所有线程回收。
+(b)任务还没有完全执行完，至少会有一条线程被回收。在processWorkerExit(Worker w, boolean completedAbruptly)方法里会调用tryTerminate()，向任意空闲线程发出中断信号。所有被阻塞的线程，最终都会被一个个唤醒，回收。
 
 # Java锁
 
@@ -1393,6 +1416,28 @@ tryLock()：
 
 实际开发场景中，我们会对hbase操作进行分布式锁，hbase作为一款优秀的非内存数据库，传统数据库一样提供了事务的概念，只是HBase的事务是行级事务，可以保证行级数据的原子性、一致性、隔离性以及持久性，即通常所说的ACID特性。
 为了实现事务特性，HBase采用了各种并发控制策略，包括各种锁机制、MVCC机制等。因为hbase只支持行级事物，当业务需要并发操作两行甚至多行记录时，hbase本身就无法提供ACID的支持了。
+
+13.Synchronized
+
+(1)无Synchronized修饰普通方法：线程1和线程2是同时执行。
+(2)Synchronized修饰普通方法：线程2需要等待线程1的method1执行完成才能开始执行method2方法。
+(3)Synchronized修饰静态方法：对静态方法的同步本质上是对类的同步（静态方法本质上是属于类的方法，而不是对象上的方法），所以即使test和test2属于不同的对象，但是它们都属于SynchronizedTest类的实例，所以也只能顺序的执行method1和method2，不能并发执行。
+(4)Synchronized修饰代码块：虽然线程1和线程2都进入了对应的方法开始执行，但是线程2在进入同步块之前，需要等待线程1中同步块执行完成。
+
+Synchronized的实现原理：
+Synchronized的语义底层是通过一个monitor的对象来完成，其实wait/notify等方法也依赖于monitor对象，这就是为什么只有在同步的块或者方法中才能调用wait/notify等方法，否则会抛出java.lang.IllegalMonitorStateException的异常的原因。
+从反编译的结果来看，方法的同步并没有通过指令monitorenter和monitorexit来完成（理论上其实也可以通过这两条指令来实现），不过相对于普通方法，其常量池中多了ACC_SYNCHRONIZED标示符。
+JVM就是根据该标示符来实现方法的同步的：当方法调用时，调用指令将会检查方法的ACC_SYNCHRONIZED访问标志是否被设置，如果设置了，执行线程将先获取monitor，获取成功之后才能执行方法体，方法执行完后再释放monitor。
+在方法执行期间，其他任何线程都无法再获得同一个monitor对象。其实本质上没有区别，只是方法的同步是一种隐式的方式来实现，无需通过字节码来完成。
+
+monitorenter指令：
+每个对象有一个监视器锁（monitor）。当monitor被占用时就会处于锁定状态，线程执行monitorenter指令时尝试获取monitor的所有权，过程如下：
+如果monitor的进入数为0，则该线程进入monitor，然后将进入数设置为1，该线程即为monitor的所有者。如果线程已经占有该monitor，只是重新进入，则进入monitor的进入数加1。
+如果其他线程已经占用了monitor，则该线程进入阻塞状态，直到monitor的进入数为0，再重新尝试获取monitor的所有权。
+
+monitorexit指令：
+执行monitorexit的线程必须是objectref所对应的monitor的所有者。
+指令执行时，monitor的进入数减1，如果减1后进入数为0，那线程退出monitor，不再是这个monitor的所有者。其他被这个monitor阻塞的线程可以尝试去获取这个monitor的所有权。
 
 # JUC
 
