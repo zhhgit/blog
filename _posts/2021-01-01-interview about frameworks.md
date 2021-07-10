@@ -1138,3 +1138,108 @@ Zero Copy的模式中，避免了数据在用户空间和内存空间之间的�
 定义了统一的接口之后，就是来做各种实现了。Netty主要实现了HeapChannelBuffer,ByteBufferBackedChannelBuffer等等，下面我们就来讲讲与Zero Copy直接相关的CompositeChannelBuffer类。CompositeChannelBuffer类的作用是将多个ChannelBuffer组成一个虚拟的ChannelBuffer来进行操作。
 为什么说是虚拟的呢，因为CompositeChannelBuffer并没有将多个ChannelBuffer真正的组合起来，而只是保存了他们的引用，这样就避免了数据的拷贝，实现了Zero Copy。
 所谓的CompositeChannelBuffer实际上就是将一系列的Buffer通过数组保存起来，然后实现了ChannelBuffer的接口，使得在上层看来，操作这些Buffer就像是操作一个单独的Buffer一样。
+
+# Log4j2
+
+1.Log4j2中RollingFile的文件滚动更新机制
+
+(1)基础
+
+RollingFileAppender是Log4j2中的一种能够实现日志文件滚动更新(rollover)的Appender。
+rollover的意思是当满足一定条件(如文件达到了指定的大小，达到了指定的时间)后，就重命名原日志文件进行归档，并生成新的日志文件用于log写入。如果还设置了一定时间内允许归档的日志文件的最大数量，将对过旧的日志文件进行删除操作。
+RollingFile实现日志文件滚动更新，依赖于TriggeringPolicy和RolloverStrategy。
+其中，TriggeringPolicy为触发策略，其决定了何时触发日志文件的rollover，即When。
+RolloverStrategy为滚动更新策略，其决定了当触发了日志文件的rollover时，如何进行文件的rollover，即How。Log4j2提供了默认的rollover策略DefaultRolloverStrategy。
+
+    <?xml version="1.0" encoding="UTF-8"?>
+    <Configuration status="warn">
+      <Appenders>
+        <RollingFile name="RollingFile" fileName="logs/app.log"
+                     filePattern="logs/app-%d{yyyy-MM-dd HH}.log">
+          <PatternLayout>
+            <Pattern>%d %p %c{1.} [%t] %m%n</Pattern>
+          </PatternLayout>
+          <Policies>
+            <TimeBasedTriggeringPolicy interval="1"/>
+            <SizeBasedTriggeringPolicy size="250MB"/>
+          </Policies>
+        </RollingFile>
+      </Appenders>
+      <Loggers>
+        <Root level="error">
+          <AppenderRef ref="RollingFile"/>
+        </Root>
+      </Loggers>
+    </Configuration>
+    
+上述配置文件中配置了一个RollingFile，日志写入logs/app.log文件中，每经过1小时或者当文件大小到达250M时，按照app-2017-08-01 12.log的格式对app.log进行重命名并归档，并生成新的文件用于写入log。
+其中，fileName指定日志文件的位置和文件名称（如果文件或文件所在的目录不存在，会创建文件。）
+filePattern指定触发rollover时，文件的重命名规则。filePattern中可以指定类似于SimpleDateFormat中的date/time pattern，如yyyy-MM-dd HH，或者%i指定一个整数计数器。
+
+(2)TriggeringPolicy
+
+RollingFile的触发rollover的策略有
+
+    CronTriggeringPolicy(Cron表达式触发)
+    OnStartupTriggeringPolicy(JVM启动时触发)
+    SizeBasedTriggeringPolicy(基于文件大小)
+    TimeBasedTriggeringPolicy(基于时间)
+    CompositeTriggeringPolicy(多个触发策略的混合，如同时基于文件大小和时间)
+    
+其中，SizeBasedTriggeringPolicy(基于日志文件大小)、TimeBasedTriggeringPolicy(基于时间)或同时基于文件大小和时间的混合触发策略最常用。
+SizeBasedTriggeringPolicy规定了当日志文件达到了指定的size时，触发rollover操作。size参数可以用KB、MB、GB等做后缀来指定具体的字节数，如20MB。
+TimeBasedTriggeringPolicy规定了当日志文件名中的date/time pattern不再符合filePattern中的date/time pattern时，触发rollover操作。比如，filePattern指定文件重命名规则为app-%d{yyyy-MM-dd HH}.log，文件名为app-2017-08-25 11.log，当时间达到2017年8月25日中午12点（2017-08-25 12），将触发rollover操作。
+CompositeTriggeringPolicy将多个TriggeringPolicy放到Policies中表示使用复合策略，同时使用了TimeBasedTriggeringPolicy、SizeBasedTriggeringPolicy，有一个条件满足，就会触发rollover。
+
+    <Policies>
+        <TimeBasedTriggeringPolicy />
+        <SizeBasedTriggeringPolicy size="250 MB"/>
+    </Policies>
+
+(3)DefaultRolloverStrategy
+
+DefaultRolloverStrategy指定了当触发rollover时的默认策略。
+DefaultRolloverStrategy是Log4j2提供的默认的rollover策略，即使在log4j2.xml中没有显式指明，也相当于为RollingFile配置下添加了如下语句。DefaultRolloverStrategy默认的max为7。
+
+    <DefaultRolloverStrategy max="7"/>
+    
+max参数指定了计数器的最大值。一旦计数器达到了最大值，过旧的文件将被删除。注意：不要认为max参数是需要保留的日志文件的最大数目。
+max参数是与filePattern中的计数器%i配合起作用的，其具体作用方式与filePattern的配置密切相关。
+如果filePattern中仅含有date/time pattern，每次rollover时，将用当前的日期和时间替换文件中的日期格式对文件进行重命名。max参数将不起作用。如，filePattern="logs/app-%d{yyyy-MM-dd}.log"。
+如果filePattern中仅含有整数计数器（即%i），每次rollover时，文件重命名时的计数器将每次加1（初始值为1），若达到max的值，将删除旧的文件。如，filePattern="logs/app-%i.log"。
+如果filePattern中既含有date/time pattern，又含有%i，每次rollover时，计数器将每次加1，若达到max的值，将删除旧的文件，直到data/time pattern不再符合，被替换为当前的日期和时间，计数器再从1开始。如，filePattern="logs/app-%d{yyyy-MM-dd HH-mm}-%i.log"。
+
+(4)DeleteAction
+
+DefaultRolloverStrategy制定了默认的rollover策略，通过max参数可控制一定时间范围内归档的日志文件的最大个数。
+Log4j 2.5 引入了DeleteAction，使用户可以自己控制删除哪些文件，而不仅仅是通过DefaultRolloverStrategy的默认策略。
+注意：通过DeleteAction可以删除任何文件，而不仅仅像DefaultRolloverStrategy那样，删除最旧的文件，所以使用的时候需要谨慎！
+
+    <?xml version="1.0" encoding="UTF-8"?>
+    <Configuration status="warn" name="MyApp" packages="">
+      <Properties>
+        <Property name="baseDir">logs</Property>
+      </Properties>
+      <Appenders>
+        <RollingFile name="RollingFile" fileName="${baseDir}/app.log"
+              filePattern="${baseDir}/app-%d{yyyy-MM-dd}.log.gz">
+          <PatternLayout pattern="%d %p %c{1.} [%t] %m%n" />
+          <CronTriggeringPolicy schedule="0 0 0 * * ?"/>
+          <DefaultRolloverStrategy>
+            <Delete basePath="${baseDir}" maxDepth="2">
+              <IfFileName glob="*/app-*.log.gz" />
+              <IfLastModified age="60d" />
+            </Delete>
+          </DefaultRolloverStrategy>
+        </RollingFile>
+      </Appenders>
+      <Loggers>
+        <Root level="error">
+          <AppenderRef ref="RollingFile"/>
+        </Root>
+      </Loggers>
+    </Configuration>
+    
+上述配置文件中，Delete部分便是配置DeleteAction的删除策略，指定了当触发rollover时，删除baseDir文件夹或其子文件下面的文件名符合app-*.log.gz且距离最后的修改日期超过60天的文件。
+其中，basePath指定了扫描开始路径，为baseDir文件夹。maxDepth指定了目录扫描深度，为2表示扫描baseDir文件夹及其子文件夹。
+IfFileName指定了文件名需满足的条件，IfLastModified指定了文件修改时间需要满足的条件。

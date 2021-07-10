@@ -54,7 +54,33 @@ Java spi 方式，比如jdbc4.0开始就是其中之一。热部署的场景会�
 5.热部署原理
 采取破坏双亲委派模型的手段来实现热部署，默认的loadClass()方法先找缓存，你改了class字节码也不会热加载，所以自定义ClassLoader，去掉找缓存那部分，直接就去加载，也就是每次都重新加载。
 
-# JVM内存区域
+6.Java类是如何被加载的
+
+(1)Java类何时会被加载？最通俗易懂的答案就是：当运行过程中需要这个类的时候。
+
+    遇到new、getstatic、putstatic等指令时。
+    对类进行反射调用的时候。
+    初始化某个类的子类的时候。
+    虚拟机启动时会先加载设置的程序主类。
+    使用JDK 1.7的动态语言支持的时候。
+
+(2)怎么加载类
+
+利用ClassLoader加载类很简单，直接调用ClassLoder的loadClass()方法即可。让ClassLoader去加载 “com.test.Dog” 这个类。
+
+    public class Test {
+        public static void main(String[] args) throws ClassNotFoundException {
+            Test.class.getClassLoader().loadClass("com.test.Dog");
+        }
+    }
+    
+(3)JVM是怎么加载类的
+
+JVM默认用于加载用户程序的ClassLoader为AppClassLoader，不过无论是什么ClassLoader，它的根父类都是java.lang.ClassLoader。在上面那个例子中，loadClass()方法最终会调用到ClassLoader.definClass1()中，这是一个Native方法。definClass1()对应的JNI方法为Java_java_lang_ClassLoader_defineClass1()。
+
+    static native Class<?> defineClass1(ClassLoader loader, String name, byte[] b, int off, int len, ProtectionDomain pd, String source); 
+
+# JVM内存管理
 
 1.JVM整体组成
 
@@ -82,9 +108,14 @@ Java spi 方式，比如jdbc4.0开始就是其中之一。热部署的场景会�
 Java堆是Java虚拟机中内存最大的一块，是被所有线程共享的，在虚拟机启动时候创建，Java堆唯一的目的就是存放对象实例，几乎所有的对象实例都在这里分配内存，随着JIT编译器的发展和逃逸分析技术的逐渐成熟，栈上分配、标量替换优化的技术将会导致一些微妙的变化，所有的对象都分配在堆上渐渐变得不那么“绝对”了。
 特性：内存共享。异常规定：OutOfMemoryError。如果在堆中没有内存完成实例分配，并且堆不可以再扩展时，将会抛出OutOfMemoryError。
 Java虚拟机规范规定，Java堆可以处在物理上不连续的内存空间中，只要逻辑上连续即可，就像我们的磁盘空间一样。在实现上也可以是固定大小的，也可以是可扩展的，不过当前主流的虚拟机都是可扩展的，通过-Xmx和-Xms控制。
+从内存分配的角度来看，线程共享的Java堆中可能划分出多个线程私有的分配缓冲区（Thread Local Allocation Buffer,TLAB）。
 
 (5)方法区
-用于存储已被虚拟机加载的类信息、常量、静态变量、即时编译后的代码等数据。线程共享。当方法无法满足内存分配需求时会抛出OutOfMemoryError异常。
+
+方法区（Method Area）与 Java 堆一样，是各个线程共享的内存区域，它用于存储已被虚拟机加载的类信息、常量、静态变量、即时编译器编译后的代码等数据。虽然Java虚拟机规范把方法区描述为堆的一个逻辑部分，但是它却有一个别名叫做Non-Heap（非堆），目的应该是与Java堆区分开来。
+Java虚拟机规范对方法区的限制非常宽松，除了和Java堆一样不需要连续的内存和可以选择固定大小或者可扩展外，还可以选择不实现垃圾收集。垃圾收集行为在这个区域是比较少出现的，其内存回收目标主要是针对常量池的回收和对类型的卸载。
+线程共享。当方法无法满足内存分配需求时会抛出OutOfMemoryError异常。
+JDK8之前，Hotspot中方法区的实现是永久代（Perm），JDK8开始使用元空间（Metaspace），以前永久代所有内容的字符串常量移至堆内存，其他内容移至元空间，元空间直接在本地内存分配。
 
 (6)运行时常量
 是方法区的一部分，存常量（比如static final修饰的，比如String一个字符串）和符号引用。常量池（Constant Pool Table）用于存放编译期生成的各种字面量和符号引用，这部分在类加载后进入方法区的运行时常量池中，如String类的intern()方法。
@@ -267,6 +298,16 @@ DirectMemory容量可通过-XX:MaxDirectMemorySize指定，如果不指定，则
 
 一个线程溢出后，进程里的其他线程还能照常运行。例子只演示了堆溢出的情况。如果是栈溢出，结论也是一样的。
 其实发生OOM的线程一般情况下会死亡，也就是会被终结掉，该线程持有的对象占用的heap都会被gc了，释放内存。因为发生OOM之前要进行gc，就算其他线程能够正常工作，也会因为频繁gc产生较大的影响。
+
+22.JVM内存区域和内存模型
+
+JVM内存区域是指JVM运行时将数据分区域存储，强调对内存空间的划分。
+而内存模型（Java Memory Model，简称JMM）是定义了线程和主内存之间的抽象关系，即JMM定义了JVM在计算机内存(RAM)中的工作方式。
+
+23.Java1.8为什么要使用元空间取代永久代的实现？
+
+字符串存在永久代中，容易出现性能问题和内存溢出。类及方法的信息等比较难确定其大小，因此对于永久代的大小指定比较困难，太小容易出现永久代溢出，太大则容易导致老年代溢出。
+永久代会为GC带来不必要的复杂度，并且回收效率偏低。
 
 N.参考
 
@@ -554,6 +595,285 @@ TLAB允许浪费空间，导致Eden区空间不连续，积少成多。
 长期存活的对象进入老年代。虚拟机为每个对象定义了一个年龄计数器，如果对象经过了1次YGC那么对象会进入Survivor区，之后每经过一次YGC那么对象的年龄加1，直到达到阀值对象进入老年区。默认阈值是15。可以通过-XX:MaxTenuringThreshold参数来设置。
 动态判断对象的年龄。如果Survivor区中相同年龄的所有对象大小的总和大于Survivor空间的一半，年龄大于或等于该年龄的对象可以直接进入老年代。无需等到-XX:MaxTenuringThreshold参数要求的年龄。
 空间分配担保。每次进行YGC时，JVM会计算Survivor区移至老年区的对象的平均大小，如果这个值大于老年区的剩余值大小则进行一次Full GC。如果小于，检查HandlePromotionFailure设置，如果true则只进行YGC，如果false则进行Full GC。
+
+# JVM执行过程
+
+1.JVM栈帧
+
+JVM执行字节码指令是基于栈的架构，就是说所有的操作数都必须先入栈，然后再根据需要出栈进行操作计算，再把结果进行入栈，这个流程和基于寄存器的架构是有本质区别的，而基于寄存器架构来实现，在不同的机器上可能会无法做到完全兼容，这也是Java会选择基于栈的设计的原因之一。
+当我们调用一个方法时，参数是怎么传递的，返回值又是怎么保存的，一个方法调用之后又是如何继续下一个方法调用的呢？调用过程中肯定会存储一些方法的参数和返回值等信息，这些信息存储在哪里呢？
+我们知道，每次调用一个方法就会产生一个栈帧，当一个方法调用完成时，它所对应的栈帧将被销毁，无论这种完成是正常的还是突然的(抛出一个未捕获的异常)。所以我们肯定可以想到栈帧就存储了所有调用过程中需要使用到的数据。
+每个栈帧中包括局部变量表(Local Variables)、操作数栈(Operand Stack)、动态链接(Dynamic Linking)、方法返回地址(Return Address)和额外的附加信息。
+在给定的线程当中，永远只有一个栈帧是活动的，所以活动的栈帧又称之为当前栈帧，而其对应的方法则称之为当前方法，定义了当前方法的类则称之为当前类。当一个方法调用结束时，其对应的栈帧也会被丢弃。
+
+(1)局部变量表(Local Variables)
+
+局部变量表是以数组的形式存储的，而且当前栈帧的方法所需要分配的最大长度是在编译时就确定了。局部变量表通过index来寻址，变量从index[0]开始传递。
+局部变量表的数组中，每一个位置可以保存一个32位的数据类型：boolean、byte、char、short、int、float、reference或returnAddress类型的值。而对于64位的数据类型long和double则需要两个位置来存储，但是因为局部变量表是属于线程私有的，所以虽然被分割为2个变量存储，依然不用担心会出现安全性问题。
+对于64位的数据类型，假如其占用了数组中的index[n]和index[n+1]两个位置，那么不允许单独访问其中的某一个位置，Java虚拟机规范中规定，如果出现一个64位的数据被单独访问某一部分时，则在类加载机制中的校验阶段就应该抛出异常。
+Java虚拟机在方法调用时使用局部变量进行传递参数。在类方法(static方法)调用中，所有参数都以从局部变量中的index[0]开始进行参数传递。而在实例方法调用上，index[0]固定用来传递方法所属于的对象实例，其余所有参数则在从局部变量表内index[1]的位置开始进行传递。
+注意：局部变量表中的变量不可以直接使用，如需要使用的话，必须通过相关指令将其加载至操作数栈中作为操作数才能使用。
+
+(2)操作数栈(Operand Stacks)
+
+操作数栈，在上下文语义清晰时，也可以称之为操作栈（Operand Stack），是一个后进先出(Last In First Out,LIFO)栈，同局部变量表一样，操作数栈的最大深度也是在编译时就确定的。
+操作数栈在刚被创建时(也就是方法刚被执行的时候)是空的，然后在执行方法的过程中，通过虚拟机指令将常量/值从局部变量表或字段加载到操作数栈中，然后对其进行操作，并将操作结果压入栈内。
+操作数堆栈上的每个条目都可以保存任何Java虚拟机类型的值，包括long或double类型的值。
+注意：我们必须以适合其类型的方式对操作数堆栈中的值进行操作。例如，不可能将两个int类型的值压入栈后将其视为long类型，也不可能将两个float类型值压入栈内后使用iadd指令将其添加。
+
+(3)动态连接(Dynamic Linking)
+
+每个栈帧都包含一个指向运行时常量池中该栈帧所属方法的引用，持有这个引用是为了支持方法调用过程中的动态连接。
+在Class文件中的常量池中存有大量的符号引用，字节码中的方法调用指令就以常量池中指向方法的符号引用作为参数，这些符号引用一部分会在类加载阶段或者第一次使用的时候就转化为直接引用，这种就称为静态解析。而另外一部分则会在每一次运行期间才会转化为直接引用，这部分就称为动态连接。
+
+(4)方法返回地址
+
+当一个方法开始执行后，只有两种方式可以退出：一种是遇到方法返回的字节码指令；一种是遇见异常，并且这个异常没有在方法体内得到处理。
+正常退出：如果对当前方法的调用正常完成，则可能会向调用方法返回一个值。当被调用的方法执行其中一个返回指令时，返回指令的选择必须与被返回值的类型相匹配(如果有的话)。方法正常退出时，当前栈帧通过将调用者的pc程序计数器适当的并跳过当前的调用指令来恢复调用程序的状态，包括它的局部变量表和操作数堆栈。然后继续在调用方法的栈帧来执行后续流程，如果有返回值的话则需要将返回值压入操作数栈。
+异常终止：如果在方法中执行Java虚拟机指令导致Java虚拟机抛出异常，并且该异常没有在方法中处理，那么方法调用会突然结束，因为异常导致的方法突然结束永远不会有返回值返回给它的调用者。
+
+(5)其他附加信息
+
+这一部分具体要看虚拟机产商是如何实现的，虚拟机规范并没有对这部分进行描述。
+
+2.JVM方法调用流程
+
+(1)查看字节码
+
+要想了解Java虚拟机的执行流程，那么我们必须要对类进行编译，得到字节码文件。将JVMDemo.class生成的字节码指令输出到1.txt文件中，然后打开，看到如下字节码指令：
+
+    javap -c xxx\xxx\JVMDemo.class >1.txt
+
+    package com.zwx.jvm;
+    
+    public class JVMDemo {
+        public static void main(String[] args) {
+            int sum = add(1, 2);
+            print(sum);
+        }
+    
+        public static int add(int a, int b) {
+            a = 3;
+            int result = a + b;
+            return result;
+        }
+    
+        public static void print(int num) {
+            System.out.println(num);
+        }
+    }
+
+    Compiled from "JVMDemo.java"
+    public class com.zwx.jvm.JVMDemo {
+      public com.zwx.jvm.JVMDemo();
+        Code:
+           0: aload_0
+           1: invokespecial #1                  // Method java/lang/Object."<init>":()V
+           4: return
+    
+      public static void main(java.lang.String[]);
+        Code:
+           0: iconst_1
+           1: iconst_2
+           2: invokestatic  #2                  // Method add:(II)I
+           5: istore_1
+           6: iload_1
+           7: invokestatic  #3                  // Method print:(I)V
+          10: return
+    
+      public static int add(int, int);
+        Code:
+           0: iconst_3
+           1: istore_0
+           2: iload_0
+           3: iload_1
+           4: iadd
+           5: istore_2
+           6: iload_2
+           7: ireturn
+    
+      public static void print(int);
+        Code:
+           0: getstatic     #4                  // Field java/lang/System.out:Ljava/io/PrintStream;
+           3: iload_0
+           4: invokevirtual #5                  // Method java/io/PrintStream.println:(I)V
+           7: return
+    }
+
+(2)字节码指令说明
+
+    iconst_i：表示将整型数字i压入操作数栈，注意，这里i的返回只有-1~5，如果不在这个范围会采用其他指令，如当int取值范围是[-128,127]时，会采用bipush指令。
+    invokestatic：表示调用一个静态方法
+    istore_n：这里表示将一个整型数字存入局部变量表的索引n位置，因为局部变量表是通过一个数组形式来存储变量的
+    iload_n：表示将局部变量位置n的变量压入操作数栈
+    ireturn：将当前方法的结果返回到上一个栈帧
+    invokevirtual：调用虚方法
+
+(3)主要执行流程
+
+(a)代码编译之后大致得到如下的一个Java虚拟机栈,注意这时候操作数栈都是空的(pc寄存器的值在这里暂不考虑 ，实际上调用指令的过程，pc寄存器是会一直发生变化的)；
+(b)执行iconst_1和iconst_2两个指令，也就是从本地变量中把整型1和2两个数字压入操作数栈内；
+(c)执行invokestatic指令，调用add方法，会再次创建一个新的栈帧入栈，并且会将参数a和b存入add栈帧中的本地变量表；
+(d)add栈帧中调用iconst_3指令，从本地变量中将整型3压入操作数栈；
+(e)add栈帧中调用istore_0，表示将当前的栈顶元素存入局部变量表index[0]的位置，也就是赋值给a。
+(f)调用iload_0和iload_1，将局部变量表中index[0]和index[1]两个位置的变量压入操作数栈
+(g)最后执行iadd指令：将3和2弹出栈后将两个数相加，得到5，并将得到的结果5重新压入栈内
+(h)执行istore_2指令，将当前栈顶元素弹出存入局部变量表index[2]的位置，并再次调用iload_2从局部变量表内将index[2]位置的数据压入操作数栈内
+(i)最后执行ireturn命令将结果5返回main栈帧，此时栈帧add被销毁，回到main栈帧继续后续执行，方法的调用大致就是不断的入栈和出栈的过程。
+
+(4)方法调用分析
+
+Java是一种面向对象语言，支持多态，而多态的体现形式就是方法重载和方法重写，那么Java虚拟机又是如何确认我们应该调用哪一个方法的呢。
+
+(a)方法调用指令
+
+首先，我们来看一下方法的字节码调用指令，在Java中，提供了4种字节码指令来调用方法(jdk1.7之前)。注意：在JDK1.7开始，Java新增了一个指令invokedynamic，这个是为了实现“动态类型语言”而引入的，在这里我们暂不讨论。
+
+    invokestatic：调用静态方法
+    invokespecial：调用实例构造器方法，私有方法，父类方法
+    invokevirtual：调用所有的虚方法
+    invokeinterface：调用接口方法（运行时会确定一个实现了接口的对象）
+
+(b)方法解析
+
+在类加载机制中的解析阶段，主要做的事情就是将符号引用转为直接引用，但是，对方法的调用而言，有一个前提，那就是在方法真正运行之前就可以唯一确定具体要调用哪一个方法，而且这个方法在运行期间是不可变的。
+只有满足这个前提的方法才会在解析阶段直接被替换为直接引用，否则只能等到运行时才能最终确定。
+
+(c)非虚方法
+
+在Java语言中，满足“编译器可知，运行期不可变”这个前提的方法，被称之为非虚方法。非虚方法在类加载机制中的解析阶段就可以直接将符号引用转化为直接引用。非虚方法有4种：
+
+    静态方法
+    私有方法
+    实例构造器方法
+    父类方法(通过super.xxx调用，因为Java是单继承，只有一个父类，所以可以确定方法的唯一)
+
+除了非虚方法之外的非final方法就被称之为虚方法，虚方法需要运行时才能确定真正调用哪一个方法。Java语言规范中明确指出，final方法是一种非虚方法，但是final又属于比较特殊的存在，因为final方法和其他非虚方法调用的字节码指令不一样。
+知道了虚方法的类型，再结合上面的方法的调用指令，我们可以知道，虚方法就是通过字节码指令invokestatic和invokespecial调用的，而final方法又是一个例外，final方法是通过字节码指令invokevirtual调用的，但是因为final方法的特性就是不可被重写，无法覆盖，所以必然是唯一的，虽然调用指令不同，但是依然属于非虚方法的范畴。
+
+(d)方法重载
+
+先来看一个方法重载的例子，这里Java虚拟机为什么会选择参数为Human的方法来进行调用呢？在解释这个问题之前，我们先来介绍一个概念：宗量。
+
+    package com.zwx.jvm.overload;
+    
+    public class OverloadDemo {
+        static class Human {
+        }
+        static class Man extends Human {
+        }
+        static class WoMan extends Human {
+        }
+    
+        public void hello(Human human) {
+            System.out.println("Hi,Human");
+        }
+    
+        public void hello(Man man) {
+            System.out.println("Hi,Man");
+        }
+    
+        public void hello(WoMan woMan) {
+            System.out.println("Hi,Women");
+        }
+    
+        public static void main(String[] args) {
+            OverloadDemo overloadDemo = new OverloadDemo();
+            Human man = new Man();
+            Human woman = new WoMan();
+    
+            overloadDemo.hello(man);
+            overloadDemo.hello(woman);
+        }
+    }
+    输出结果为：
+    
+    Hi,Human
+    Hi,Human
+    
+(e)宗量
+
+方法的接收者(调用者)和方法参数统称为宗量。而最终决定方法的分派就是基于宗量来选择的，故而根据基于多少种宗量来选择方法又可以分为：
+
+    单分派：根据1个宗量对方法进行选择
+    多分派：根据1个以上的宗量对方法进行选择
+
+知道了方法的分派是基于宗量来进行的，那我们再回到上面的例子中就很好理解了。
+overloadDemo.hello(man);这句代码中overloadDemo表示接收者，man表示参数，而接收者是确定唯一的，就是overloadDemo实例，所以决定调用哪个方法的只有参数(包括参数类型和个数和顺序)这一个宗量。我们再看看参数类型：
+Human man = new Man();这句话中，Human称之为变量的静态类型，而Man则称之为变量的实际类型，而Java虚拟机在确认重载方法时是基于参数的静态类型来作为判断依据的，故而最终实际上不管你右边new的对象是哪个，调用的都是参数类型为Human的方法。
+
+(f)静态分派
+
+所有依赖变量的静态类型来定位方法执行的分派动作就称之为静态分派。静态分派最典型的应用就是方法重载。
+方法重载在编译期就能确定方法的唯一，不过虽然如此，但是在有些情况下，这个重载版本不是唯一的，甚至是有点模糊的。
+产生这个原因就是因为字面量并不需要定义，所以字面量就没有静态类型，比如我们直接调用一个方法：xxx.xxx(‘1’)，这个字面量1就是模糊的，并没有对应静态类型。
+
+(g)方法重写
+
+这里静态类型都是Human，但是却输出了两种结果，所以肯定不是按照静态类型来分派方法了，而从结果来看应该是按照了调用者的实际类型来进行的判断。
+
+    package com.zwx.jvm.override;
+    
+    public class OverrideDemo {
+        static class Human {
+            public void hello(Human human) {
+                System.out.println("Hi,Human");
+            }
+        }
+    
+        static class Man extends Human {
+            @Override
+            public void hello(Human human) {
+                System.out.println("Hi,Man");
+            }
+        }
+    
+        static class WoMan extends Human {
+            @Override
+            public void hello(Human human) {
+                System.out.println("Hi,Women");
+            }
+        }
+    
+        public static void main(String[] args) {
+            Human man = new Man();
+            Human woman = new WoMan();
+    
+            man.hello(man);
+            man.hello(woman);
+            woman.hello(woman);
+            woman.hello(man);
+        }
+    }
+    输出结果为：
+    
+    Hi,Man
+    Hi,Man
+    Hi,Women
+    Hi,Women
+    
+执行javap命令把类转换成字节码，方法调用使用了指令invokevirtual来调用，因为根据上面的分类可以判断，hello方法均是虚方法。
+方法调用者和参数压入操作数栈，然后调用invokevirtual指令调用方法。
+所以上面最关键的就是invokevirtual指令到底是如何工作的呢？invokevirtual主要是按照如下步骤进行方法选择的：
+
+    找到当前操作数栈中的方法接收者(调用者)，记下来，比如叫Caller
+    然后在类型Caller中去找方法，如果找到方法签名一致的方法，则停止搜索，开始对方法校验，校验通过直接调用，校验不通过，直接抛IllegalAccessError异常
+    如果在Caller中没有找到方法签名一致的方法，则往上找父类，以此类推，直到找到为止，如果到顶了还没找到匹配的方法，则抛出AbstractMethodError异常
+
+(h)动态分派
+
+上面的方法重写例子中，在运行期间才能根据实际类型来确定方法的执行版本的分派过程就称之为动态分派。
+
+(i)单分派与多分派
+
+上面方法重载的第1个示例中，是一个静态分派过程，静态分配过程中Java虚拟机选择目标方法有两点：
+
+    静态类型
+    方法参数
+
+也就是用到了2个宗量来进行分派，所以是一个静态多分派的过程。
+而上面方法重写的例子中，因为方法签名是固定的，也就是参数是固定的，那么就只有一个宗量-静态类型，能最终确定方法的调用，所以属于动态单分派。
+所以可以得出对Java而言：Java是一门静态多分派，动态单分派语言
 
 # JVM调优
 

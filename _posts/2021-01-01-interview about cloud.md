@@ -296,3 +296,20 @@ ReadWriteMany：能以读写的方式挂载到多个节点。以及指定pv的�
     recycle：清除PV的数据，然后自动回收；
     Retain：需要手动回收；
     delete：删除云存储资源，云存储专用；
+
+24.已经用k8s来部署运维各个微服务的组件，是否可以不用整套微服务框架了？
+
+可以，但要看情况。
+以主流的SpringCloud为例，其提供的能力与Kubernetes既有重合也有互补，我们举几个例子逐一分析微服务各个核心组件。
+
+微服务网关：网关几乎不涉及业务部分，各种实现也非常多，选哪个看业务契合度了。但Spring Cloud Gateway不能作为Kubernetes Ingress Controller，如果用不兼容Ingress的框架作为网关层，可能会损失一些Kubernetes Ingress带来的好处。
+服务发现：Kubernetes自带的基于K8S Service和DNS的服务发现机制已经足够强大，底层其实是把元数据存在CAP取了CP的etcd中，更适合Kubernetes集群动态和弹性的特征。因此，用原生的服务发现能够在Pod退出前先下线流量。这与SpringCloud不矛盾，因为SpringCloud也提供了kubernetes集成的jar包，用原生的服务发现作为DiscoveryClient。Consul勉强可以和Kubernetes配合，而Eureka与Kubernetes就八字不合了，Eureka的弱一致性完全不适合每次部署Pod IP变化的Kubernetes环境。
+负载均衡：负载均衡是基于服务发现的，如果用了Kubernetes Service/DNS作为服务发现的方案，丢掉微服务框架中的负载均衡组件吧，这个功能是完全重合的。
+熔断、降级、限流：Kubernetes本身没有熔断器，因此微服务框架中的熔断组件是有必要的，即使引入了ServiceMesh做熔断，也不见得业务上熔断器的就可以省掉了，二者粒度不同、维度也不同，是互补的。Hystrix功能少一些，新的一些熔断组件比如阿里的Sentinel，也支持限流，这也是对Kubernetes原生能力中不足之处的补充，与ServiceMesh功能重合。
+配置中心：配置中心试过Spring Cloud Config，Nacos，Kubernetes ConfigMap/Secret，从踩过的坑来看，丢掉各种GUI的配置中心吧。个人更倾向于最简单可靠的方案：Git维护配置的版本，CI/CD部署到Kubernetes集群的ConfigMap/Secret。
+
+小结：
+这几个例子可以发现，传统的微服务框架诞生于容器技术生态还没有繁荣的时期，因此像SpringCloud这样的微服务套件，不得不提供完整的微服务治理能力，从配置到服务发现，再到API网关等等。
+而在容器生态步入主流之后，与业务功能关系不大的部分，Kubernetes以及其众多生态中的组件，做的更多更好。因此，像服务发现/负载均衡/配置中心/API网关 这些更偏向DevOps的关注点，是可以用Kubernetes取而代之的，这样业务开发者可以聚焦业务逻辑，把精力放在熔断降级时业务如何处理这类问题上。
+最后，回到问题本身，是否可以不用整套微服务框架？新开发的微服务，我觉得是可以的，各类技术取长补短、有机组合，相比套用范本，会带来更长期的好处和和更高的投入产出比。
+不过，如果是已经上线微服务系统的改造，可能会面临一些现实问题，比如：团队是否熟悉容器生态的技术和原理？去掉旧的组件会带来多大的益处和风险？人力是否足够？带来成本有多大？

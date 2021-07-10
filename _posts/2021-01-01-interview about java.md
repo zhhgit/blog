@@ -59,6 +59,63 @@ tags: [Interview]
     String st3 = st1 + "c";
     此时st3并非常量池中的"abc"，任何数据和字符串进行加号（+）运算，最终得到是一个拼接的新的字符串。这个拼接的原理是由StringBuilder或者StringBuffer类和里面的append方法实现拼接，然后调用toString（）把拼接的对象转换成字符串对象，最后把得到字符串对象的地址赋值给变量。
 
+(6)String的hashCode()和equals()
+
+    private int hash; // Default to 0
+    public int hashCode() {
+        int h = hash;
+        if (h == 0 && value.length > 0) {
+            char val[] = value;
+
+            for (int i = 0; i < value.length; i++) {
+                h = 31 * h + val[i];
+            }
+            hash = h;
+        }
+        return h;
+    }
+    
+    public boolean equals(Object anObject) {
+        if (this == anObject) {
+            return true;
+        }
+        if (anObject instanceof String) {
+            String anotherString = (String)anObject;
+            int n = value.length;
+            if (n == anotherString.value.length) {
+                char v1[] = value;
+                char v2[] = anotherString.value;
+                int i = 0;
+                while (n-- != 0) {
+                    if (v1[i] != v2[i])
+                        return false;
+                    i++;
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+
+31是一个素数，素数作用就是如果我用一个数字来乘以这个素数，那么最终的出来的结果只能被素数本身和被乘数还有1来整除。31可以由i*31 == (i<<5)-1来表示,现在很多虚拟机里面都有做相关优化。
+选择系数的时候要选择尽量大的系数。因为如果计算出来的hash地址越大，所谓的“冲突”就越少，查找起来效率也会提高。并且31只占用5bits,相乘造成数据溢出的概率较小。
+
+(7)原则
+
+equals()的设计原则：
+
+    对称性: 如果x.equals(y)返回是true，那么y.equals(x)也应该返回是true。
+    反射性: x.equals(x)必须返回是true。
+    类推性: 如果x.equals(y)返回是true，而且y.equals(z)返回是true，那么z.equals(x)也应该返回是true。
+    一致性: 如果x.equals(y)返回是true，只要x和y内容一直不变，不管你重复x.equals(y)多少次，返回都是true。
+    非空性: x.equals(null)，永远返回是false；x.equals(和x不同类型的对象)永远返回是false。
+    
+hashCode()的设计原则：
+
+    在一个Java应用的执行期间，如果一个对象提供给equals做比较的信息没有被修改的话，该对象多次调用hashCode()方法，该方法必须始终如一返回同一个integer。
+    如果两个对象根据equals(Object)方法是相等的，那么调用二者各自的hashCode()方法必须产生同一个integer结果。
+    并不要求根据equals(java.lang.Object)方法不相等的两个对象，调用二者各自的hashCode()方法必须产生不同的integer结果。然而，程序员应该意识到对于不同的对象产生不同的integer结果，有可能会提高hash table的性能。
+
 2.运算
 
 (1)Math.round()计算方法为先+0.5，然后向下取整。
@@ -165,42 +222,7 @@ tags: [Interview]
 7.Integer类型当正整数小于128时是在内存栈中创建值的，并将对象指向这个值，这样当比较两个栈引用时因为是同一地址引用两者则相等。
 当大于127时将会调用new Integer()，两个整数对象地址引用不相等了。这就是为什么当值为128时不相等，当值为100时相等了。
 
-8.JDK 8中的Optional
-
-    import java.util.Optional;
-    
-    public class Java8Tester {
-        public static void main(String args[]){
-        
-              Java8Tester java8Tester = new Java8Tester();
-              Integer value1 = null;
-              Integer value2 = new Integer(10);
-                
-              // Optional.ofNullable - 允许传递为 null 参数
-              Optional<Integer> a = Optional.ofNullable(value1);
-                
-              // Optional.of - 如果传递的参数是 null，抛出异常 NullPointerException
-              Optional<Integer> b = Optional.of(value2);
-              System.out.println(java8Tester.sum(a,b));
-        }
-        
-        public Integer sum(Optional<Integer> a, Optional<Integer> b){
-        
-              // Optional.isPresent - 判断值是否存在
-                
-              System.out.println("第一个参数值存在: " + a.isPresent());
-              System.out.println("第二个参数值存在: " + b.isPresent());
-                
-              // Optional.orElse - 如果值存在，返回它，否则返回默认值
-              Integer value1 = a.orElse(new Integer(0));
-                
-              //Optional.get - 获取值，值需要存在
-              Integer value2 = b.get();
-              return value1 + value2;
-        }
-    }
-    
-9.DO,DTO,VO等
+8.DO,DTO,VO等
 
 DO（Domain Object），领域对象，也就是ORM框架中对应数据库的对象，业务实体。
 VO（Value Object），就是用于保存数据的对象；在提供给页面使用的时候，也有人解释为View Object，就是对应页面展示数据的对象。
@@ -210,62 +232,104 @@ DTO（Data Transfer Object），数据传输对象，顾名思义就是用于传
 controller层：public List<UserVO> getUsers(UserDTO userDto);
 Service层：List<UserDTO> getUsers(UserDTO userDto);
 DAO层：List<UserDTO> getUsers(UserDO userDo);
-
-10.Java8中Stream对列表去重
-
-distinct()是Java8中Stream提供的方法，返回的是由该流中不同元素组成的流。distinct()使用hashCode()和eqauls()方法来获取不同的元素。
-因此，需要去重的类必须实现 hashCode() 和 equals() 方法。换句话讲，我们可以通过重写定制的hashCode()和equals()方法来达到某些特殊需求的去重。
-
-对于String列表的去重
-
-    @Test
-    public void listDistinctByStreamDistinct() {
-      // 1. 对于 String 列表去重
-      List<String> stringList = new ArrayList<String>() {{
-        add("A");
-        add("A");
-        add("B");
-        add("B");
-        add("C");
-      }};
-      out.print("去重前：");
-      for (String s : stringList) {
-        out.print(s);
-      }
-      out.println();
-      stringList = stringList.stream().distinct().collect(Collectors.toList());
-      out.print("去重后：");
-      for (String s : stringList) {
-        out.print(s);
-      }
-      out.println();
-    }
-
-实体类列表的去重，代码中我们使用了 Lombok 插件的 @Data注解，可自动覆写equals()以及hashCode()方法。
-
-    @Data
-    public class Student {
-      private String stuNo;
-      private String name;
-    }
-    
-    @Test
-    public void listDistinctByStreamDistinct() throws JsonProcessingException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        // 1. 对于 Student 列表去重
-        List<Student> studentList = getStudentList();
-        out.print("去重前：");
-        out.println(objectMapper.writeValueAsString(studentList));
-        studentList = studentList.stream().distinct().collect(Collectors.toList());
-        out.print("去重后：");
-        out.println(objectMapper.writeValueAsString(studentList));
-     }
      
-11.为什么Integer用==比较时127相等而128不相等？
+9.为什么Integer用==比较时127相等而128不相等？
 
 因为自动装箱机制的存在，在为Integer类型的变量赋int类型值时，Java会自动将int类型转换为Integer类型，即Integer a = Integer.valueOf(1);valueOf()方法返回一个Integer类型值，并将其赋值给变量a。这就是int的自动装箱。
 从0到127不同时候自动装箱得到的是同一个对象。就只能有一种解释：自动装箱并不一定new出新的对象。
 -128到127之间的值都是直接从缓存中取出的。看看是怎么实现的：如果int型参数i在IntegerCache.low和IntegerCache.high范围内，则直接由IntegerCache返回；否则new一个新的对象返回。似乎IntegerCache.low就是-128，IntegerCache.high就是127了。
+
+10.StringBuilder是线程不安全的，是什么原因
+
+StringBuilder不是线程安全的，StringBuffer是线程安全的
+在分析这个问题之前我们要知道StringBuilder和StringBuffer的内部实现跟String类一样，都是通过一个char数组存储字符串的，不同的是String类里面的char数组是final修饰的，是不可变的，而StringBuilder和StringBuffer的char数组是可变的。
+首先通过一段代码去看一下多线程操作StringBuilder对象会出现什么问题
+
+    public class StringBuilderDemo {
+    
+        public static void main(String[] args) throws InterruptedException {
+            StringBuilder stringBuilder = new StringBuilder();
+            for (int i = 0; i < 10; i++){
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        for (int j = 0; j < 1000; j++){
+                            stringBuilder.append("a");
+                        }
+                    }
+                }).start();
+            }
+    
+            Thread.sleep(100);
+            System.out.println(stringBuilder.length());
+        }
+    }
+    
+能看到这段代码创建了10个线程，每个线程循环1000次往StringBuilder对象里面append字符。正常情况下代码应该输出10000，但是实际运行会输出什么呢？
+看到输出了“9326”，小于预期的10000，并且还抛出了一个ArrayIndexOutOfBoundsException异常（异常不是必现）。
+
+(1)为什么输出值跟预期值不一样
+
+先看一下StringBuilder的两个成员变量（这两个成员变量实际上是定义在AbstractStringBuilder里面的，StringBuilder和StringBuffer都继承了AbstractStringBuilder）
+
+    //存储字符串的具体内容
+    char[] value;
+    //已经使用的字符数组的数量
+    int count;
+    
+再看StringBuilder的append()方法，StringBuilder的append()方法调用的父类AbstractStringBuilder的append()方法
+
+    @Override
+    public StringBuilder append(String str) {
+        super.append(str);
+        return this;
+    }
+    
+    public AbstractStringBuilder append(String str) {
+        if (str == null)
+            return appendNull();
+        int len = str.length();
+        ensureCapacityInternal(count + len);
+        str.getChars(0, len, value, count);
+        count += len;
+        return this;
+    }
+    
+我们先不管代码的第五行和第六行干了什么，直接看第七行，count += len不是一个原子操作。假设这个时候count值为10，len值为1，两个线程同时执行到了第七行，拿到的count值都是10，执行完加法运算后将结果赋值给count，所以两个线程执行完后count值为11，而不是12。这就是为什么测试代码输出的值要比10000小的原因。
+
+(2)为什么会抛出ArrayIndexOutOfBoundsException异常。
+
+AbstractStringBuilder的append()方法源码的第五行，ensureCapacityInternal()方法是检查StringBuilder对象的原char数组的容量能不能盛下新的字符串，如果盛不下就调用expandCapacity()方法对char数组进行扩容。
+扩容的逻辑就是new一个新的char数组，新的char数组的容量是原来char数组的两倍再加2，再通过System.arrayCopy()函数将原数组的内容复制到新数组，最后将指针指向新的char数组。
+假设现在有两个线程同时执行了StringBuilder的append()方法，两个线程都执行完了第五行的ensureCapacityInternal()方法，此刻count=5。这个时候线程1的cpu时间片用完了，线程2继续执行。线程2执行完整个append()方法后count变成6了
+线程1继续执行第六行的str.getChars()方法的时候拿到的count值就是6了，执行char数组拷贝的时候就会抛出ArrayIndexOutOfBoundsException异常。
+
+    private void ensureCapacityInternal(int minimumCapacity) {
+            // overflow-conscious code
+        if (minimumCapacity - value.length > 0)
+            expandCapacity(minimumCapacity);
+    }
+    void expandCapacity(int minimumCapacity) {
+        //计算新的容量
+        int newCapacity = value.length * 2 + 2;
+        //中间省略了一些检查逻辑
+        ...
+        value = Arrays.copyOf(value, newCapacity);
+    }
+    public static char[] copyOf(char[] original, int newLength) {
+        char[] copy = new char[newLength];
+        //拷贝数组
+        System.arraycopy(original, 0, copy, 0,
+                             Math.min(original.length, newLength));
+        return copy;
+    }
+    public void getChars(int srcBegin, int srcEnd, char dst[], int dstBegin) {
+        //中间省略了一些检查
+        ...   
+        System.arraycopy(value, srcBegin, dst, dstBegin, srcEnd - srcBegin);
+    }
+
+那么StringBuffer用什么手段保证线程安全的？synchronized的append方法。
 
 N.参考
 
@@ -588,425 +652,6 @@ NIO线程模型
 (a)Reactor单线程模型：由一个线程监听连接事件、读写事件，并完成数据读写。
 (b)Reactor多线程模型：一个Acceptor线程专门监听各种事件，再由专门的线程池负责处理真正的IO数据读写。
 (c)主从Reactor多线程模型：一个线程监听连接事件，线程池的多个线程监听已经建立连接的套接字的数据读写事件，另外和多线程模型一样有专门的线程池处理真正的IO操作。
-
-# Java集合
-
-1.Java集合类
-
-    Collection
-        --Set(继承)
-            --AbstractSet(继承)
-                --HashSet(实现)
-                    --LinkedHashSet(继承)
-            --SortedSet(继承)
-                --TreeSet(实现，同时实现了AbstractSet)
-
-        --List(继承)
-            --AbstractList(继承)
-                --Vector(实现)
-                    --Stack(继承)
-                --ArrayList(实现)
-                --LinkedList(实现，同时实现Queue)
-
-        --Queue(继承)
-            --PriorityQueue(实现)
-            --LinkedList(实现，同时实现List)
-
-    Map
-        --AbstractMap(继承)
-            --HashMap(实现)
-                --LinkedHashMap(继承)
-            --HashTable(实现)
-            --WeakHashMap(实现)
-            --IdentityHashMap(实现)
-        --SortedMap(继承)
-            --TreeMap(实现，同时实现了AbstractMap)
-
-2.Java集合框架基本概念、优点
-
-最初的Java版本包含几种集合类：Vector、Stack、HashTable和Array。Java1.2提出了囊括所有集合接口、实现和算法的集合框架。
-集合框架的优点：使用核心集合类降低开发成本，随着使用经过严格测试的集合框架类，代码质量会得到提高，复用性和可操作性。
-集合框架中的泛型的优点：Java1.5引入了泛型，所有的集合接口和实现都大量地使用它。泛型允许我们为集合提供一个可以容纳的对象类型，因此如果你添加其它类型的任何元素，它会在编译时报错。这避免了在运行时出现ClassCastException，因为将会在编译时得到报错信息。泛型也使得代码整洁，我们不需要使用显式转换和instanceOf操作符。它也给运行时带来好处，因为不会产生类型检查的字节码指令。
-
-3.哪些集合类提供对元素的随机访问？
-
-ArrayList、HashMap、TreeMap和HashTable类提供对元素的随机访问。
-
-4.哪些集合类是线程安全的？
-
-(a)Vector、HashTable、Properties和Stack是同步类，所以它们是线程安全的，可以在多线程环境下使用。
-(b)Java1.5并发包（java.util.concurrent）包含线程安全集合类，允许在迭代时修改集合，是fail-safe的，不会抛出ConcurrentModificationException。一部分类为：CopyOnWriteArrayList、 ConcurrentHashMap、CopyOnWriteArraySet。
-
-5.当一个集合被作为参数传递给一个函数时，如何才可以确保函数不能修改它？
-
-在作为参数传递之前，我们可以使用Collections.unmodifiableCollection(Collection c)方法创建一个只读集合，这将确保改变集合的任何操作都会抛出UnsupportedOperationException。
-UnsupportedOperationException是用于表明操作不支持的异常。在JDK类中已被大量运用，在集合框架java.util.Collections.UnmodifiableCollection将会在所有add和remove操作中抛出这个异常。
-
-6.Iterator
-
-Iterator接口提供遍历任何Collection的接口。我们可以从一个Collection中使用迭代器方法来获取迭代器实例。迭代器取代了Java集合框架中的Enumeration。迭代器允许调用者在迭代过程中移除元素，而Enumeration不能做到。
-
-Enumeration和Iterator接口的区别：
-Enumeration的速度是Iterator的两倍，也使用更少的内存。Enumeration是非常基础的，也满足了基础的需要。但是与Enumeration相比，Iterator更加安全，因为当一个集合正在被遍历的时候，它会阻止其它线程去修改集合。
-
-为何没有像Iterator.add()这样的方法：
-语义不明，已知的是Iterator的协议不能确保迭代的次序。ListIterator有add()方法。
-
-Iterater和ListIterator之间的区别：
-可以使用Iterator来遍历Set和List集合，而ListIterator只能遍历List。
-Iterator只可以向前遍历，而LIstIterator可以双向遍历。
-ListIterator从Iterator接口继承，然后添加了一些额外的功能，比如添加一个元素、替换一个元素、获取前面或后面元素的索引位置。
-
-迭代器的fail-fast属性：
-每次我们尝试获取下一个元素的时候，Iterator fail-fast属性检查当前集合结构里的任何改动。如果发现任何改动，它抛出ConcurrentModificationException。Collection中所有Iterator的实现都是按fail-fast来设计的（ConcurrentHashMap和CopyOnWriteArrayList这类并发集合类除外）。
-java.util.concurrent中的集合类都为fail-safe的，迭代器不抛出ConcurrentModificationException。
-
-如何避免ConcurrentModificationException：
-在遍历一个集合的时候我们可以使用并发集合类来避免ConcurrentModificationException，比如使用CopyOnWriteArrayList，而不是ArrayList。
-
-为何Iterator接口没有具体的实现：
-Iterator接口定义了遍历集合的方法，但它的实现则是集合实现类的责任。每个能够返回用于遍历的Iterator的集合类都有它自己的Iterator实现内部类。
-这就允许集合类去选择迭代器是fail-fast还是fail-safe的。比如，ArrayList迭代器是fail-fast的，而CopyOnWriteArrayList迭代器是fail-safe的。
-
-7.Collection和Collections有什么区别
-
-Collection是一个集合接口。它提供了对集合对象进行基本操作的通用接口方法。Collection接口在Java类库中有很多具体的实现。Collection接口的意义是为各种具体的集合提供了最大化的统一操作方式，其直接继承接口有List与Set。
-Collections则是集合类的一个工具类，其中提供了一系列静态方法，用于对集合中元素进行排序、搜索以及线程安全等各种操作。
-
-常见的函数：
-
-    sort(Collection)
-    shuffle(Collection)
-    reverse(Collection)
-    fill(Collection,Object)
-    copy(List, List)
-    rotate(Collection,int)
-    swap(List,int,int)
-    indexOfSublist(List,List)
-    lastIndexOfSublist(List,List)
-    max(Collection,Comparator)
-    min(Collection,Comparator)
-    unmodifiableCollection(Collection c)
-    synchronizedMap(Map<K,V> m)
-
-8.为何Collection不实现Cloneable和Serializable接口？
-
-当与具体实现打交道的时候，克隆或序列化的语义和含义才发挥作用。所以，具体实现应该决定如何对它进行克隆或序列化，或它是否可以被克隆或序列化。在所有的实现中授权克隆和序列化，最终导致更少的灵活性和更多的限制。
-
-9.为何Map接口不继承Collection接口？
-
-尽管Map接口和它的实现也是集合框架的一部分，但Map不是集合，集合也不是Map。因此，Map继承Collection毫无意义，反之亦然。
-如果Map继承Collection接口，那么元素去哪儿？Map包含key-value对，它提供抽取key或value列表集合的方法，但是它不适合“一组对象”规范。
-
-10.Map接口提供了哪些不同的集合视图？
-
-(1)Set keySet()：返回map中包含的所有key的一个Set视图。集合是受map支持的，map的变化会在集合中反映出来，反之亦然。当一个迭代器正在遍历一个集合时，若map被修改了（除迭代器自身的移除操作以外），迭代器的结果会变为未定义。
-
-(2)Collection values()：返回一个map中包含的所有value的一个Collection视图。这个collection受map支持的，map的变化会在collection中反映出来，反之亦然。当一个迭代器正在遍历一个collection时，若map被修改了（除迭代器自身的移除操作以外），迭代器的结果会变为未定义。
-
-(3)Set<Map.Entry<K,V>> entrySet()：返回一个map包含的所有映射的一个集合视图。这个集合受map支持的，map的变化会在集合中反映出来，反之亦然。当一个迭代器正在遍历一个集合时，若map被修改了（除迭代器自身的移除操作，以及对迭代器返回的entry进行setValue外），迭代器的结果会变为未定义。
-
-11.HashMap
-
-构造函数：
-
-    (a)HashMap(): 构建一个空的哈希映像，默认长度16
-    (b)HashMap(Map m): 构建一个哈希映像，并且添加映像m的所有映射
-    (c)HashMap(int initialCapacity): 构建一个拥有特定容量的空的哈希映像
-    (d)HashMap(int initialCapacity, float loadFactor): 构建一个拥有特定容量和加载因子的空的哈希映像
-
-为什么线程不安全：
-HashMap不是线程安全的，如果想要线程安全的HashMap，可以通过Collections类的静态方法synchronizedMap获得线程安全的HashMap。除了不同步和允许使用null之外，HashMap类与Hashtable大致相同。
-在JDK7中，在多线程环境下，扩容时会造成环形链或数据丢失。使用头插法，在扩容时，其转移过程会rehash，并对链表进行反转。
-在JDK8中，在多线程环境下，会发生数据覆盖的情况。两条不同的数据hash值一样，并且该位置数据为null，所以两个线程会数据覆盖。
-
-底层实现：
-JDK7实现，基于数组和链表来实现的，通过计算散列码来决定存储的位置。HashMap中主要是通过key的hashCode来计算hash值的。如果存储的对象对多了，就有可能不同的对象所算出来的hash值是相同的，这就出现了所谓的hash冲突。HashMap底层是通过链表来解决hash冲突的。哈希数组中每个元素都是一个单链表的头节点，链表是用来解决冲突的，如果不同的key映射到了数组的同一位置处，就将其放入单链表中。数组是HashMap的主体，链表则是主要为了解决哈希冲突而存在的，如果定位到的数组位置不含链表（当前entry的next指向null），那么对于查找，添加等操作很快，仅需一次寻址即可；如果定位到的数组包含链表，对于添加操作，其时间复杂度为O(n)，首先遍历链表，存在即覆盖，否则新增；对于查找操作来讲，仍需遍历链表，然后通过key对象的equals方法逐一比对查找。所以，性能考虑，HashMap中的链表出现越少，性能才会越好。
-JDK8实现，基于位桶+链表/红黑树的方式实现，也是非线程安全的。当某个位桶的链表的长度达到某个阀值(大于等于8)的时候，这个链表就将转换成红黑树。为什么要用红黑树，而不用平衡二叉树？插入效率比平衡二叉树高，查询效率比普通二叉树高。所以选择性能相对折中的红黑树。
-
-JDK7与JDK8中差异：
-1.7中采用数组+链表，1.8采用的是数组+链表/红黑树，即在1.7中链表长度超过一定长度后就改成红黑树存储。 
-1.7扩容时需要重新计算哈希值和索引位置，1.8并不重新计算哈希值，巧妙地采用和扩容后容量进行&操作来计算新的索引位置，即h&(length-1)，保证低位全为1，而扩容后只有一位差异，也就是多出了最左位的1，这样在通过 h&(length-1)的时候，只要h对应的最左边的那一个差异位为0，就能保证得到的新的数组索引和老数组索引一致，大大减少了之前已经散列良好的老数组的数据位置重新调换。 
-1.7是采用表头插入法插入链表，1.8采用的是尾部插入法。 在1.7中采用表头插入法，在扩容时会改变链表中元素原本的顺序，以至于在并发场景下导致链表成环的问题；在1.8中采用尾部插入法，在扩容时会保持链表元素原本的顺序，就不会出现链表成环的问题了。
-
-loadFactor加载因子：
-是表示Hash表中元素的填满的程度。若加载因子越大填满的元素越多，好处是空间利用率高了但冲突的机会加大了。链表长度会越来越长，查找效率降低。因此，必须在 "冲突的机会"与"空间利用率"之间寻找一种平衡与折衷。不过一般我们都不用去设置它，让它取默认值0.75就好了。
-
-为什么int，String适合最为key？
-int和String的好处在于hash出来的值不会改变。如果是一个对象，那么他们可能会因为内部引用的改变而hashCode值的改变，会导致存储重复的数据或找不到数据的情况。
-
-遍历：
-遍历HashMap的时候，若使用remove方法删除元素时会抛出ConcurrentModificationException异常，用iterator不会。
-在HashMap中有一个名为 modCount 的变量，它用来表示集合被修改的次数，修改指的是插入元素或删除元素在最后都会对modCount进行自增。
-当我们在遍历HashMap时，每次遍历下一个元素前都会对modCount进行判断，若和原来的不一致说明集合结果被修改过了，然后就会抛出异常，这是Java集合的一个特性。
-
-    for (String s : map.keySet()) {  
-        if (s.equals("2"))  
-            map.remove("2");  
-    }
-    
-HashMap为什么不直接使用对象的原始hash值呢?通过如下方法，而不是通过key.hashCode()方法获取。通过移位和异或运算，可以让hash变得更复杂，进而影响hash的分布性。
-
-    static final int hash(Object key) {
-
-        int h;
-        return (key == null) ? 0 : (h = key.hashCode()) ^ (h >>> 16);
-    }
-    
-给定字符串作为key及哈希表的大小，hash函数如下：
-
-    public class Solution {
-        /**
-         * @param key: A string you should hash
-         * @param HASH_SIZE: An integer
-         * @return: An integer
-         */
-        public int hashCode(char[] key, int HASH_SIZE) {
-            // write your code here
-            long ans = 0;
-            for(int i = 0; i < key.length; i++){
-                ans = (ans * 33 + (int)(key[i])) % HASH_SIZE;
-            }
-            return (int)(ans);
-        }
-    }
-
-12.HashMap中的链表与红黑树
-
-链表树化：
-指的就是把链表转换成红黑树，树化需要满足以下两个条件：
-(1)链表长度大于等于8链表树化。桶中数量少于6则从树转成链表。
-(2)table数组长度大于等于64。为什么table数组容量大于等于64才树化？因为当table数组容量比较小时，键值对节点hash的碰撞率可能会比较高，进而导致链表长度较长。这个时候应该优先扩容，而不是立马树化。
-
-链表过深问题为什么不用二叉查找树代替，而选择红黑树？为什么不一直使用红黑树？
-之所以选择红黑树是为了解决二叉查找树的缺陷，二叉查找树在特殊情况下会变成一条线性结构（这就跟原来使用链表结构一样了，造成很深的问题），遍历查找会非常慢。
-而红黑树在插入新数据后可能需要通过左旋，右旋、变色这些操作来保持平衡，引入红黑树就是为了查找数据快，解决链表查询深度的问题，我们知道红黑树属于平衡二叉树，但是为了保持“平衡”是需要付出代价的，但是该代价所损耗的资源要比遍历线性链表要少，所以当长度大于8的时候，会使用红黑树，如果链表长度很短的话，根本不需要引入红黑树，引入反而会慢。
-
-13.HashMap和HashTable区别？
-
-(1)HashMap允许key和value为null，而HashTable不允许。
-(2)HashTable是同步的，而HashMap不是。所以HashMap适合单线程环境，HashTable适合多线程环境。HashTable的方法是Synchronize的，而HashMap不是，在多个线程访问Hashtable时，不需要自己为它的方法实现同步，而HashMap就必须为之提供外同步。
-(3)在Java1.4中引入了LinkedHashMap，HashMap的一个子类，假如你想要遍历顺序，你很容易从HashMap转向LinkedHashMap，但是HashTable不是这样的，它的顺序是不可预知的。
-(4)HashMap提供对key的Set进行遍历，因此它是fail-fast的，但HashTable提供对key的Enumeration进行遍历，它不支持fail-fast。
-(5)HashTable被认为是个遗留的类，如果你寻求在迭代的时候修改Map，你应该使用CocurrentHashMap。
-(6)HashMap把Hashtable的contains方法去掉了，改成containsValue和containsKey。因为contains方法容易让人引起误解。
-
-14.TreeMap
-
-TreeMap<K,V>的Key值是要求实现java.lang.Comparable，所以迭代的时候TreeMap默认是按照Key值升序排序的；TreeMap的实现是基于红黑树结构。适用于按自然顺序或自定义顺序遍历键（key）。添加到SortedMap实现类的元素必须实现Comparable接口，否则必须给它的构造函数提供一个Comparator接口的实现。
-基于红黑树实现。TreeMap没有调优选项，因为该树总处于平衡状态。
-
-    (a)TreeMap()：构建一个空的映像树
-    (b)TreeMap(Map m): 构建一个映像树，并且添加映像m中所有元素
-    (c)TreeMap(Comparator c): 构建一个映像树，并且使用特定的比较器对关键字进行排序
-    (d)TreeMap(SortedMap s): 构建一个映像树，添加映像树s中所有映射，并且使用与有序映像s相同的比较器排序
-
-如何决定选用HashMap还是TreeMap：
-对于在Map中插入、删除和定位元素这类操作，HashMap是最好的选择。然而，假如你需要对一个有序的key集合进行遍历，TreeMap是更好的选择。基于你的collection的大小，也许向HashMap中添加元素会更快，将map换为TreeMap进行有序key的遍历。
-
-HashMap和TreeMap都是非线程安全：
-HashMap继承AbstractMap抽象类，TreeMap继承自SortedMap接口。
-AbstractMap抽象类：覆盖了equals()和hashCode()方法以确保两个相等映射返回相同的哈希码。如果两个映射大小相等、包含同样的键且每个键在这两个映射中对应的值都相同，则这两个映射相等。映射(指的是Entry)的哈希码是映射元素哈希码的总和，其中每个元素是Map.Entry接口的一个实现。因此，不论映射内部顺序如何，两个相等映射会报告相同的哈希码。
-SortedMap接口：它用来保持键的有序顺序。SortedMap接口为映像的视图(子集)，包括两个端点提供了访问方法。除了排序是作用于映射的键以外，处理SortedMap和处理SortedSet一样。添加到SortedMap实现类的元素必须实现Comparable接口，否则您必须给它的构造函数提供一个Comparator接口的实现。TreeMap类是它的唯一一个实现。
-
-HashMap & TreeMap & LinkedHashMap使用场景：
-HashMap：在Map中插入、删除和定位元素时；
-TreeMap：在需要按自然顺序或自定义顺序遍历键的情况下；
-LinkedHashMap：在需要输出的顺序和输入的顺序相同的情况下。
-
-15.ConcurrentHashMap
-
-底层实现：
-JDK7实现，ConcurrentHashMap的数据结构是由一个Segment数组和多个HashEntry组成，Segment数组的意义就是将一个大的table分割成多个小的table来进行加锁，也就是锁分离技术，而每一个Segment元素存储的是HashEntry数组+链表，这个和HashMap的数据存储结构一样。ConcurrentHashMap采用了分段锁技术，其中Segment继承于ReentrantLock。不会像HashTable那样不管是put还是get操作都需要做同步处理，理论上ConcurrentHashMap支持CurrencyLevel(Segment 数组数量)的线程并发。每当一个线程占用锁访问一个Segment时，不会影响到其他的Segment。
-JDK8实现，摒弃了Segment的概念，而是直接用Node数组+链表+红黑树的数据结构来实现，并发控制使用Synchronized（如果存在hash冲突，就加锁来保证线程安全，两种情况：一种是链表形式就直接遍历到尾端插入，一种是红黑树就按照红黑树结构插入）和CAS（如果没有hash冲突就直接CAS无锁插入）来操作，整个看起来就像是优化过且线程安全的HashMap，虽然在JDK8中还能看到Segment的数据结构，但是已经简化了属性，只是为了兼容旧版本Node是ConcurrentHashMap存储结构的基本单元，继承于HashMap中的Entry，用于存储数据。
-
-JDK7与JDK8中差异：
-JDK8的实现降低锁的粒度，JDK7版本锁的粒度是基于Segment的，包含多个HashEntry，而JDK8锁的粒度就是HashEntry（首节点）。
-JDK8版本的数据结构变得更加简单，使得操作也更加清晰流畅，因为已经使用synchronized来进行同步，所以不需要分段锁的概念，也就不需要Segment这种数据结构了，由于粒度的降低，实现的复杂度也增加了。
-JDK8使用红黑树来优化链表，基于长度很长的链表的遍历是一个很漫长的过程，而红黑树的遍历效率是很快的，代替一定阈值的链表，这样形成一个最佳拍档。
-
-JDK8为什么使用内置锁synchronized来代替重入锁ReentrantLock：
-因为粒度降低了，在相对而言的低粒度加锁方式，synchronized并不比ReentrantLock差，在粗粒度加锁中ReentrantLock可能通过Condition来控制各个低粒度的边界，更加的灵活，而在低粒度中，Condition的优势就没有了。
-JVM的开发团队从来都没有放弃synchronized，而且基于JVM的synchronized优化空间更大，使用内嵌的基于JVM的关键字比使用API更加自然。
-在大量的数据操作下，对于JVM的内存压力，基于API的ReentrantLock会开销更多的内存，虽然不是瓶颈，但是也是一个选择依据。
-
-ConcurrentHashMap的限制：
-诸如size、isEmpty和containsValue等聚合方法，在并发下可能会反映ConcurrentHashMap的中间状态。因此在并发情况下，这些方法的返回值只能用作参考，而不能用于流程控制。如果需要确保需要手动加锁。诸如putAll这样的聚合方法也不能确保原子性，在putAll的过程中去获取数据可能会获取到部分数据。
-ConcurrentHashMap这篮子本身，可以确保多个工人在装东西进去时，不会相互影响干扰，但无法确保工人A看到还需要装100个桔子但是还未装时，工人B就看不到篮子中的桔子数量。你往这个篮子装100个桔子的操作不是原子性的，在别人看来可能会有一个瞬间篮子里有964个桔子，还需要补36个桔子。
-
-HashMap&ConcurrentHashMap的区别？
-除了加锁，原理上无太大区别。另外，HashMap的键值对允许有null，但是ConCurrentHashMap都不允许。
-
-ConcurrentHashMap的并发度是什么？
-程序运行时能够同时更新ConccurentHashMap且不产生锁竞争的最大线程数。默认为16，且可以在构造函数中设置。当用户设置并发度时，ConcurrentHashMap会使用大于等于该值的最小2幂指数作为实际并发度（假如用户设置并发度为17，实际并发度则为32）
-
-16.HashTable与ConcurrentHashMap
-
-同样是线程安全，HashTable是使用synchronize关键字加锁的原理（就是对对象加锁），使用一把锁（锁住整个链表结构）处理并发问题，多个线程竞争一把锁，容易阻塞。
-ConcurrentHashMap，在JDK1.7中使用分段锁（ReentrantLock + Segment + HashEntry），相当于把一个HashMap分成多个段，每段分配一把锁，这样支持多线程访问。锁粒度：基于Segment，包含多个HashEntry。在JDK1.8 中使用CAS + synchronized + Node + 红黑树。锁粒度：Node（首结点）（实现 Map.Entry<K,V>）。锁粒度降低了。
-
-17.关于ConcurrentHashMap类中使用的volatile
-
-Java volatile关键字来保证可见性、有序性。但不保证原子性。
-(1)普通的共享变量不能保证可见性，因为普通共享变量被修改之后，什么时候被写入主存是不确定的，当其他线程去读取时，此时内存中可能还是原来的旧值，因此无法保证可见性。volatile关键字对于基本类型的修改可以在随后对多个线程的读保持一致，但是对于引用类型如数组，实体bean，仅仅保证引用的可见性，但并不保证引用内容的可见性。
-(2)禁止JVM进行指令重排序。
-
-背景：
-为了提高处理速度，处理器不直接和内存进行通信，而是先将系统内存的数据读到内部缓存（L1，L2或其他）后再进行操作，但操作完不知道何时会写到内存。
-如果对声明了volatile的变量进行写操作，JVM就会向处理器发送一条指令，将这个变量所在缓存行的数据写回到系统内存。但是，就算写回到内存，如果其他处理器缓存的值还是旧的，再执行计算操作就会有问题。
-在多处理器下，为了保证各个处理器的缓存是一致的，就会实现缓存一致性协议，当某个CPU在写数据时，如果发现操作的变量是共享变量，则会通知其他CPU告知该变量的缓存行是无效的，因此其他CPU在读取该变量时，发现其无效会重新从主存中加载数据。
-
-Node<K,V>的元素val和指针next是用volatile修饰的，在多线程环境下线程A修改结点的val或者新增节点的时候是对线程B可见的。
-在1.8中ConcurrentHashMap的get操作全程不需要加锁，这也是它比其他并发集合比如hashtable、用Collections.synchronizedMap()包装的hashmap安全效率高的原因之一。get操作全程不需要加锁是因为Node的成员val是用volatile修饰的。与数组（transient volatile Node<K,V>[] table;是指array的地址是volatile的而不是数组元素的值是volatile的。）用volatile修饰没有关系。
-数组用volatile修饰主要是保证在数组扩容的时候保证可见性。
-
-18.ArrayList和Vector的异同
-
-相同：
-(1)两者都是基于索引的，内部由一个数组支持。
-(2)两者维护插入的顺序，我们可以根据插入顺序来获取元素。
-(3)ArrayList和Vector的迭代器实现都是fail-fast的。
-(4)ArrayList和Vector两者允许null值，也可以使用索引值对元素进行随机访问。
-
-不同：
-(1)Vector是线程安全的，源码中有很多的synchronized可以看出，而ArrayList不是。导致Vector效率无法和ArrayList相比。
-(2)ArrayList与Vector都有一个初始的容量大小，当存储进它们里面的元素的个数超过了容量时，就需要增加ArrayList与Vector的存储空间，每次要增加存储空间时，不是只增加一个存储单元，而是增加多个存储单元，每次增加的存储单元的个数在内存空间利用与程序效率之间要取得一定的平衡。ArrayList和Vector都采用线性连续存储空间，当存储空间不足的时候，ArrayList默认增加为原来的50%，Vector默认增加为原来的一倍。
-(3)Vector可以设置capacityIncrement，而ArrayList不可以，从字面理解就是capacity容量Increment增加，容量增长的参数。ArrayList与Vector都可以设置初始的空间大小，Vector还可以设置增长的空间大小，而ArrayList没有提供设置增长空间的方法。
-
-19.ArrayList和LinkedList的区别
-
-底层实现：
-(1)ArrayList是实现了基于动态数组的数据结构，LinkedList基于链表（双向链表）的数据结构。ArrayList的空间浪费主要体现在在list列表的结尾预留一定的容量空间，而LinkedList的空间花费则体现在它的每一个元素都需要消耗相当的空间。
-
-对于增删：
-(2)对ArrayList和LinkedList而言，在列表末尾增加一个元素所花的开销都是固定的。对ArrayList而言，主要是在内部数组中增加一项，指向所添加的元素，偶尔可能会导致对数组重新进行分配；而对LinkedList而言，这个开销是统一的，分配一个内部Entry对象。
-(3)在ArrayList的中间插入或删除一个元素意味着这个列表中剩余的元素都会被移动；而在LinkedList的中间插入或删除一个元素的开销是固定的。
-
-对于访问：
-(4)LinkedList不支持高效的随机元素访问。ArrayList是由Array所支持的基于一个索引（动态数组）的数据结构，所以它提供对元素的随机访问，复杂度为O(1)，LinkedList基于链表的数据结构，LinkedList存储一系列的节点数据，每个节点都与前一个和下一个节点相连接。所以，尽管有使用索引获取元素的方法，内部实现是从起始点开始遍历，遍历到索引的节点然后返回元素，时间复杂度为O(n)，比ArrayList要慢。
-
-总结：
-当操作是在一列数据的后面添加数据而不是在前面或中间，并且需要随机地访问其中的元素时，使用ArrayList会有更好的性能。当操作是在一列数据的前面或中间添加或删除数据,并且按照顺序访问其中的元素时，就应该使用LinkedList了。
-
-20.Array和ArrayList的区别
-
-(1)Array可以容纳基本类型和引用类型，而ArrayList只能容纳引用类型。
-(2)Array不可以调整大小，而ArrayList大小不是固定的，通过内部方法自动调整容量。默认初始化容量为10。
-(3)ArrayList是List接口的实现类，相比Array支持更多的方法和特性。Array没有提供ArrayList那么多功能，比如addAll、removeAll和iterator等。
-(4)尽管ArrayList明显是更好的选择，但也有些时候Array比较好用：如果列表的大小已经指定，大部分情况下是存储和遍历它们。对于遍历基本数据类型，尽管Collections使用自动装箱来减轻编码任务，在指定大小的基本类型的列表上工作也会变得很慢。如果你要使用多维数组，使用[][]比List<List<>>更容易。
-
-21.List如何一边遍历，一边删除？
-
-错误做法：
-
-Foreach，获取元素时，modCount和expectedModCount的值就不相等了，所以抛出了java.util.ConcurrentModificationException异常。
-
-    for (String platform : platformList) {
-        if (platform.equals("aaa")) {
-            platformList.remove(platform);
-        }
-    }
-    
-    //这是一颗语法糖，编译后相当于：
-    for(Iterator i = platformList.iterator();i.hasNext();){
-        String platform = (String)i.next();
-        if(platform.equals("aaa")){
-            platformList.remove(s);
-        }
-    }
-    
-报错原因在i.next()中，Iterator取下一个值时候会先判断modCount是否和expectedModCount一样，不一样就报错。
-这里的modCount是删除的元素的数量计数，expectedModCount是Iterator期望的删除数量，使用Iterator的remove()方法的时候，Iterator会将调用ArrayList.this.remove(lastRet)删除元素同时使得modCount++，然后将modCount的值赋给expectedModCount，确保它们一样。
-所以到这里我们就可以发现问题了，在forEach循环体里，我们直接使用的是lists.remove(“3”)的方法来删除元素，导致了expectedModCount和modCount不一致。
-所以要在遍历的时候删除元素，不能使用forEach遍历的方式，要使用Iterator的方法。
-
-    public E next() {
-        checkForComodification();
-        int i = cursor;
-        if (i >= size)
-            throw new NoSuchElementException();
-        Object[] elementData = ArrayList.this.elementData;
-        if (i >= elementData.length)
-            throw new ConcurrentModificationException();
-        cursor = i + 1;
-        return (E) elementData[lastRet = i];
-    }
-    final void checkForComodification() {
-        if (modCount != expectedModCount)
-           throw new ConcurrentModificationException();
-    }
-    
-    
-
-正确做法：
-
-(1)使用Iterator的remove()方法
-
-    Iterator<String> iterator = platformList.iterator();
-    while (iterator.hasNext()) {
-        String platform = iterator.next();
-        if (platform.equals("aaa")) {
-            iterator.remove();
-        }
-    }
-
-(2)使用for循环正序遍历，删除当前位置的值，下一个值就会补到当前位置，所以需要执行i = i - 1操作。
-
-    for (int i = 0; i < platformList.size(); i++) {
-        String item = platformList.get(i);
-        if (item.equals("aaa")) {
-            platformList.remove(i);
-            i = i - 1;
-        }
-    }
-
-(3)使用for循环倒序遍历，因为list删除只会导致当前元素之后的元素位置发生改变，所以采用倒序可以保证前面的元素没有变化。
-
-    for (int i = platformList.size() - 1; i >= 0; i--) {
-        String item = platformList.get(i);
-
-        if (item.equals("aaa")) {
-            platformList.remove(i);
-        }
-    }
-    
-22.Arrays.asList()方法返回的ArrayList不是java.util包下的，而是java.util.Arrays.ArrayList，显然它是Arrays类自己定义的一个内部类！这个内部类没有实现add()、remove()方法，而是直接使用它的父类AbstractList的相应方法，抛出UnsupportedOperationException。
-Arrays.asList()返回的ArrayList继承自AbstractList，它仅支持那些不会改变数组大小的操作，所以任何对底层数据结构的尺寸进行修改的方法都会出现异常，Arrays.asList()返回固定尺寸的List。
-  
-如何才能避免这个错误：thinking in java给的解释是：把Arrays.asList()的结果作为构造器的参数传递给任何Collection。
-
-    List<Integer> list = new ArrayList<>(Arrays.asList(1,2,3)); 
-    
-23.CopyOnWriteArrayList
-
-CopyOnWriteArrayList适合于多线程场景下使用，其采用读写分离的思想，读操作不上锁，写操作上锁，且写操作效率较低。
-CopyOnWriteArrayList基于fail-safe机制，每次修改都会在原先基础上复制一份，修改完毕后在进行替换。
-CopyOnWriteArrayList采用的是ReentrantLock进行上锁。
-CopyOnWriteArrayList虽然是一个线程安全版的ArrayList，但其每次修改数据时都会复制一份数据出来，所以只适用读多写少或无锁读场景。高并发写时，CopyOnWriteArray比同步ArrayList慢，高并发读时CopyOnWriteArray比同步ArrayList快。
-
-24.HashSet的实现原理
-
-(1)HashSet是基于HashMap实现的，默认构造函数是构建一个初始容量为16，负载因子为0.75 的HashMap。封装了一个HashMap对象来存储所有的集合元素，所有放入HashSet中的集合元素实际上由HashMap的key来保存，而HashMap的value则存储了一个PRESENT，它是一个静态的Object对象。
-(2)当我们试图把某个类的对象当成HashMap的key，或试图将这个类的对象放入HashSet中保存时，重写该类的equals(Object obj)方法和hashCode()方法很重要，而且这两个方法的返回值必须保持一致：当该类的两个的hashCode()返回值相同时，它们通过equals()方法比较也应该返回true。通常来说，所有参与计算hashCode()返回值的关键属性，都应该用于作为equals()比较的标准。
-(3)HashSet的其他操作都是基于HashMap的。
-
-N.参考
-
-(1)[Java容器详解](https://www.jianshu.com/p/8ef342da8732)
-
-(2)[Java容器（接口）](https://cloud.tencent.com/developer/article/1334703)
-
-(3)[Java容器（实现）](https://cloud.tencent.com/developer/article/1334702)
-
-(4)[HashMap？ConcurrentHashMap？相信看完这篇没人能难住你！](https://blog.csdn.net/weixin_44460333/article/details/86770169)
-
-(5)[ConcurrentHashMap底层实现原理(JDK1.7 & 1.8)](https://www.jianshu.com/p/865c813f2726)
-
-(6)[JDK7与JDK8中HashMap的实现](https://my.oschina.net/hosee/blog/618953)
-
-(7)[ConcurrentHashMap总结](https://my.oschina.net/hosee/blog/675884)
-
-(8)[30个Java集合面试必备的问题和答案](https://mp.weixin.qq.com/s/5JbhrM677q3aDQmErnYAGw)
 
 # Java反射
 
@@ -1546,3 +1191,280 @@ catch可以省略。更为严格的说法其实是：try只适合处理运行时
 N.参考
 
 (1)[【249期】关于Java中的异常，面试可以问的都在这里了！](https://mp.weixin.qq.com/s/IuopmEa4soPxeIQFTQKtkg)
+
+# Java新特性
+
+1.JDK 8中的Optional
+
+    import java.util.Optional;
+    
+    public class Java8Tester {
+        public static void main(String args[]){
+        
+              Java8Tester java8Tester = new Java8Tester();
+              Integer value1 = null;
+              Integer value2 = new Integer(10);
+                
+              // Optional.ofNullable - 允许传递为 null 参数
+              Optional<Integer> a = Optional.ofNullable(value1);
+                
+              // Optional.of - 如果传递的参数是 null，抛出异常 NullPointerException
+              Optional<Integer> b = Optional.of(value2);
+              System.out.println(java8Tester.sum(a,b));
+        }
+        
+        public Integer sum(Optional<Integer> a, Optional<Integer> b){
+        
+              // Optional.isPresent - 判断值是否存在
+                
+              System.out.println("第一个参数值存在: " + a.isPresent());
+              System.out.println("第二个参数值存在: " + b.isPresent());
+                
+              // Optional.orElse - 如果值存在，返回它，否则返回默认值
+              Integer value1 = a.orElse(new Integer(0));
+                
+              //Optional.get - 获取值，值需要存在
+              Integer value2 = b.get();
+              return value1 + value2;
+        }
+    }
+    
+2.Java8中Stream对列表去重
+
+distinct()是Java8中Stream提供的方法，返回的是由该流中不同元素组成的流。distinct()使用hashCode()和eqauls()方法来获取不同的元素。
+因此，需要去重的类必须实现 hashCode() 和 equals() 方法。换句话讲，我们可以通过重写定制的hashCode()和equals()方法来达到某些特殊需求的去重。
+
+对于String列表的去重
+
+    @Test
+    public void listDistinctByStreamDistinct() {
+      // 1. 对于 String 列表去重
+      List<String> stringList = new ArrayList<String>() {{
+        add("A");
+        add("A");
+        add("B");
+        add("B");
+        add("C");
+      }};
+      out.print("去重前：");
+      for (String s : stringList) {
+        out.print(s);
+      }
+      out.println();
+      stringList = stringList.stream().distinct().collect(Collectors.toList());
+      out.print("去重后：");
+      for (String s : stringList) {
+        out.print(s);
+      }
+      out.println();
+    }
+
+实体类列表的去重，代码中我们使用了 Lombok 插件的 @Data注解，可自动覆写equals()以及hashCode()方法。
+
+    @Data
+    public class Student {
+      private String stuNo;
+      private String name;
+    }
+    
+    @Test
+    public void listDistinctByStreamDistinct() throws JsonProcessingException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        // 1. 对于 Student 列表去重
+        List<Student> studentList = getStudentList();
+        out.print("去重前：");
+        out.println(objectMapper.writeValueAsString(studentList));
+        studentList = studentList.stream().distinct().collect(Collectors.toList());
+        out.print("去重后：");
+        out.println(objectMapper.writeValueAsString(studentList));
+     }
+
+3.Java8 Stream
+
+Java8的API中添加了一个新的特性：流，即stream。stream是将数组或者集合的元素视为流，流在管道中流动过程中，对数据进行筛选、排序和其他操作。
+
+(1)流的特性
+
+    (a)stream不存储数据，而是按照特定的规则对数据进行计算，一般会输出结果；
+    (b)stream不会改变数据源，通常情况下会产生一个新的集合；
+    (c)stream具有延迟执行特性，只有调用终端操作时，中间操作才会执行。
+    (d)对stream操作分为终端操作和中间操作，那么这两者分别代表什么呢？终端操作：会消费流，这种操作会产生一个结果的，如果一个流被消费过了，那它就不能被重用的。中间操作：中间操作会产生另一个流。因此中间操作可以用来创建执行一系列动作的管道。一个特别需要注意的点是:中间操作不是立即发生的。相反，当在中间操作创建的新流上执行完终端操作后，中间操作指定的操作才会发生。所以中间操作是延迟发生的，中间操作的延迟行为主要是让流API能够更加高效地执行。
+    (e)stream不可复用，对一个已经进行过终端操作的流再次调用，会抛出异常。
+
+(2)创建Stream
+
+通过数组创建流
+
+    public static void main(String[] args) {
+        //1.通过Arrays.stream
+        //1.1基本类型
+        int[] arr = new int[]{1,2,34,5};
+        IntStream intStream = Arrays.stream(arr);
+        //1.2引用类型
+        Student[] studentArr = new Student[]{new Student("s1",29),new Student("s2",27)};
+        Stream<Student> studentStream = Arrays.stream(studentArr);
+        //2.通过Stream.of
+        Stream<Integer> stream1 = Stream.of(1,2,34,5,65);
+        //注意生成的是int[]的流
+        Stream<int[]> stream2 = Stream.of(arr,arr);
+        stream2.forEach(System.out::println);
+    }
+    
+通过集合创建流
+
+    public static void main(String[] args) {
+        List<String> strs = Arrays.asList("11212","dfd","2323","dfhgf");
+        //创建普通流
+        Stream<String> stream  = strs.stream();
+        //创建并行流
+        Stream<String> stream1 = strs.parallelStream();
+    }
+    
+(3)常用方法
+ 
+(a)筛选和匹配
+
+流的筛选，即filter，是按照一定的规则校验流中的元素，将符合条件的元素提取出来的操作。filter通常要配合collect（收集），将筛选结果收集成一个新的集合。
+流的匹配，与筛选类似，也是按照规则提取元素，不同的是，匹配返回的是单个元素或单个结果。
+
+    // 普通类型筛选
+     List<Integer> collect = intList.stream().filter(x -> x > 7).collect(Collectors.toList());
+    // 引用类型筛选
+     List<Person> collect = personList.stream().filter(x -> x.getSalary() > 8000).collect(Collectors.toList());
+     // 匹配第一个
+     Optional<Integer> findFirst = list.stream().filter(x -> x > 6).findFirst();
+     // 匹配任意（适用于并行流）
+     Optional<Integer> findAny = list.parallelStream().filter(x -> x > 6).findAny();
+     // 是否包含
+     boolean anyMatch = list.stream().anyMatch(x -> x < 6);
+
+(b)聚合
+
+在stream中，针对流进行计算后得出结果，例如求和、求最值等，这样的操作被称为聚合操作。聚合操作在广义上包含了max、min、count等方法和reduce、collect。
+
+    // 获取String集合中最长的元素
+    Optional<String> max = list.stream().max(Comparator.comparing(String::length));
+    // 获取Integer集合中的最大值
+    Optional<Integer> reduce = list.stream().max(new Comparator<Integer>() {
+      @Override
+      public int compare(Integer o1, Integer o2) {
+          return o1.compareTo(o2);
+      }
+     });
+    // 对象集合最值（Person见演示数据）
+    Optional<Person> max = list.stream().max(Comparator.comparingInt(Person::getSalary));
+    // count
+    long count = list.stream().filter(x -> x > 6).count();
+    
+    ////////////////////////////////////////////////////////
+    // 缩减操作，就是把一个流缩减成一个值，比如对一个集合求和、求乘积等。
+    List<Integer> list = Arrays.asList(1, 3, 2);
+    // 求和
+    Integer sum = list.stream().reduce(1, (x, y) -> x + y);
+    // 结果是7，也就是list元素求和再加上1
+    System.out.println(sum);
+    // 写法2
+    Integer sum2 = list.stream().reduce(1, Integer::sum);
+    System.out.println(sum2);  // 结果：7
+   
+    // 求最值
+    Integer max = list.stream().reduce(6, (x, y) -> x > y ? x : y);
+    System.out.println(max);  // 结果：6
+    // 写法2
+    Integer max2 = list.stream().reduce(1, Integer::max);
+    System.out.println(max2); // 结果：3
+    
+    // 对象集合求和、求最值：
+    System.out.println(personList.stream().map(Person::getSalary).reduce(Integer::sum));
+    // 求最值-方式1
+    Person person = personList.stream().reduce((p1, p2) -> p1.getSalary() > p2.getSalary() ? p1 : p2).get();
+    // 预期结果：Lily:9000
+    System.out.println(person.getName() + ":" + person.getSalary());
+    // 求最值-方式2
+    System.out.println(personList.stream().map(Person::getSalary).reduce(Integer::max));
+    // 求最值-方式3：
+    System.out.println(personList.stream().max(Comparator.comparingInt(Person::getSalary)).get().getSalary());
+
+    ////////////////////////////////////////////////////////
+    // 收集（collect）
+    // averaging系列，averagingDouble、averagingInt、averagingLong三个方法处理过程是相同的，都是返回stream的平均值，只是返回结果的类型不同。
+    Double averageSalary = personList.stream().collect(Collectors.averagingDouble(Person::getSalary));
+    
+    // summarizing系列，summarizingDouble、summarizingInt、summarizingLong三个方法可以返回stream的一个统计结果map，不同之处也是结果map中的value类型不一样，分别是double、int、long类型。
+    DoubleSummaryStatistics collect = personList.stream().collect(Collectors.summarizingDouble(Person::getSalary));
+    System.out.println(collect);
+    // 输出结果：
+    // DoubleSummaryStatistics{count=3, sum=24900.000000, min=7000.000000, average=8300.000000, max=9000.000000}
+    
+    //joining，joining可以将stream中的元素用特定的连接符（没有的话，则直接连接）连接成一个字符串。
+    String names = personList.stream().map(p -> p.getName()).collect(Collectors.joining(","));
+    
+    // reduce
+    Integer sumSalary = personList.stream().collect(Collectors.reducing(0, Person::getSalary, (i, j) -> i + j));
+    Optional<Integer> sumSalary2 = list.stream().map(Person::getSalary).reduce(Integer::sum);
+
+    //groupingBy方法可以将stream中的元素按照规则进行分组，类似mysql中groupBy语句。 
+    // 单级分组
+    Map<String, List<Person>> group = personList.stream().collect(Collectors.groupingBy(Person::getName));
+    // 多级分组：先以name分组，再以salary分组：
+    Map<String, Map<Integer, List<Person>>> group2 = personList.stream().collect(Collectors.groupingBy(Person::getName, Collectors.groupingBy(Person::getSalary)));
+
+    //Collectors内置的toList等方法可以十分便捷地将stream中的元素收集成想要的集合，是一个非常常用的功能，通常会配合filter、map等方法使用。
+    // toList
+    List<String> names = personList.stream().map(Person::getName).collect(Collectors.toList());
+    // toSet
+    Set<String> names2 = personList.stream().map(Person::getName).collect(Collectors.toSet());
+    // toMap
+    Map<String, Person> personMap = personList.stream().collect(Collectors.toMap(Person::getName, p -> p));
+
+(c)映射（map）
+
+Stream流中，map可以将一个流的元素按照一定的映射规则映射到另一个流中。
+
+    // 数据>>数据
+    Arrays.stream(strArr).map(x -> x.toUpperCase()).forEach(System.out::println);
+    // 对象集合>>数据
+    personList.stream().map(person -> person.getSalary()).forEach(System.out::println);
+    // 对象集合>>对象集合
+    // 这种写法改变了原有的personList。
+    List<Person> collect = personList.stream().map(person -> {
+    person.setName(person.getName());
+    person.setSalary(person.getSalary() + 10000);
+    return person;
+    }).collect(Collectors.toList());
+    System.out.println(collect.get(0).getSalary());
+    System.out.println(personList.get(0).getSalary());
+    // 这种写法并未改变原有personList。
+    List<Person> collect2 = personList.stream().map(person -> {
+    Person personNew = new Person(null, 0);
+    personNew.setName(person.getName());
+    personNew.setSalary(person.getSalary() + 10000);
+    return personNew;
+    }).collect(Collectors.toList());
+    System.out.println(collect2.get(0).getSalary());
+    System.out.println(personList.get(0).getSalary());
+
+(d)排序（sorted）
+
+Sorted方法是对流进行排序，并得到一个新的stream流，是一种中间操作。Sorted方法可以使用自然排序或特定比较器。
+
+    // 自然排序
+    Arrays.stream(strArr).sorted().collect(Collectors.toList())
+    // 自定义排序
+    // 1、按长度自然排序，即长度从小到大
+    Arrays.stream(strArr).sorted(Comparator.comparing(String::length)).forEach(System.out::println);
+    // 2、按长度倒序，即长度从大到小
+    Arrays.stream(strArr).sorted(Comparator.comparing(String::length).reversed()).forEach(System.out::println);
+    // 3、首字母倒序
+    Arrays.stream(strArr).sorted(Comparator.reverseOrder()).forEach(System.out::println);
+    // 4、首字母自然排序
+    Arrays.stream(strArr).sorted(Comparator.naturalOrder()).forEach(System.out::println);
+
+(e)提取流和组合流
+
+    // 可以把两个stream合并成一个stream（合并的stream类型必须相同）,只能两两合并
+    Stream.concat(stream1,stream2).distinct().forEach(System.out::println);
+    // limit，限制从流中获得前n个数据
+    Stream.iterate(1,x->x+2).limit(10).forEach(System.out::println);
+    // skip，跳过前n个数据
+    Stream.iterate(1,x->x+2).skip(1).limit(5).forEach(System.out::println);
