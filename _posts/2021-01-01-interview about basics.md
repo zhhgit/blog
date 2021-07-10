@@ -1,7 +1,7 @@
 ---
 layout: post
-title: "后端开发面试题 -- 计算机基础、架构篇"
-description: 后端开发面试题 -- 计算机基础、架构篇
+title: "后端开发面试题 -- 计算机基础篇"
+description: 后端开发面试题 -- 计算机基础篇
 modified: 2021-01-01
 category: Interview
 tags: [Interview]
