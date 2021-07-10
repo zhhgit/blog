@@ -585,6 +585,78 @@ Spring Cloud的子项目，大致可分成两类，一类是对现有成熟框�
         --其他
             --Spring Cloud Task：用于快速构建短暂、有限数据处理任务的微服务框架，用于向应用中添加功能性和非功能性的特性。
 
+5.Hystrix
+
+在分布式环境中，不可避免地会出现某些依赖的服务发生故障的情况。Hystrix是这样的一个库，它通过添加容许时延和容错逻辑来帮助你控制这些分布式服务之间的交互。
+Hystrix通过隔离服务之间的访问点，阻止跨服务的级联故障，并提供了退路选项，所有这些都可以提高系统的整体弹性。
+
+(1)Hystrix的设计目的
+
+    通过第三方客户端的库来为访问依赖服务时的潜在故障提供保护和控制；
+    防止在复杂分布式系统中出现级联故障；
+    快速失败和迅速恢复；
+    在允许的情况下，提供退路对服务进行优雅降级；
+    提供近实时的监控、报警和操作控制；
+
+(2)使用Hystrix
+
+(a)在pom.xml文件中引入Hystrix依赖;
+
+(b)在启动类中又增加了@EnableCircuitBreaker注解，用来开启断路器功能。
+如果你觉得启动类上的注解个数有点多的话，可以使用一个@SpringCloudApplication注解来代替@SpringBootApplication（或者@EnableEurekaServer）、@EnableDiscoveryClient、@EnableCircuitBreaker这三个注解。 
+分别是SpringBoot注解、注册服务中心Eureka注解、断路器注解。对于SpringCloud来说，这是每一微服务必须应有的三个注解，所以才推出了@SpringCloudApplication这一注解集合。
+
+(c)修改Controller,为MessageCenterController中的getMsg()接口增加断路器功能。
+先启动Eureka，再启动一个8771端口的message-service服务，最后启动message-center。
+访问http://localhost:8781/api/v1/center/msg/get ，返回结果表明服务调用成功。
+然后停掉message-service服务，再次请求，可以看出fallback中的信息被直接返回了，表明Hystrix断路器调用成功。
+
+    @GetMapping("/msg/get")
+    @HystrixCommand(fallbackMethod = "getMsgFallback")
+    public Object getMsg() {
+        String msg = messageService.getMsg();
+        return msg;
+    }
+    
+    public Object getMsgFallback() {
+        return "断路器返回";
+    }
+
+(3)Feign结合Hystrix
+
+以MessageService的Feign客户端为例，为其添加Hystrix断路器功能。
+
+(a)修改Feign客户端，通过配置@FeignClient注解的fallback属性来为MessageServiceClient指定一个自定义的fallback处理类（MessageServiceFallback）。
+
+    @FeignClient(name = "message-service", fallback = MessageServiceFallback.class)
+    public interface MessageServiceClient {
+        @GetMapping("/api/v1/msg/get")
+        public String getMsg();
+    }
+
+(b)创建Fallback处理类，MessageServiceFallback需要实现MessageServiceClient接口，并且在Spring容器中必须存在一个该类型的有效Bean。在这里，我们使用@Component注解将其注入到Spring容器中。
+
+    @Component
+    public class MessageServiceFallback implements MessageServiceClient {
+        @Override
+        public String getMsg() {
+            System.out.println("调用消息接口失败，对其进行降级处理！");
+            return "消息接口繁忙，请稍后重试！";
+        }
+    }
+
+(c)修改配置，在新版本的Spring Cloud中，Feign默认关闭了对Hystrix的支持，需要在application.yml进行配置：
+
+    feign:
+        hystrix:
+            enabled: true
+
+(4)监控Hystrix
+
+Actuator是Spring Boot提供的用来对应用系统进行自省和监控的功能模块，借助于Actuator开发者可以很方便地对应用系统某些监控指标进行查看、统计等。
+若要使用Actuator对Hystrix流进行监控，除了需在工程POM文件中引入spring-boot-starter-actuator依赖，还需要在application.yml中添加配置。
+另外，还可以启用Hystrix-Dashboard。使用Hystrix一个最大的好处就是它会为我们自动收集每一个HystrixCommand的信息，并利用Hystrix-Dashboard通过一种高效的方式对每一个断路器的健康状态进行展示。
+
 N.参考
 
 (1)[【182期】SpringCloud常见面试题（2020最新版）](https://mp.weixin.qq.com/s/JQLLPAJfR6yoHVKmxWz4Zw)
