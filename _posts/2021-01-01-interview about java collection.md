@@ -256,6 +256,13 @@ HashMap&ConcurrentHashMap的区别？
 ConcurrentHashMap的并发度是什么？
 程序运行时能够同时更新ConccurentHashMap且不产生锁竞争的最大线程数。默认为16，且可以在构造函数中设置。当用户设置并发度时，ConcurrentHashMap会使用大于等于该值的最小2幂指数作为实际并发度（假如用户设置并发度为17，实际并发度则为32）
 
+JDK8中的具体实现：
+table中存放Node节点数据，默认Node数据大小为16，扩容大小总是2^N。
+为了保证可见性，Node节点中的val和next节点都用volatile修饰。
+当链表长度大于8时，会转换成红黑树，节点会被包装成TreeNode放在TreeBin中。
+put()：(a)计算键所对应的hash值；(b)如果哈希表还未初始化，调用initTable()初始化，否则在table中找到index位置，并通过CAS添加节点。如果链表节点数目超过8，则将链表转换为红黑树。如果节点总数超过，则进行扩容操作。
+get()：无需加锁，直接根据key的hash值遍历node。
+
 16.HashTable与ConcurrentHashMap
 
 同样是线程安全，HashTable是使用synchronize关键字加锁的原理（就是对对象加锁），使用一把锁（锁住整个链表结构）处理并发问题，多个线程竞争一把锁，容易阻塞。
@@ -521,6 +528,15 @@ CopyOnWriteArrayList并发安全且性能比Vector好。Vector是增删改查方
 缺点：
 数据一致性问题。CopyOnWrite容器只能保证数据的最终一致性，不能保证数据的实时一致性。比如线程A在迭代CopyOnWriteArrayList容器的数据。线程B在线程A迭代的间隙中将CopyOnWriteArrayList部分的数据修改了，但是线程A迭代出来的是旧数据。
 内存占用问题。如果CopyOnWriteArrayList经常要增删改里面的数据，并且对象比较大，频繁地写会消耗内存，从而引发Java的GC问题，这个时候，我们应该考虑其他的容器，例如ConcurrentHashMap。
+
+26.HashMap是不是线程安全？如何体现？如何变得安全？
+
+由于添加元素到map中去时，数据量大产生扩容操作，多线程会导致HashMap的node链表形成环状的数据结构产生死循环。所以HashMap是线程不安全的。
+
+如何变得安全：
+Hashtable：通过synchronized来保证线程安全的，独占锁，悲观策略。吞吐量较低，性能较为低下。
+SynchronizedHashMap ：通过Collections.synchronizedMap()方法对HashMap进行包装，返回一个SynchronizedHashMap对象，在源码中SynchronizedHashMap也是用过synchronized来保证线程安全的。但是实现方式和Hashtable略有不同（前者是 synchronized 方法，后者是通过 synchronized 对互斥变量加锁实现）。
+ConcurrentHashMap：JUC中的线程安全容器，高效并发。ConcurrentHashMap的key、value都不允许为null。
 
 N.参考
 

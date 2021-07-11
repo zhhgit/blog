@@ -840,23 +840,23 @@ join方法就是通过wait方法来将线程的阻塞，如果join的线程还�
 不过有一点需要注意，这里的join只调用了wait方法，却没有对应的notify方法，原因是Thread的start方法中做了相应的处理，所以当join的线程执行完成以后，会自动唤醒主线程继续往下执行。
 在没有使用join方法之前，线程是并发执行的，而使用join方法后，所有线程是顺序执行的。
 
-15.堵塞队列
+15.阻塞队列
 
-(1)什么是堵塞队列？
+(1)什么是阻塞队列？
 
-当队列为空时，消费者挂起，队列已满时，生产者挂起，这就是生产-消费者模型，堵塞其实就是将线程挂起。
-因为生产者的生产速度和消费者的消费速度之间的不匹配，就可以通过堵塞队列让速度快的暂时堵塞。
-如生产者每秒生产两个数据，而消费者每秒消费一个数据，当队列已满时，生产者就会堵塞（挂起），等待消费者消费后，再进行唤醒。
-堵塞队列会通过挂起的方式来实现生产者和消费者之间的平衡，这是和普通队列最大的区别。
+当队列为空时，消费者挂起，队列已满时，生产者挂起，这就是生产-消费者模型，阻塞其实就是将线程挂起。
+因为生产者的生产速度和消费者的消费速度之间的不匹配，就可以通过阻塞队列让速度快的暂时阻塞。
+如生产者每秒生产两个数据，而消费者每秒消费一个数据，当队列已满时，生产者就会阻塞（挂起），等待消费者消费后，再进行唤醒。
+阻塞队列会通过挂起的方式来实现生产者和消费者之间的平衡，这是和普通队列最大的区别。
 
-(2)如何实现堵塞队列？BlockingQueue如何使用？
+(2)如何实现阻塞队列？BlockingQueue如何使用？
 
-jdk其实已经帮我们提供了实现方案，java5增加了concurrent包，concurrent包中的BlockingQueue就是堵塞队列，我们不需要关心BlockingQueue如何实现堵塞，一切都帮我们封装好了，只需要做一个没有感情的API调用者就行。
-BlockingQueue本身只是一个接口，规定了堵塞队列的方法，主要依靠几个实现类实现。BlockingQueue主要方法
+jdk其实已经帮我们提供了实现方案，java5增加了concurrent包，concurrent包中的BlockingQueue就是阻塞队列，我们不需要关心BlockingQueue如何实现阻塞，一切都帮我们封装好了，只需要做一个没有感情的API调用者就行。
+BlockingQueue本身只是一个接口，规定了阻塞队列的方法，主要依靠几个实现类实现。BlockingQueue主要方法
 
 插入数据：
 
-    offer(E e)：如果队列没满，返回true，如果队列已满，返回false（不堵塞）
+    offer(E e)：如果队列没满，返回true，如果队列已满，返回false（不阻塞）
     offer(E e, long timeout, TimeUnit unit)：可以设置等待时间，如果队列已满，则进行等待。超过等待时间，则返回false
     put(E e)：无返回值，一直等待，直至队列空出位置
 
@@ -864,15 +864,15 @@ BlockingQueue本身只是一个接口，规定了堵塞队列的方法，主要�
 
     poll()：如果有数据，出队，如果没有数据，返回null
     poll(long timeout, TimeUnit unit)：可以设置等待时间，如果没有数据，则等待，超过等待时间，则返回null
-    take()：如果有数据，出队。如果没有数据，一直等待（堵塞）
+    take()：如果有数据，出队。如果没有数据，一直等待（阻塞）
 
 (3)BlockingQueue主要实现类
 
     ArrayBlockingQueue：ArrayBlockingQueue是基于数组实现的，通过初始化时设置数组长度，是一个有界队列，而且ArrayBlockingQueue和LinkedBlockingQueue不同的是，ArrayBlockingQueue只有一个锁对象，而LinkedBlockingQueue是两个锁对象，一个锁对象会造成要么是生产者获得锁，要么是消费者获得锁，两者竞争锁，无法并行。
     LinkedBlockingQueue：LinkedBlockingQueue是基于链表实现的，和ArrayBlockingQueue不同的是，大小可以初始化设置，如果不设置，默认设置大小为Integer.MAX_VALUE，LinkedBlockingQueue有两个锁对象，可以并行处理。
     DelayQueue：DelayQueue是基于优先级的一个无界队列，队列元素必须实现Delayed接口，支持延迟获取，元素按照时间排序，只有元素到期后，消费者才能从队列中取出。
-    PriorityBlockingQueue：PriorityBlockingQueue是基于优先级的一个无界队列，底层是基于数组存储元素的，元素按照优选级顺序存储，优先级是通过Comparable的compareTo方法来实现的（自然排序），和其他堵塞队列不同的是，其只会堵塞消费者，不会堵塞生产者，数组会不断扩容，这就是一个彩蛋，使用时要谨慎。
-    SynchronousQueue：SynchronousQueue是一个特殊的队列，其内部是没有容器的，所以生产者生产一个数据，就堵塞了，必须等消费者消费后，生产者才能再次生产，称其为队列有点不合适，现实生活中，多个人才能称为队，一个人称为队有些说不过去。
+    PriorityBlockingQueue：PriorityBlockingQueue是基于优先级的一个无界队列，底层是基于数组存储元素的，元素按照优选级顺序存储，优先级是通过Comparable的compareTo方法来实现的（自然排序），和其他阻塞队列不同的是，其只会阻塞消费者，不会阻塞生产者，数组会不断扩容，这就是一个彩蛋，使用时要谨慎。
+    SynchronousQueue：SynchronousQueue是一个特殊的队列，其内部是没有容器的，所以生产者生产一个数据，就阻塞了，必须等消费者消费后，生产者才能再次生产，称其为队列有点不合适，现实生活中，多个人才能称为队，一个人称为队有些说不过去。
 
 16.线程状态转换的方法
 
@@ -917,6 +917,15 @@ BlockingQueue本身只是一个接口，规定了堵塞队列的方法，主要�
     可见性：指当多个线程访问同一个变量时，一个线程修改了这个变量的值，其他线程能够立即看得到修改的值。
     有序性：即程序执行的顺序按照代码的先后顺序执行，不进行指令重排列。
 
+18.怎么控制线程，尽可能减少上下文切换？
+
+减少上下文切换的方法有无锁并发编程、CAS算法、使用最少线程和使用协程。
+
+    无锁并发编程。多线程竞争锁时，会引起上下文切换，所以多线程处理数据时，可以使用一些方法来避免使用锁。如将数据的ID按照Hash算法取模分段，不同的线程处理不同段的数据。
+    CAS算法。Java的Atomic包使用CAS算法来更新数据，而不需要加锁。
+    使用最少线程。避免创建不需要的线程，比如任务很少，但是创建了很多线程来处理，这样会造成大量线程都处于等待状态。
+    协程。在单线程里实现多任务的调度，并在单线程里维持多个任务间的切换。
+
 N.参考
 
 (1)[线程进程区别](https://www.cnblogs.com/toria/p/11123130.html)
@@ -935,7 +944,7 @@ N.参考
 
 为每个请求创建新线程的服务器在创建和销毁线程上花费的时间和消耗的系统资源要比花在处理实际的用户请求的时间和资源更多。容易引起资源不足，造成浪费。为解决单个任务处理时间很短而请求的数目巨大的问题，引出线程池。
 通过对多个任务重用线程，线程创建的开销被分摊到了多个任务上。其好处是，因为在请求到达时线程已经存在，所以无意中也消除了线程创建所带来的延迟，使应用程序响应更快；
-通过适当地调整线程池中的线程数目，也就是当请求的数目超过某个阈值时，就强制其它任何新到的请求一直等待，直到获得一个线程来处理为止，从而可以防止资源不足。控制线程池的并发数可以有效的避免大量的线程池争夺CPU资源而造成堵塞。
+通过适当地调整线程池中的线程数目，也就是当请求的数目超过某个阈值时，就强制其它任何新到的请求一直等待，直到获得一个线程来处理为止，从而可以防止资源不足。控制线程池的并发数可以有效的避免大量的线程池争夺CPU资源而造成阻塞。
 线程池可以对线程进行管理：线程池可以提供定时、定期、单线程、并发数控制等功能。
 
 (2)使用线程池的风险
@@ -1207,16 +1216,6 @@ java还提供了显式监视器(Lock)和隐式监视器(synchronized)两种锁�
 
 10.Lock
 
-synchronized与Lock的区别
-
-    类别	synchronized	            Lock
-    存在层次	Java的关键字，在jvm层面上	            是一个类
-    锁的释放	1、以获取锁的线程执行完同步代码，释放锁 2、线程执行发生异常，jvm会让线程释放锁	            在finally中必须释放锁，不然容易造成线程死锁
-    锁的获取	假设A线程获得锁，B线程等待。如果A线程阻塞，B线程会一直等待	            分情况而定，Lock有多个锁获取的方式，具体下面会说道，大致就是可以尝试获得锁，线程可以不用一直等待
-    锁状态	无法判断	            可以判断
-    锁类型	可重入 不可中断 非公平	            可重入 可判断 可公平（两者皆可）
-    性能	少量同步	大量同步
-
 Lock主要方法
 
     lock()：获取锁，如果锁被暂用则一直等待
@@ -1445,6 +1444,69 @@ volatile是轻量级的锁，它不会引起线程上下文的切换和调度。
     执行顺序: Store1—> StoreLoad—>Load2
     确保Load2和后续的Load指令读取之前，Store1的数据对其他处理器是可见的。
 
+15.可中断锁
+
+顾名思义，就是可以相应中断的锁。synchronized就不是可中断锁，Lock是可中断锁。
+
+16.ReentrantLock
+
+ReentrantLock，可重入锁，是一种递归无阻塞的同步机制。它可以等同于synchronized的使用，但是ReentrantLock提供了比synchronized更强大、灵活的锁机制，可以减少死锁发生的概率。
+ReentrantLock是可重入锁，可重入锁就是当前持有该锁的线程能够多次获取该锁，无需等待。可重入锁是如何实现的呢？这要从ReentrantLock的一个内部类Sync的父类说起，Sync的父类是AQS。
+ReentrantLock的架构主要包括一个Sync的内部抽象类以及Sync抽象类的两个实现类。
+另外、Sync的两个实现类分别是NonfairSync和FairSync，一个是用于实现公平锁，一个是用于实现非公平锁。那么Sync为什么要被设计成内部类呢？Sync被设计成为安全的外部不可访问的内部类，使得ReentrantLock中所有涉及对AQS的访问都要经过Sync，其实，Sync被设计成为内部类主要是为了安全性考虑，这也是作者在AQS的comments上强调的一点。
+
+17.Condition
+
+Condition和Lock一起使用以实现等待/通知模式，通过await()和signal()来阻塞和唤醒线程。
+Condition是一种广义上的条件队列。它为线程提供了一种更为灵活的等待/通知模式，线程在调用await方法后执行挂起操作，直到线程等待的某个条件为真时才会被唤醒。
+Condition必须要配合Lock一起使用，因为对共享状态变量的访问发生在多线程环境下。一个Condition的实例必须与一个Lock绑定，因此Condition一般都是作为Lock的内部实现。
+
+18.ReentrantReadWriteLock
+
+读写锁维护着一对锁，一个读锁和一个写锁。通过分离读锁和写锁，使得并发性比一般的排他锁有了较大的提升：
+在同一时间，可以允许多个读线程同时访问。但是在写线程访问时，所有读线程和写线程都会被阻塞。
+ReentrantReadWriteLock实现ReadWriteLock接口，是可重入的读写锁实现类。
+在同步状态上，为了表示两把锁，将一个32位整型分为高16位和低16位，分别表示读和写的状态。
+
+读写锁的主要特性：
+
+    公平性：支持公平性和非公平性。
+    重入性：支持重入。读写锁最多支持65535个递归写入锁和65535个递归读取锁。
+    锁降级：遵循获取写锁，再获取读锁，最后释放写锁的次序，如此写锁能够降级成为读锁。
+
+19.synchronized与Lock的区别
+
+    类别	synchronized	            Lock
+    存在层次	Java的关键字，在jvm层面上	            是一个类
+    锁的释放	1、以获取锁的线程执行完同步代码，释放锁 2、线程执行发生异常，jvm会让线程释放锁	            在finally中必须释放锁，不然容易造成线程死锁
+    锁的获取	假设A线程获得锁，B线程等待。如果A线程阻塞，B线程会一直等待	            分情况而定，Lock有多个锁获取的方式，具体下面会说道，大致就是可以尝试获得锁，线程可以不用一直等待
+    锁状态	无法判断	            可以判断
+    锁类型	可重入 不可中断 非公平	            可重入 可判断 可公平（两者皆可）
+    性能	少量同步	大量同步
+
+Lock是一个接口，而synchronized是Java中的关键字，synchronized是内置的语言实现；
+synchronized在发生异常时，会自动释放线程占有的锁，因此不会导致死锁现象发生；而Lock在发生异常时，如果没有主动通过unLock()去释放锁，则很可能造成死锁现象，因此使用Lock时需要在finally块中释放锁；
+Lock可以让等待锁的线程响应中断，而synchronized却不行，使用synchronized时，等待的线程会一直等待下去，不能够响应中断；
+通过Lock可以知道有没有成功获取锁，而synchronized却无法办到。
+Lock可以提高多个线程进行读操作的效率。
+
+更深的：
+与synchronized相比，ReentrantLock提供了更多，更加全面的功能，具备更强的扩展性。例如：时间锁等候，可中断锁等候，锁投票。
+ReentrantLock还提供了条件Condition，对线程的等待、唤醒操作更加详细和灵活，所以在多个条件变量和高度竞争锁的地方，ReentrantLock更加适合。
+ReentrantLock提供了可轮询的锁请求。它会尝试着去获取锁，如果成功则继续，否则可以等到下次运行时处理，而synchronized则一旦进入锁请求要么成功要么阻塞，所以相比synchronized而言，ReentrantLock会不容易产生死锁些。
+ReentrantLock支持更加灵活的同步代码块，但是使用synchronized时，只能在同一个synchronized块结构中获取和释放。注意，ReentrantLock的锁释放一定要在finally中处理，否则可能会产生严重的后果。
+ReentrantLock支持中断处理，且性能较synchronized会好些。
+
+20.Java中线程同步的方式
+
+    sychronized同步方法或代码块
+    volatile
+    Lock
+    ThreadLocal
+    阻塞队列（LinkedBlockingQueue）
+    使用原子变量（java.util.concurrent.atomic）
+    变量的不可变性
+
 # JUC
 
 1.JUC
@@ -1476,20 +1538,16 @@ ConcurrentHashMap、CopyOnWriteArrayList、CopyOnWriteArraySet、ArrayBlockingQu
 这一部分是以前面几个模块为基础的高级特性模块，实际应用的场景相对较少，主要应用在多线程间相互依赖执行结果场景，没有具体的学习顺序。
 最好CountDownLatch、CyclicBarrier、Semaphore、Exchanger、Executors都了解下，对后面学习Guava的框架有帮助。
 
-2.AQS
+2.AQS抽象队列同步器
 
-(1)可重入锁
+(1)AQS框架
 
-ReentrantLock是可重入锁，可重入锁就是当前持有该锁的线程能够多次获取该锁，无需等待。可重入锁是如何实现的呢？这要从ReentrantLock的一个内部类Sync的父类说起，Sync的父类是AbstractQueuedSynchronizer（AQS，抽象队列同步器）。
-AQS是JDK1.5提供的一个基于FIFO等待队列实现的一个用于实现同步器的基础框架，这个基础框架的重要性可以这么说，JUC包里面几乎所有的有关锁、多线程并发以及线程同步器等重要组件的实现都是基于AQS这个框架。
-AQS的核心思想是基于volatile int state这样的一个属性同时配合Unsafe工具对其原子性的操作来实现对当前锁的状态进行修改。当state的值为0的时候，标识该Lock不被任何线程所占有。
-ReentrantLock的架构主要包括一个Sync的内部抽象类以及Sync抽象类的两个实现类。
+AQS（AbstractQueuedSynchronizer，抽象队列同步器）是JDK1.5提供的一个基于FIFO等待队列实现的一个用于实现同步器的基础框架。
+这个基础框架的重要性可以这么说，JUC包里面几乎所有的有关锁、多线程并发以及线程同步器等重要组件的实现都是基于AQS这个框架。AQS的主要使用方式是继承，子类通过继承同步器，并实现它的抽象方法来管理同步状态。
+AQS的核心思想是基于volatile int state这样的一个属性同时配合Unsafe工具对其原子性的操作来实现对当前锁的状态进行修改。当state的值为0的时候，标识该Lock不被任何线程所占有。当 state>0时，表示已经获取了锁。
+AQS维护了一个volatile int state域和一个FIFO线程等待队列（利用双向链表实现，多线程争用资源被阻塞时会进入此队列）。如果当前线程获取同步状态失败（锁）时，AQS则会将当前线程以及等待状态等信息构造成一个节点（Node）并将其加入同步队列，同时会阻塞当前线程。当同步状态释放时，则会把节点中的线程唤醒，使其再次尝试获取同步状态。
 AQS的父类AOS(AbstractOwnableSynchronizer)主要提供一个exclusiveOwnerThread属性，用于关联当前持有该锁的线程。
-另外、Sync的两个实现类分别是NonfairSync和FairSync，一个是用于实现公平锁，一个是用于实现非公平锁。那么Sync为什么要被设计成内部类呢？Sync被设计成为安全的外部不可访问的内部类，使得ReentrantLock中所有涉及对AQS的访问都要经过Sync，其实，Sync被设计成为内部类主要是为了安全性考虑，这也是作者在AQS的comments上强调的一点。
 
-(2)AQS框架
-
-AQS维护了一个volatile int state域和一个FIFO线程等待队列（利用双向链表实现，多线程争用资源被阻塞时会进入此队列）。
 主要的域如下：
 
     private transient volatile Node head; //同步队列的head节点
@@ -1516,7 +1574,7 @@ AQS提供的可以修改同步状态的3个方法：
         return unsafe.compareAndSwapInt(this, stateOffset, expect, update);
     }
 
-(3)自定义资源共享方式
+(2)自定义资源共享方式
 
 AQS定义两种资源共享方式：Exclusive（独占，只有一个线程能执行，如ReentrantLock）和Share（共享，多个线程可同时执行，如Semaphore/CountDownLatch(CountDownLatch是并发的)）。
 不同的自定义同步器争用共享资源的方式也不同。自定义同步器在实现时只需要实现共享资源state的获取与释放方式即可，至于具体线程等待队列的维护（如获取资源失败入队/唤醒出队等），AQS已经在顶层实现好了。自定义同步器实现时主要实现以下几种方法：
@@ -1530,3 +1588,68 @@ AQS定义两种资源共享方式：Exclusive（独占，只有一个线程能�
 以ReentrantLock为例，state初始化为0，表示未锁定状态。A线程lock()时，会调用tryAcquire()独占该锁并将state+1。此后，其他线程再tryAcquire()时就会失败，直到A线程unlock()到state=0（即释放锁）为止，其它线程才有机会获取该锁。当然，释放锁之前，A线程自己是可以重复获取此锁的（state会累加），这就是可重入的概念。但要注意，获取多少次就要释放多么次，这样才能保证state是能回到零态的。
 再以CountDownLatch以例，任务分为N个子线程去执行，state也初始化为N（注意N要与线程个数一致）。这N个子线程是并行执行的，每个子线程执行完后countDown()一次，state会CAS减1。等到所有子线程都执行完后(即state=0)，会unpark()主调用线程，然后主调用线程就会从await()函数返回，继续后余动作。
 一般来说，自定义同步器要么是独占方法，要么是共享方式，他们也只需实现tryAcquire-tryRelease、tryAcquireShared-tryReleaseShared中的一种即可。但AQS也支持自定义同步器同时实现独占和共享两种方式，如ReentrantReadWriteLock。
+
+3.CAS是一种什么样的同步机制？多线程下为什么不使用int而使用AtomicInteger？
+
+Compare And Swap，比较交换。可以看到synchronized可以保证代码块原子性，很多时候会引起性能问题，volatile也是个不错的选择，但是volatile不能保证原子性，只能在某些场合下使用。所以可以通过CAS来进行同步，保证原子性。
+我们在读Concurrent包下的类的源码时，发现无论是ReentrantLock内部的AQS，还是各种Atomic开头的原子类，内部都应用到了CAS。
+在CAS中有三个参数：内存值V、旧的预期值A、要更新的值B ，当且仅当内存值V的值等于旧的预期值A时，才会将内存值V的值修改为B，否则什么都不干。 其伪代码如下：
+
+    if (this.value == A) {
+        this.value = B
+        return true;
+    } else {
+        return false;
+    }
+
+CAS可以保证一次的读-改-写操作是原子操作。
+
+在多线程环境下，int类型的自增操作不是原子的，线程不安全，可以使用AtomicInteger代替。
+
+    // AtomicInteger.java
+    private static final Unsafe unsafe = Unsafe.getUnsafe();
+    private static final long valueOffset;
+    static {
+        try {
+            valueOffset = unsafe.objectFieldOffset(AtomicInteger.class.getDeclaredField("value"));
+        } catch (Exception ex){ 
+            throw new Error(ex); 
+        }
+    }
+    private volatile int value;
+
+
+Unsafe是CAS的核心类，Java无法直接访问底层操作系统，而是通过本地native方法来访问。
+不过尽管如此，JVM还是开了一个后门：Unsafe，它提供了硬件级别的原子操作。
+valueOffset为变量值在内存中的偏移地址，Unsafe就是通过偏移地址来得到数据的原值的。
+value当前值，使用volatile修饰，保证多线程环境下看见的是同一个。
+
+    // AtomicInteger.java
+    public final int addAndGet(int delta) {
+        return unsafe.getAndAddInt(this, valueOffset, delta) + delta;
+    }
+    
+    // Unsafe.java
+    // compareAndSwapInt（var1, var2, var5, var5 + var4）其实换成 compareAndSwapInt（obj, offset, expect, update）比较清楚，意思就是如果obj内的value和expect相等，就证明没有其他线程改变过这个变量，那么就更新它为update，如果这一步的CAS没有成功，那就采用自旋的方式继续进行CAS操作，取出乍一看这也是两个步骤了啊，其实在JNI里是借助于一个CPU指令完成的。所以还是原子操作。
+    public final int getAndAddInt(Object var1, long var2, int var4) {
+        int var5;
+        do {
+            var5 = this.getIntVolatile(var1, var2);
+        } while(!this.compareAndSwapInt(var1, var2, var5, var5 + var4));
+        return var5;
+    }
+    // 该方法为本地方法，有四个参数，分别代表：对象、对象的地址、预期值、修改值
+    public final native boolean compareAndSwapInt(Object var1, long var2, int var4, int var5);
+
+4.CountDownLatch、CyclicBarrier、Semaphore
+
+CyclicBarrier它允许一组线程互相等待，直到到达某个公共屏障点 (Common Barrier Point)。在涉及一组固定大小的线程的程序中，这些线程必须不时地互相等待，此时CyclicBarrier很有用。因为该Barrier在释放等待线程后可以重用，所以称它为循环(Cyclic)的屏障 (Barrier)。
+每个线程调用#await()方法，告诉CyclicBarrier我已经到达了屏障，然后当前线程被阻塞。当所有线程都到达了屏障，结束阻塞，所有线程可继续执行后续逻辑。
+
+CountDownLatch能够使一个线程在等待另外一些线程完成各自工作之后，再继续执行。使用一个计数器进行实现。计数器初始值为线程的数量。当每一个线程完成自己任务后，计数器的值就会减一。当计数器的值为0时，表示所有的线程都已经完成了任务，然后在CountDownLatch上等待的线程就可以恢复执行任务。
+
+Semaphore是一个控制访问多个共享资源的计数器，和CountDownLatch一样，其本质上是一个“共享锁”。一个计数信号量。从概念上讲，信号量维护了一个许可集。如有必要，在许可可用前会阻塞每一个acquire，然后再获取该许可。每个release添加一个许可，从而可能释放一个正在阻塞的获取者。
+
+两者区别：
+CountDownLatch的作用是允许1或N个线程等待其他线程完成执行；而CyclicBarrier则是允许N个线程相互等待。
+CountDownLatch的计数器无法被重置；CyclicBarrier的计数器可以被重置后使用，因此它被称为是循环的barrier 。
