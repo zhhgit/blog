@@ -1,7 +1,7 @@
 ---
 layout: post
-title: "后端开发面试题 -- 中间件篇"
-description: 后端开发面试题 -- 中间件篇
+title: "后端开发面试题 -- ZooKeeper篇"
+description: 后端开发面试题 -- ZooKeeper篇
 modified: 2021-01-01
 category: Interview
 tags: [Interview]
@@ -625,7 +625,7 @@ Nacos帮助您更敏捷和容易地构建、交付和管理微服务平台。Nac
 Nacos提供了SDK和Open API两种形式来实现服务注册。这两种形式本质都一样，底层都是基于HTTP协议完成请求的。所以注册服务就是发送一个HTTP请求。
 Nacos客户端通过Open API的形式发送服务注册请求。Nacos服务端收到请求后，做以下三件事：构建一个Service对象保存到ConcurrentHashMap集合中、使用定时任务对当前服务下的所有实例建立心跳检测机制、基于数据一致性协议服务数据进行同步。
     
-SpringCloud完成注册的时机：
+Spring Cloud完成注册的时机：
 
 在Spring-Cloud-Common包中有一个类org.springframework.cloud. client.serviceregistry.ServiceRegistry ,它是Spring Cloud提供的服务注册的标准。集成到Spring Cloud中实现服务注册的组件,都会实现该接口。该接口有一个实现类是NacoServiceRegistry。
 NacosAutoServiceRegistration继承了AbstractAutoServiceRegistration。Nacos是通过Spring的事件机制继承到SpringCloud中去的。
