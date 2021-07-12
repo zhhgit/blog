@@ -1156,7 +1156,7 @@ ThreadPoolExecutor回收工作线程，一条线程getTask()返回null，就会�
     TIDYING：所有任务终止，线程池会变为TIDYING状态。当线程池变为TIDYING状态时，会执行钩子函数terminated()。
     TERMINATED：线程池彻底终止的状态。
 
-# Java锁
+# Java锁机制
 
 1.公平锁/非公平锁
 

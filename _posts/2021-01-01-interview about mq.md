@@ -60,7 +60,7 @@ kafka的特点其实很明显，就是仅仅提供较少的核心功能，但是
 
 5.如何保证消息不被重复消费（如何保证消息消费时的幂等性）
 
-kafka实际上有个offset的概念，就是每个消息写进去，都有一个offset，代表他的序号，然后consumer消费了数据之后，每隔一段时间，会把自己消费过的消息的offset提交一下，代表我已经消费过了，下次我要是重启啥的，你就让我继续从上次消费到的offset来继续消费吧。
+kafka实际上有个offset的概念，就是每个消息写进去，都有一个offset，代表它的序号，然后consumer消费了数据之后，每隔一段时间，会把自己消费过的消息的offset提交一下，代表我已经消费过了，下次我要是重启啥的，你就让我继续从上次消费到的offset来继续消费吧。
 但是凡事总有意外，比如我们之前生产经常遇到的，就是你有时候重启系统，看你怎么重启了，如果碰到点着急的，直接kill进程了，再重启。这会导致consumer有些消息处理了，但是没来得及提交offset，尴尬了。重启之后，少数消息会再次消费一次。
 幂等性，通俗点说，就一个数据，或者一个请求，给你重复来多次，你得确保对应的数据是不会改变的，不能出错。
 比如你拿个数据要写库，你先根据主键查一下，如果这数据都有了，你就别插入了，update一下好吧。
@@ -75,9 +75,14 @@ kafka实际上有个offset的概念，就是每个消息写进去，都有一个
 这不是一样么，大家都知道kafka会自动提交offset，那么只要关闭自动提交offset，在处理完之后自己手动提交offset，就可以保证数据不会丢。但是此时确实还是会重复消费，比如你刚处理完，还没提交offset，结果自己挂了，此时肯定会重复消费一次，自己保证幂等性就好了。
 生产环境碰到的一个问题，就是说我们的kafka消费者消费到了数据之后是写到一个内存的queue里先缓冲一下，结果有的时候，你刚把消息写入内存queue，然后消费者会自动提交offset。然后此时我们重启了系统，就会导致内存queue里还没来得及处理的数据就丢失了。
 
+解决方法：kafka会自动提交offset，那么只要关闭自动提交offset，在处理完之后自己手动提交，可以保证数据不会丢。但是此时确实还是会重复消费，比如刚好处理完，还没提交offset，结果自己挂了，此时肯定会重复消费一次 ，做好幂等即可。
+
 (2)kafka弄丢了数据
 这是比较常见的一个场景，就是kafka某个broker宕机，然后重新选举partiton的leader时。大家想想，要是此时其他的follower刚好还有些数据没有同步，结果此时leader挂了，然后选举某个follower成leader之后，不就少了一些数据？这就丢了一些数据啊。
-生产环境也遇到过，我们也是，之前kafka的leader机器宕机了，将follower切换为leader之后，就会发现说这个数据就丢了。所以此时一般是要求起码设置如下4个参数：
+生产环境也遇到过，我们也是，之前kafka的leader机器宕机了，将follower切换为leader之后，就会发现说这个数据就丢了。
+
+解决方案：
+所以此时一般是要求起码设置如下4个参数：
 给这个topic设置replication.factor参数：这个值必须大于1，要求每个partition必须有至少2个副本
 在kafka服务端设置min.insync.replicas参数：这个值必须大于1，这个是要求一个leader至少感知到有至少一个follower还跟自己保持联系，没掉队，这样才能确保leader挂了还有一个follower吧。
 在producer端设置acks=all：这个是要求每条数据，必须是写入所有replica之后，才能认为是写成功了。
@@ -89,8 +94,13 @@ kafka实际上有个offset的概念，就是每个消息写进去，都有一个
 
 7.消息队列中，如何保证消息的顺序性
 
-错乱场景：Kafka，mysql里增删改一条数据，对应出来了增删改3条binlog，接着这三条binlog发送到MQ里面，到消费出来依次执行，起码得保证人家是按照顺序来的吧？不然本来是：增加、修改、删除；你楞是换了顺序给执行成删除、修改、增加，不全错了么。一个topic，一个partition，一个consumer，内部多线程，这不也明显乱了。
-解决方案：Kafka，一个topic，一个partition，一个consumer，内部单线程消费，单线程吞吐量太低，一般不会用这个。写N个内存queue，具有相同key的数据都到同一个内存queue；然后对于N个线程，每个线程分别消费一个内存queue即可，这样就能保证顺序性。
+错乱场景：
+Kafka，mysql里增删改一条数据，对应出来了增删改3条binlog，接着这三条binlog发送到MQ里面，到消费出来依次执行，起码得保证人家是按照顺序来的吧？不然本来是：增加、修改、删除；你楞是换了顺序给执行成删除、修改、增加，不全错了么。
+一个topic，一个partition，一个consumer，内部多线程，这不也明显乱了。
+
+解决方案：
+(1)Kafka，一个topic，一个partition，一个consumer，内部单线程消费。如果处理比较耗时，处理一条消息是几十ms，一秒钟只能处理几十条数据，这个吞吐量太低了。一般不会用这个。
+(2)写入一个partition中的数据一定是有顺序的。生产者在写的时候，可以指定一个key，比如订单id作为key,那么订单相关的数据，一定会被分发到一个partition中区，此时这个partition中的数据一定是有顺序的。Kafka中一个partition只能被一个消费者消费。消费者从partition中取出数据的时候 ，一定是有顺序的。写N个内存queue，具有相同key的数据都到同一个内存queue；然后对于N个线程，每个线程分别消费一个内存queue即可，这样就能保证顺序性。
 
 8.如何解决消息队列的延时以及过期失效问题？消息队列满了以后该怎么处理？有几百万消息持续积压几小时，说说怎么解决？
 
@@ -141,18 +151,25 @@ topic可以配置自己的保留策略，可以将消息保留到不再使用他
 第三种分区策略：既没有给定分区号，也没有给定key值，直接轮循进行分区。
 第四种分区策略：自定义分区。
 
-5.kafka如何保证其高可用性
+5.kafka高可用性
 
+broker进程就是kafka在每台机器上启动的自己的一个进程。每台机器+机器上的broker进程，就可以认为是kafka集群中的一个节点。
 kafka集群由多个broker组成，每个broker是一个节点；创建一个topic可以划分为多个partition，每个partition可以存在于不同的broker上，每个partition就放一部分数据，就是说一个topic的数据，是分散放在多个机器上的，每个机器就放一部分数据。
 在Kafka 0.8版本以前，是没有多副本冗余机制的，一旦一个节点挂掉，那么这个节点上的所有Partition的数据就无法再被消费。这就等于发送到Topic的有一部分数据丢失了。
-在0.8版本后引入副本记者则很好地解决宕机后数据丢失的问题。副本是以Topic中每个Partition的数据为单位，每个Partition的数据会同步到其他物理节点上，形成多个副本。每个Partition的副本都包括一个Leader副本和多个Follower副本，Leader由所有的副本共同选举得出，其他副本则都为Follower副本。在生产者写或者消费者读的时候，都只会与Leader打交道，在写入数据后Follower就会来拉取数据进行数据同步。只能读写leader？很简单，要是你可以随意读写每个follower，那么就要care数据一致性的问题，系统复杂度太高，很容易出问题。kafka会均匀的将一个partition的所有replica分布在不同的机器上，这样才可以提高容错性。
+在0.8版本后引入副本机制，则很好地解决宕机后数据丢失的问题。副本是以Topic中每个Partition的数据为单位，每个Partition的数据会同步到其他物理节点上，形成多个副本。每个Partition的副本都包括一个Leader副本和多个Follower副本，Leader由所有的副本共同选举得出，其他副本则都为Follower副本。
+在生产者写或者消费者读的时候，都只会与Leader打交道，在写入数据后Follower就会来拉取数据进行数据同步。
+只能读写leader？很简单，要是你可以随意读写每个follower，那么就要care数据一致性的问题，系统复杂度太高，很容易出问题。kafka会均匀的将一个partition的所有replica分布在不同的机器上，这样才可以提高容错性。
 如果某个broker宕机了，没事儿，那个broker上面的partition在其他机器上都有副本的，如果这上面有某个partition的leader，那么此时会重新选举一个新的leader出来，大家继续读写那个新的leader即可。这就有所谓的高可用性了。
 写数据的时候，生产者就写leader，然后leader将数据落地写本地磁盘，接着其他follower自己主动从leader来pull数据。一旦所有follower同步好数据了，就会发送ack给leader，leader收到所有follower的ack之后，就会返回写成功的消息给生产者。（当然，这只是其中一种模式，还可以适当调整这个行为）
 消费的时候，只会从leader去读，但是只有一个消息已经被所有follower都同步成功返回ack的时候，这个消息才会被消费者读到。
 集群的数量不是越多越好，最好不要超过7个，因为节点越多，消息复制需要的时间就越长，整个群组的吞吐量就越低。集群数量最好是单数，因为超过一半故障集群就不能用了，设置为单数容错率更高。
 多少个副本才算够用？ 副本肯定越多越能保证Kafka的高可用，但越多的副本意味着网络、磁盘资源的消耗更多，性能会有所下降，通常来说副本数为3即可保证高可用，极端情况下将replication-factor参数调大即可。
-Follower和Lead之间没有完全同步怎么办？ Follower和Leader之间并不是完全同步，但也不是完全异步，而是采用一种ISR机制（In-Sync Replica）。每个Leader会动态维护一个ISR列表，该列表里存储的是和Leader基本同步的Follower。如果有Follower由于网络、GC等原因而没有向Leader发起拉取数据请求，此时Follower相对于Leader是不同步的，则会被踢出ISR列表。所以说，ISR列表中的Follower都是跟得上Leader的副本。
-一个节点宕机后Leader的选举规则是什么？ 分布式相关的选举规则有很多，像Zookeeper的Zab、Raft、Viewstamped Replication、微软的PacificA等。而Kafka的Leader选举思路很简单，基于我们上述提到的ISR列表，当宕机后会从所有副本中顺序查找，如果查找到的副本在ISR列表中，则当选为Leader。另外还要保证前任Leader已经是退位状态了，否则会出现脑裂情况（有两个Leader）。怎么保证？Kafka通过设置了一个controller来保证只有一个Leader。
+
+Follower和Lead之间没有完全同步怎么办？
+ Follower和Leader之间并不是完全同步，但也不是完全异步，而是采用一种ISR机制（In-Sync Replica）。每个Leader会动态维护一个ISR列表，该列表里存储的是和Leader基本同步的Follower。如果有Follower由于网络、GC等原因而没有向Leader发起拉取数据请求，此时Follower相对于Leader是不同步的，则会被踢出ISR列表。所以说，ISR列表中的Follower都是跟得上Leader的副本。
+
+一个节点宕机后Leader的选举规则是什么？ 
+分布式相关的选举规则有很多，像Zookeeper的Zab、Raft、Viewstamped Replication、微软的PacificA等。而Kafka的Leader选举思路很简单，基于我们上述提到的ISR列表，当宕机后会从所有副本中顺序查找，如果查找到的副本在ISR列表中，则当选为Leader。另外还要保证前任Leader已经是退位状态了，否则会出现脑裂情况（有两个Leader）。怎么保证？Kafka通过设置了一个controller来保证只有一个Leader。
 
 关于request.required.asks参数：
 Asks这个参数是生产者客户端的重要配置，发送消息的时候就可设置这个参数。该参数有三个值可配置：0、1、All。

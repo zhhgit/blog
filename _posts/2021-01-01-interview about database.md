@@ -231,10 +231,20 @@ select version();
 
 18.MySQL查询字段区是否不区分大小写？如何区分
 
-不区分。
-区分方法：
-(1)创建表时，直接设置表的collate属性为utf8_general_cs或者utf8_bin；如果已经创建表，则直接修改字段的Collation属性为utf8_general_cs或者utf8_bin。
-(2)修改SQL语句
+MySQL默认的字符检索策略：utf8_general_ci，表示不区分大小写。
+
+(1)可以使用utf8_general_cs，表示区分大小写，也可以使用utf8_bin，表示二进制比较，同样也区分大小写。创建表时，直接设置表的collate属性为utf8_general_cs或者utf8_bin；如果已经创建表，则直接修改字段的Collation属性为utf8_general_cs或者utf8_bin。
+
+    -- 创建表：
+    CREATE TABLE testt(
+    id INT PRIMARY KEY,
+    name VARCHAR(32) NOT NULL
+    ) ENGINE = INNODB COLLATE =utf8_bin;
+    
+    -- 修改表结构的Collation属性
+    ALTER TABLE TABLENAME MODIFY COLUMN COLUMNNAME VARCHAR(50) BINARY CHARACTER SET utf8 COLLATE utf8_bin DEFAULT NULL;
+
+(2)直接修改sql语句，在要查询的字段前面加上binary关键字
 
     -- 在每一个条件前加上binary关键字
     select * from user where binary username = 'admin' and binary password = 'admin';
@@ -1112,6 +1122,7 @@ ReadView中主要包含以下4个内容：
 
 事务日志是通过redo log和innodb的存储引擎日志缓冲（Innodb log buffer）来实现的，当开始一个事务的时候，会记录该事务的lsn(log sequence number)号;
 当事务执行时，会往InnoDB存储引擎的日志的日志缓存里面插入事务日志； 当事务提交时，必须将存储引擎的日志缓冲写入磁盘（通过innodb_flush_log_at_trx_commit来控制），也就是写数据前，需要先写日志。这种方式称为“预写日志方式”。
+
 Undo Log是为了实现事务的原子性，在MySQL数据库InnoDB存储引擎中，还用了Undo Log来实现多版本并发控制(简称：MVCC)。在操作任何数据之前，首先将数据备份到一个地方（这个存储数据备份的地方称为Undo Log）。然后进行数据的修改。如果出现了错误或者用户执行了ROLLBACK语句，系统可以利用Undo Log中的备份将数据恢复到事务开始之前的状态。
 Redo Log原理和Undo Log相反，Redo Log记录的是新数据的备份。在事务提交前，只要将Redo Log持久化即可，不需要将数据持久化。当系统崩溃时，虽然数据没有持久化，但是Redo Log已经持久化。系统可以根据Redo Log的内容，将所有数据恢复到最新的状态。
 
@@ -1157,12 +1168,12 @@ MEMORY默认使用哈希索引。速度比使用B型树索引快。当然如果�
 
 1.MySQL innodb有多少种日志
 
-(1)错误日志：记录出错信息，也记录一些警告信息或者正确的信息。error log。
-(2)查询日志：记录所有对数据库请求的信息，不论这些请求是否得到了正确的执行。general log。
-(3)慢查询日志：设置一个阈值，将运行时间超过该值的所有SQL语句都记录到慢查询的日志文件中。slow query log。
-(4)二进制日志：记录对数据库执行更改的所有操作。binlog。
-(5)中继日志：中继日志也是二进制日志，用来给slave库恢复。relay log。
-(6)事务日志：重做日志redo log和回滚日志undo log。
+    (1)错误日志：记录出错信息，也记录一些警告信息或者正确的信息。error log。
+    (2)查询日志：记录所有对数据库请求的信息，不论这些请求是否得到了正确的执行。general log。
+    (3)慢查询日志：设置一个阈值，将运行时间超过该值的所有SQL语句都记录到慢查询的日志文件中。slow query log。
+    (4)二进制日志：记录对数据库执行更改的所有操作。binlog。
+    (5)中继日志：中继日志也是二进制日志，用来给slave库恢复。relay log。
+    (6)事务日志：重做日志redo log和回滚日志undo log。
 
 2.二进制日志（binlog）
 
@@ -1183,7 +1194,14 @@ MEMORY默认使用哈希索引。速度比使用B型树索引快。当然如果�
 (1)Statement：每一条会修改数据的sql都会记录在binlog中。
 优点：不需要记录每一行的变化，减少了binlog日志量，节约了IO，提高性能。相比row能节约多少性能与日志量，这个取决于应用的SQL情况，正常同一条记录修改或者插入row格式所产生的日志量还小于Statement产生的日志量，但是考虑到如果带条件的update操作，以及整表删除，alter表等操作，ROW格式会产生大量日志，因此在考虑是否使用ROW格式日志时应该根据应用的实际情况，其所产生的日志量会增加多少，以及带来的IO性能问题。
 缺点：由于记录的只是执行语句，为了这些语句能在slave上正确运行，因此还必须记录每条语句在执行的时候的一些相关信息，以保证所有语句能在slave得到和在master端执行时候相同的结果。
-另外mysql的复制,像一些特定函数功能，slave可与master上要保持一致会有很多相关问题(如sleep()函数， last_insert_id()，以及user-defined functions(udf)会出现问题)。
+另外mysql 的复制,像一些特定函数功能，slave可与master上要保持一致会有很多相关问题(如sleep()函数， last_insert_id()，以及user-defined functions(udf)会出现问题).
+使用以下函数的语句也无法被复制：
+
+    LOAD_FILE()
+    UUID()
+    USER()
+    FOUND_ROWS()
+    SYSDATE() (除非启动时启用了 --sysdate-is-now 选项)
    
 (2)Row:不记录sql语句上下文相关信息，仅保存哪条记录被修改。
 优点：binlog中可以不记录执行的sql语句的上下文相关的信息，仅需要记录那一条记录被修改成什么了。所以row level的日志内容会非常清楚的记录下每一行数据修改的细节。而且不会出现某些特定情况下的存储过程，或function，以及trigger的调用和触发无法被正确复制的问题

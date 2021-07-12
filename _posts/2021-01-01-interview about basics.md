@@ -303,6 +303,96 @@ HR面：除了薪水外其他福利待遇、公积金、补充医疗、年终奖
   
 掌握程度的话，基本上在搭建及使用上没有问题，具备独立开发的能力，底层原理看过一些技术博客。
 
+3.知识体系
+
+    Java
+        --Java基础
+        --Java IO
+        --Java反射
+        --Java注解
+        --Java Web
+        --Java异常
+        --Java新特性
+        --Java集合
+    
+    Java JVM
+        --类加载器
+        --内存管理
+        --垃圾回收
+        --执行过程
+        --JVM调优
+        
+    并发与多线程
+        --并发与多线程基础
+        --线程池
+        --Java锁机制
+        --JUC
+        
+    应用框架
+        --Spring
+        --Spring MVC
+        --Spring Boot
+        --Spring Cloud
+        --Dubbo
+        --Mybatis
+        --Hibernate
+        --Netty
+        --Log4j2
+        
+    数据库
+        --数据库基础
+        --数据库索引
+        --数据库锁
+        --数据库事务
+        --数据库存储引擎
+        --数据库日志
+        --数据库性能优化
+        --数据库架构
+        
+    消息队列
+        --消息队列基础
+        --Kafka
+        
+    Redis
+        --Redis基础
+        --Redis数据结构与操作
+        --Redis持久化
+        --Redis内存管理
+        --Redis分布式锁
+        --Redis架构
+        --Redis性能优化
+        
+    注册中心
+        --ZooKeeper
+        --Nacos
+
+    Elasticsearch
+    
+    Nginx
+
+    算法与数据结构
+        --数据结构
+        --算法--基础
+        --算法--排序
+        --算法--链表
+        
+    设计模式
+    
+    网络
+        
+    架构与系统设计
+        --系统架构
+        --系统设计
+        
+    云技术
+        --K8S
+        --Docker
+        
+    基础
+        --Linux
+        --问题排查与调优
+        --面经
+        
 # 综合参考
 
 1.[Java最常见的200+面试题及自己梳理的答案--面试必备（一）](https://www.cnblogs.com/cocoxu1992/p/10460251.html)

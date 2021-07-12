@@ -331,6 +331,28 @@ AbstractStringBuilder的append()方法源码的第五行，ensureCapacityInterna
 
 那么StringBuffer用什么手段保证线程安全的？synchronized的append方法。
 
+11.Java深拷贝和浅拷贝
+
+(1)引用拷贝：创建一个指向对象的引用变量的拷贝。它们的地址值是相同的，那么它们肯定是同一个对象。
+
+    Teacher teacher = new Teacher("Taylor",26);
+    Teacher otherteacher = teacher;
+
+(2)对象拷贝：创建对象本身的一个副本。它们的地址是不同的，也就是说创建了新的对象，而不是把原对象的地址赋给了一个新的引用变量,这就叫做对象拷贝。
+
+    Teacher teacher = new Teacher("Swift",26); 
+    Teacher otherteacher = (Teacher)teacher.clone(); 
+
+注：深拷贝和浅拷贝都是对象拷贝
+
+(3)浅拷贝：被复制对象的所有变量都含有与原来的对象相同的值，而所有的对其他对象的引用仍然指向原来的对象。
+即对象的浅拷贝会对“主”对象进行拷贝，但不会复制主对象里面的对象。“里面的对象”会在原来的对象和它的副本之间共享。
+简而言之，浅拷贝仅仅复制所考虑的对象，而不复制它所引用的对象。
+
+(4)深拷贝：深拷贝是一个整个独立的对象拷贝，深拷贝会拷贝所有的属性,并拷贝属性指向的动态分配的内存。当对象和它所引用的对象一起拷贝时即发生深拷贝。深拷贝相比于浅拷贝速度较慢并且花销较大。
+简而言之，深拷贝把要复制的对象所引用的对象都复制了一遍。
+
+
 N.参考
 
 (1)[Java 7 API](https://docs.oracle.com/javase/7/docs/api/)

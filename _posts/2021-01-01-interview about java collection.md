@@ -60,7 +60,21 @@ UnsupportedOperationException是用于表明操作不支持的异常。在JDK类
 
 6.Iterator
 
-Iterator接口提供遍历任何Collection的接口。我们可以从一个Collection中使用迭代器方法来获取迭代器实例。迭代器取代了Java集合框架中的Enumeration。迭代器允许调用者在迭代过程中移除元素，而Enumeration不能做到。
+Iterator接口提供遍历任何Collection的接口。我们可以从一个Collection中使用迭代器方法来获取迭代器实例。
+迭代器取代了Java集合框架中的Enumeration。迭代器允许调用者在迭代过程中移除元素，而Enumeration不能做到。
+
+Iterator主要有三个方法：hasNext()、next()、remove()
+
+    hasNext:没有指针下移操作，只是判断是否存在下一个元素
+    next：指针下移，返回该指针所指向的元素
+    remove：删除当前指针所指向的元素，一般和next方法一起用，这时候的作用就是删除next方法返回的元素
+    
+迭代器原理：
+
+(a)当创建完成指向某个集合或者容器的Iterator对象时，这时的指针其实指向的是第一个元素的上方，即指向一个空。(int cursor = 0;)
+(b)当调用hasNext方法的时候，只是判断下一个元素的有无，并不移动指针
+(c)当调用next方法的时候，向下移动指针，并且返回指针指向的元素，如果指针指向的内存中没有元素，会报异常。
+(d)remove方法删除的元素是指针指向的元素。如果当前指针指向的内存中没有元素，那么会抛出异常。
 
 Enumeration和Iterator接口的区别：
 Enumeration的速度是Iterator的两倍，也使用更少的内存。Enumeration是非常基础的，也满足了基础的需要。但是与Enumeration相比，Iterator更加安全，因为当一个集合正在被遍历的时候，它会阻止其它线程去修改集合。
@@ -74,11 +88,13 @@ Iterator只可以向前遍历，而LIstIterator可以双向遍历。
 ListIterator从Iterator接口继承，然后添加了一些额外的功能，比如添加一个元素、替换一个元素、获取前面或后面元素的索引位置。
 
 迭代器的fail-fast属性：
-每次我们尝试获取下一个元素的时候，Iterator fail-fast属性检查当前集合结构里的任何改动。如果发现任何改动，它抛出ConcurrentModificationException。Collection中所有Iterator的实现都是按fail-fast来设计的（ConcurrentHashMap和CopyOnWriteArrayList这类并发集合类除外）。
+每次我们尝试获取下一个元素的时候，Iterator fail-fast属性检查当前集合结构里的任何改动。如果发现任何改动，它抛出ConcurrentModificationException。
+Collection中所有Iterator的实现都是按fail-fast来设计的（ConcurrentHashMap和CopyOnWriteArrayList这类并发集合类除外）。
 java.util.concurrent中的集合类都为fail-safe的，迭代器不抛出ConcurrentModificationException。
 
 如何避免ConcurrentModificationException：
-在遍历一个集合的时候我们可以使用并发集合类来避免ConcurrentModificationException，比如使用CopyOnWriteArrayList，而不是ArrayList。
+如果当前单个线程在更改容器(add, delete…)，那么迭代的时候采用iterator.remove()方法可以确保迭代器在查找next的时候，指针不会丢失。
+如果当前有多个线程在对容器进行操作，例如一个线程正在向容器中写数据，而另一个线程在迭代此容器，这时候就必须考虑并发下的线程安全问题。这时候可以采用java.util.concurrent包下面的线程安全的容器解决此异常。在遍历一个集合的时候我们可以使用并发集合类来避免ConcurrentModificationException，比如使用CopyOnWriteArrayList，而不是ArrayList。
 
 为何Iterator接口没有具体的实现：
 Iterator接口定义了遍历集合的方法，但它的实现则是集合实现类的责任。每个能够返回用于遍历的Iterator的集合类都有它自己的Iterator实现内部类。
@@ -359,8 +375,6 @@ Foreach，获取元素时，modCount和expectedModCount的值就不相等了，�
            throw new ConcurrentModificationException();
     }
     
-    
-
 正确做法：
 
 (1)使用Iterator的remove()方法
