@@ -587,7 +587,7 @@ Java中字符是采用Unicode标准，Unicode编码中，一个英文为一个�
 (5)为什么不建议使用Java序列化
 
 (a)无法跨语言：通过Java的原生Serializable接口与ObjectOutputStream实现的序列化，只有java语言自己能通过ObjectInputStream来解码，其他语言，如C、C++、Python等等，都无法对其实现解码。而在我们实际开发生产中，有时不可避免的需要基于不同语言编写的应用程序之间进行通信，这个时候Java自带的序列化就无法搞定了。
-(b)性能差：Java自带的序列化比NIO中的ByteBuffer编码的性能差。
+(b)性能差：Java自带的序列化比NIO中的ByteBuffer编码的性能差。性能指的是速度。
 (c)序列后的码流太大：java序列化的大小是二进制编码的5倍多！序列化后的二进制数组越大，占用的存储空间就越多，如果我们是进行网络传输，相对占用的带宽就更多，也会影响系统的性能。
 
 正是由于Java自带的序列化存在这些问题，开源社区涌现出很多优秀的序列化框架。
@@ -599,7 +599,7 @@ Java中字符是采用Unicode标准，Unicode编码中，一个英文为一个�
     Google开源
     
     Thrift
-    支持多种语言（C++、C#、Cocoa、Erlag、Haskell、java、Ocami、Perl、PHP、Python、Ruby和SmallTalk）
+    支持多种语言（C++、C#、Cocoa、Erlang、Haskell、java、Ocami、Perl、PHP、Python、Ruby和SmallTalk）
     使用了组建大型数据交换及存储工具，对于大型系统中的内部数据传输，相对于Json和xml在性能上和传输大小上都有明显的优势。
     支持通用二进制编码，压缩二进制编码，优化的可选字段压缩编解码等三种方式。
     FaceBook开源
@@ -622,9 +622,32 @@ Java中字符是采用Unicode标准，Unicode编码中，一个英文为一个�
 
 11.零拷贝
 
-如果简单用java里面对象的概念来理解的话，其实就是使用的都是对象的引用，每个引用对象的地方对其改变就都能改变此对象，永远只存在一份对象。
-MappedByteBuffer：java nio提供的FileChannel提供了map()方法，该方法可以在一个打开的文件和MappedByteBuffer之间建立一个虚拟内存映射，MappedByteBuffer继承于ByteBuffer，类似于一个基于内存的缓冲区，只不过该对象的数据元素存储在磁盘的一个文件中；调用get()方法会从磁盘中获取数据，此数据反映该文件当前的内容，调用put()方法会更新磁盘上的文件，并且对文件做的修改对其他阅读者也是可见的。
+普通IO，可以把磁盘的文件经过内核空间，读到JVM空间，然后进行各种操作，最后再写到磁盘或是发送到网络，效率较慢但支持数据文件操作。
+零拷贝则是直接在内核空间完成文件读取并转到磁盘（或发送到网络）。由于它没有读取文件数据到JVM这一环，因此程序无法操作该文件数据，尽管效率很高！
+NIO的零拷贝由transferTo()方法实现。transferTo()方法将数据从FileChannel对象传送到可写的字节通道（如Socket Channel等）。
+在内部实现中，由native方法transferTo0()来实现，它依赖底层操作系统的支持。在UNIX和Linux系统中，调用这个方法将会引起sendfile()系统调用。
 
+    File file = new File("test.zip");
+    RandomAccessFile raf = new RandomAccessFile(file, "rw");
+    FileChannel fileChannel = raf.getChannel();
+    SocketChannel socketChannel = SocketChannel.open(new InetSocketAddress("", 1234));
+    // 直接使用了transferTo()进行通道间的数据传输
+    fileChannel.transferTo(0, fileChannel.size(), socketChannel);
+    
+使用场景一般是：
+
+    较大，读写较慢，追求速度
+    内存不足，不能加载太大数据
+    带宽不够，即存在其他程序或线程存在大量的IO操作，导致带宽本来就小
+
+以上都建立在不需要进行数据文件操作的情况下，如果既需要这样的速度，也需要进行数据操作怎么办？那么使用NIO的直接内存！
+
+    File file = new File("test.zip");
+    RandomAccessFile raf = new RandomAccessFile(file, "rw");
+    FileChannel fileChannel = raf.getChannel();
+    MappedByteBuffer buffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, fileChannel.size());
+    
+    // 或者
     public class MappedByteBufferTest {  
       
         public static void main(String[] args) throws Exception {  
@@ -643,6 +666,13 @@ MappedByteBuffer：java nio提供的FileChannel提供了map()方法，该方法�
         }  
     }
     
+直接内存则介于两者之间，效率一般且可操作文件数据。直接内存（mmap技术）将文件直接映射到内核空间的内存，返回一个操作地址，它解决了文件数据需要拷贝到JVM才能进行操作的窘境。而是直接在内核空间直接进行操作，省去了内核空间拷贝到用户空间这一步操作。
+MappedByteBuffer：java nio提供的FileChannel提供了map()方法，该方法可以在一个打开的文件和MappedByteBuffer之间建立一个虚拟内存映射，MappedByteBuffer继承于ByteBuffer，类似于一个基于内存的缓冲区，只不过该对象的数据元素存储在磁盘的一个文件中；调用get()方法会从磁盘中获取数据，此数据反映该文件当前的内容，调用put()方法会更新磁盘上的文件，并且对文件做的修改对其他阅读者也是可见的。
+NIO的直接内存是由MappedByteBuffer实现的。核心即是map()方法，该方法把文件映射到内存中，获得内存地址addr，然后通过这个addr构造MappedByteBuffer类，以暴露各种文件操作API。
+由于MappedByteBuffer申请的是堆外内存，因此不受Minor GC控制，只能在发生Full GC时才能被回收。而DirectByteBuffer改善了这一情况，它是MappedByteBuffer类的子类，同时它实现了DirectBuffer接口，维护一个Cleaner对象来完成内存回收。因此它既可以通过Full GC来回收内存，也可以调用clean()方法来进行回收。
+另外，直接内存的大小可通过jvm参数来设置：-XX:MaxDirectMemorySize。
+NIO的MappedByteBuffer还有一个兄弟叫做HeapByteBuffer。顾名思义，它用来在堆中申请内存，本质是一个数组。由于它位于堆中，因此可受GC管控，易于回收。
+    
 12.serialVersionUID
 
 serialVersionUID适用于Java的序列化机制。简单来说，Java的序列化机制是通过判断类的serialVersionUID来验证版本一致性的。在进行反序列化时，JVM会把传来的字节流中的serialVersionUID与本地相应实体类的serialVersionUID进行比较，如果相同就认为是一致的，可以进行反序列化，否则就会出现序列化版本不一致的异常，即是InvalidCastException。
@@ -650,7 +680,7 @@ serialVersionUID适用于Java的序列化机制。简单来说，Java的序列�
 生成方式：
 
 默认的1L，比如：private static final long serialVersionUID = 1L;
-根据类名、接口名、成员方法及属性等来生成一个64位的哈希字段，比如：private static final  long   serialVersionUID = xxxxL;
+根据类名、接口名、成员方法及属性等来生成一个64位的哈希字段，比如：private static final long serialVersionUID = xxxxL;
 当实现java.io.Serializable接口的类没有显式地定义一个serialVersionUID变量时候，Java序列化机制会根据编译的Class自动生成一个serialVersionUID作序列化版本比较用，这种情况下，如果Class文件(类名，方法明等)没有发生变化(增加空格，换行，增加注释等等)，就算再编译多次，serialVersionUID也不会变化的。
 
 几种情况：
@@ -674,6 +704,143 @@ NIO线程模型
 (a)Reactor单线程模型：由一个线程监听连接事件、读写事件，并完成数据读写。
 (b)Reactor多线程模型：一个Acceptor线程专门监听各种事件，再由专门的线程池负责处理真正的IO数据读写。
 (c)主从Reactor多线程模型：一个线程监听连接事件，线程池的多个线程监听已经建立连接的套接字的数据读写事件，另外和多线程模型一样有专门的线程池处理真正的IO操作。
+
+# Java异常
+
+1.异常的分类：
+
+(1)Throwable：
+
+所有错误与异常的超类。两个子类：Error（错误）和 Exception（异常），包含了其线程创建时线程执行堆栈的快照，它提供了printStackTrace()等接口用于获取堆栈跟踪数据等信息。
+
+(2)Error：
+
+程序中无法处理的错误，表示运行应用程序中出现了严重的错误。
+此类错误一般表示代码运行时JVM出现问题。通常有VirtualMachineError（虚拟机运行错误）（比如 OutOfMemoryError：内存不足错误；StackOverflowError：栈溢出错误）、NoClassDefFoundError（类定义错误）等。此类错误发生时，JVM将终止线程。
+这些错误是不受检异常，非代码性错误。因此，当此类错误发生时，应用程序不应该去处理此类错误。按照Java惯例，我们是不应该实现任何新的Error子类的！
+
+(3)Exception：
+
+程序本身可以捕获并且可以处理的异常。分为两类：运行时异常和编译时异常。
+
+RuntimeException：运行时异常表示JVM在运行期间可能出现的异常。这类异常是编程人员的逻辑问题。
+Java编译器不会检查它，也就是说当程序中可能出现这类异常时，倘若既没有通过throws声明抛出它，也没有用try-catch语句捕获它，还是会编译通过。（可写可不写）
+比如NullPointerException空指针异常、ArrayIndexOutBoundException数组下标越界异常、ClassCastException类型转换异常、ArithmeticExecption算术异常。
+RuntimeException异常会由Java虚拟机自动抛出并自动捕获（就算我们没写异常捕获语句运行时也会抛出错误！！），此类异常的出现绝大数情况是代码本身有问题应该从逻辑上去解决并改进代码。
+
+非RuntimeException：编译时异常，除RuntimeException及其子类之外的异常。这类异常是由一些外部的偶然因素所引起的。
+Java编译器会检查它。如果程序中出现此类异常，要么通过throws进行声明抛出，要么通过try-catch进行捕获处理，否则不能通过编译。在程序中，通常不会自定义该类异常，而是直接使用系统提供的异常类。该异常我们必须手动在代码里添加捕获语句来处理该异常。
+例如Exception，FileNotFoundException，IOException，SQLException。
+
+(4)受检异常与非受检异常
+
+Java的所有异常可以分为受检异常（checked exception）和非受检异常（unchecked exception）。
+
+受检异常：编译器要求必须处理的异常。正确的程序在运行过程中，经常容易出现的、符合预期的异常情况。一旦发生此类异常，就必须采用某种方式进行处理。除RuntimeException及其子类外，其他的Exception异常都属于受检异常。编译器会检查此类异常，也就是说当编译器检查到应用中的某处可能会此类异常时，将会提示你处理本异常——要么使用try-catch捕获，要么使用方法签名中用throws关键字抛出，否则编译不通过。
+非受检异常：编译器不会进行检查并且不要求必须处理的异常，也就说当程序中出现此类异常时，即使我们没有try-catch捕获它，也没有使用throws抛出该异常，编译也会正常通过。该类异常包括运行时异常（RuntimeException极其子类）和错误（Error）。
+
+2.异常相关关键字
+
+    try – 用于监听。将要被监听的代码(可能抛出异常的代码)放在try语句块之内，当try语句块内发生异常时，异常就被抛出。
+    catch – 用于捕获异常。catch用来捕获try语句块中发生的异常。
+    finally – finally语句块总是会被执行。它主要用于回收在try块里打开的物理资源(如数据库连接、网络连接和磁盘文件)。只有finally块，执行完成之后，才会回来执行try或者catch块中的return或者throw语句，如果finally中使用了return或者throw等终止方法的语句，则就不会跳回执行，直接停止。
+    throw – 用在方法内部，只能用于抛出一种异常，用来抛出方法或代码块中的异常，受查异常和非受查异常都可以被抛出。
+    throws – 用在方法签名中，用于声明该方法可能抛出的异常。
+
+throw和throws都是消极处理异常的方式，只是抛出或者可能抛出异常，但是不会由函数去处理异常，真正的处理异常由函数的上层调用处理。
+
+3.异常的处理
+
+异常的处理机制分为捕获异常、声明异常、抛出异常。
+
+(1)捕获异常：程序通常在运行之前不报错，但是运行后可能会出现某些未知的错误，但是还不想直接抛出到上一级，那么就需要通过try…catch…的形式进行异常捕获，之后根据不同的异常情况来进行相应的处理。
+(2)声明异常：在方法签名处使用throws关键字声明可能会抛出的异常。注意：非检查异常（Error、RuntimeException 或它们的子类）不可使用throws关键字来声明要抛出的异常。一个方法出现编译时异常，就需要try-catch或throws处理，否则会导致编译错误。
+(3)抛出异常：如果你觉得解决不了某些异常问题，且不需要调用者处理，那么你可以抛出异常。throw关键字作用是在方法内部抛出一个Throwable类型的异常。任何Java代码都可以通过throw语句抛出异常。
+
+    是否能解决异常？
+        是 --> 捕获异常
+        否 --> 调用者是否必须处理（是否受检异常）？
+            是 --> 声明受检异常
+            否 --> 抛出运行时异常
+
+4.自定义异常
+
+当需要一些跟特定业务相关的异常信息类时。可以继承Exception来定义一个受检异常。也可以继承自RuntimeException或其子类来定义一个非受检异常。
+
+5.异常与return
+
+finally中改变返回值的做法是不好的，因为如果存在finally代码块，try中的return语句不会立马返回调用者，而是记录下返回值待finally代码块执行完毕之后再向调用者返回其值。
+然后如果在finally中修改了返回值，就会返回修改后的值。显然，在finally中返回或者修改返回值会对程序造成很大的困扰。
+即使catch中包含了return语句，finally子句依然会执行。若finally中也包含return语句，finally中的return会覆盖前面的return。
+
+    public static int getInt() {
+        int a = 10;
+        try {
+            System.out.println(a / 0);
+            a = 20;
+        } catch (ArithmeticException e) {
+            a = 30;
+            return a;
+            /*
+             * return a 在程序执行到这一步的时候，这里不是return a 而是 return 30；这个返回路径就形成了
+             * 但是呢，它发现后面还有finally，所以继续执行finally的内容，a=40
+             * 再次回到以前的路径,继续走return 30，形成返回路径之后，这里的a就不是a变量了，而是常量30
+             */
+        } finally {
+            a = 40;
+        }
+     return a;
+    }
+    
+执行结果：30
+
+    public static int getInt() {
+        int a = 10;
+        try {
+            System.out.println(a / 0);
+            a = 20;
+        } catch (ArithmeticException e) {
+            a = 30;
+            return a;
+        } finally {
+            a = 40;
+            //如果这样，就又重新形成了一条返回路径，由于只能通过1个return返回，所以这里直接返回40
+            return a; 
+        }
+    
+    }
+    
+执行结果：40
+
+6.try-with-resource
+
+JAVA7提供了更优雅的方式来实现资源的自动释放，自动释放的资源需要是实现了AutoCloseable接口的类。try代码块退出时，会自动调用scanner.close方法，和把scanner.close方法放在finally代码块中不同的是，若scanner.close抛出异常，则会被抑制，抛出的仍然为原始异常。
+
+    private  static void tryWithResourceTest(){
+        try (Scanner scanner = new Scanner(new FileInputStream("c:/abc"),"UTF-8")){
+            // code
+        } catch (IOException e){
+            // handle exception
+        }
+    }
+    
+7.NoClassDefFoundError和ClassNotFoundException区别？
+
+NoClassDefFoundError是一个Error类型的异常，是由JVM引起的，不应该尝试捕获这个异常。引起该异常的原因是JVM或ClassLoader尝试加载某类时在内存中找不到该类的定义，该动作发生在运行期间，即编译时该类存在，但是在运行时却找不到了，可能是变异后被删除了等原因导致。
+ClassNotFoundException是一个受查异常，需要显式地使用try-catch对其进行捕获和处理，或在方法签名中用throws关键字进行声明。当使用Class.forName, ClassLoader.loadClass或ClassLoader.findSystemClass动态加载类到内存的时候，通过传入的类路径参数没有找到该类，那么就会导致JVM抛出ClassNotFoundException；另一种抛出该异常的可能原因是某个类已经由一个类加载器加载至内存中，另一个加载器又尝试去加载它。
+
+8.try-catch-finally中哪个部分可以省略？
+
+catch可以省略。更为严格的说法其实是：try只适合处理运行时异常，try+catch适合处理运行时异常+普通异常（受检异常）。
+也就是说，如果你只用try去处理普通异常却不加以catch处理，编译是通不过的，因为编译器硬性规定，普通异常如果选择捕获，则必须用catch显示声明以便进一步处理。
+而运行时异常在编译时没有如此规定，所以catch可以省略，你加上catch编译器也觉得无可厚非。
+理论上，编译器看任何代码都不顺眼，都觉得可能有潜在的问题，所以你即使对所有代码加上try，代码在运行期时也只不过是在正常运行的基础上加一层皮。
+但是你一旦对一段代码加上try，就等于显示地承诺编译器，对这段代码可能抛出的异常进行捕获而非向上抛出处理。如果是普通异常，编译器要求必须用catch捕获以便进一步处理；如果运行时异常，捕获然后丢弃并且+finally扫尾处理，或者加上catch捕获以便进一步处理。
+至于加上finally，则是在不管有没捕获异常，都要进行的“扫尾”处理。
+
+N.参考
+
+(1)[【249期】关于Java中的异常，面试可以问的都在这里了！](https://mp.weixin.qq.com/s/IuopmEa4soPxeIQFTQKtkg)
 
 # Java反射
 
@@ -712,11 +879,11 @@ NIO线程模型
     Method getMethod(String name, Class[] params) //根据方法名，参数类型获得方法
     Method[] getMethods() //获得所有的public方法
     Method getDeclaredMethod(String name, Class[] params) //根据方法名和参数类型，获得public和非public的方法
-    Method[] getDeclaredMethods() //获得所以的public和非public方法
+    Method[] getDeclaredMethods() //获得所有的public和非public方法
 
     // 属性Field有get,set方法
     Field getField(String name) //根据变量名得到相应的public变量
-    Field[] getFields() //获得类中所以public的方法
+    Field[] getFields() //获得类中所有public的方法
     Field getDeclaredField(String name) //根据方法名获得public和非public变量
     Field[] getDeclaredFields() //获得类中所有的public和非public方法
 
@@ -785,7 +952,8 @@ N.参考
 
 1.什么是注解
 
-Annontation是Java5开始引入的新特征，中文名称叫注解。它提供了一种安全的类似注释的机制，用来将任何的信息或元数据（metadata）与程序元素（类、方法、成员变量等）进行关联。为程序的元素（类、方法、成员变量）加上更直观更明了的说明，这些说明信息是与程序的业务逻辑无关，并且供指定的工具或框架使用。
+Annontation是Java5开始引入的新特征，中文名称叫注解。它提供了一种安全的类似注释的机制，用来将任何的信息或元数据（metadata）与程序元素（类、方法、成员变量等）进行关联。
+为程序的元素（类、方法、成员变量）加上更直观更明了的说明，这些说明信息是与程序的业务逻辑无关，并且供指定的工具或框架使用。
 Annontation像一种修饰符一样，应用于包、类型、构造方法、方法、成员变量、参数及本地变量的声明语句中。
 Java注解是附加在代码中的一些元信息，用于一些工具在编译、运行时进行解析和使用，起到说明、配置的功能。注解不会也不能影响代码的实际逻辑，仅仅起到辅助性的作用。包含在java.lang.annotation包中。
 
@@ -802,22 +970,22 @@ Java注解是附加在代码中的一些元信息，用于一些工具在编译�
 
 4.元注解
 
-java.lang.annotation 提供了四种元注解，专门注解其他的注解（在自定义注解的时候，需要使用到元注解）：
+java.lang.annotation提供了四种元注解，专门注解其他的注解（在自定义注解的时候，需要使用到元注解）：
 
     @Documented – 注解是否将包含在JavaDoc中
     @Retention – 什么时候使用该注解
     @Target – 注解用于什么地方
     @Inherited – 是否允许子类继承该注解
     
-(1)@Documented – 一个简单的Annotations 标记注解，表示是否将注解信息添加在java文档中。
+(1)@Documented：一个简单的Annotations标记注解，表示是否将注解信息添加在java文档中。
 
-(2)@Retention – 定义该注解的生命周期：
+(2)@Retention：定义该注解的生命周期：
 
     RetentionPolicy.SOURCE : 在编译阶段丢弃。这些注解在编译结束之后就不再有任何意义，所以它们不会写入字节码。@Override, @SuppressWarnings都属于这类注解。
     RetentionPolicy.CLASS : 在类加载的时候丢弃。在字节码文件的处理中有用。注解默认使用这种方式。
     RetentionPolicy.RUNTIME : 始终不会丢弃，运行期也保留该注解，因此可以使用反射机制读取该注解的信息。我们自定义的注解通常使用这种方式。
 
-(3)@Target – 表示该注解用于什么地方。默认值为任何元素，表示该注解用于什么地方。可用的ElementType参数包括：
+(3)@Target：表示该注解用于什么地方。默认值为任何元素，表示该注解用于什么地方。可用的ElementType参数包括：
 
     ElementType.CONSTRUCTOR: 用于描述构造器
     ElementType.FIELD: 成员变量、对象、属性（包括enum实例）
@@ -827,14 +995,14 @@ java.lang.annotation 提供了四种元注解，专门注解其他的注解（�
     ElementType.PARAMETER: 用于描述参数
     ElementType.TYPE: 用于描述类、接口(包括注解类型) 或enum声明
 
-(4)@Inherited – 定义该注释和子类的关系：
+(4)@Inherited：定义该注释和子类的关系：
 @Inherited元注解是一个标记注解，@Inherited 阐述了某个被标注的类型是被继承的。如果一个使用了@Inherited修饰的annotation类型被用于一个class，则这个annotation将被用于该class的子类。
 
 5.常见标准的Annotation
 
 (1)Override：java.lang.Override是一个标记类型注解，它被用作标注方法。它说明了被标注的方法重载了父类的方法，起到了断言的作用。如果我们使用了这种注解在一个没有覆盖父类方法的方法时，java 编译器将以一个编译错误来警示。
 (2)Deprecated：Deprecated 也是一种标记类型注解。当一个类型或者类型成员使用@Deprecated修饰的话，编译器将不鼓励使用这个被标注的程序元素。所以使用这种修饰具有一定的“延续性”：如果我们在代码中通过继承或者覆盖的方式使用了这个过时的类型或者成员，虽然继承或者覆盖后的类型或者成员并不是被声明为@Deprecated，但编译器仍然要报警。
-(3)SuppressWarnings：SuppressWarning不是一个标记类型注解。它有一个类型为String[] 的成员，这个成员的值为被禁止的警告名。对于javac编译器来讲，被-Xlint选项有效的警告名也同样对@SuppressWarings有效，同时编译器忽略掉无法识别的警告名。例如@SuppressWarnings("unchecked");
+(3)SuppressWarnings：SuppressWarnings不是一个标记类型注解。它有一个类型为String[] 的成员，这个成员的值为被禁止的警告名。对于javac编译器来讲，被-Xlint选项有效的警告名也同样对@SuppressWarings有效，同时编译器忽略掉无法识别的警告名。例如@SuppressWarnings("unchecked");
 
 6.自定义注解
 
@@ -999,24 +1167,24 @@ JSP执行过程：当服务器启动后，当Web浏览器端发送过来一个�
 
 2.JSP的4种作用域
 
-(1)page:代表页面上下文，范围是一个页面及其静态包含的内容。
-(2)request:代表请求上下文，范围是一个请求涉及的几个页面，通常是一个页面和其包含的内容以及forward动作转向的页面。
-(3)session:代表客户的一次会话上下文，范围是一个用户在会话有效期内多次请求所涉及的页面。
-(4)application:全局作用域，代表Web应用程序上下文，范围是整个Web应用中所有请求所涉及的页面。
+    (1)page:代表页面上下文，范围是一个页面及其静态包含的内容。
+    (2)request:代表请求上下文，范围是一个请求涉及的几个页面，通常是一个页面和其包含的内容以及forward动作转向的页面。
+    (3)session:代表客户的一次会话上下文，范围是一个用户在会话有效期内多次请求所涉及的页面。
+    (4)application:全局作用域，代表Web应用程序上下文，范围是整个Web应用中所有请求所涉及的页面。
 
 3.JSP内置对象
 
 9个内置对象：
 
-pageContext:网页的属性在这里管理。
-page：表示从该页面产生的一个servlet实例。
-out：是javax.jsp.JspWriter的一个实例，并提供了几个方法使你能用于向浏览器回送输出结果。
-config：表示一个javax.servlet.ServletConfig对象，该对象用于存取servlet实例的初始化参数。
-request:表示HttpServletRequest对象，它包含了有关浏览器请求的信息，并且提供了几个用于获取cookie,header和session数据的有用方法。
-response:表示HttpServletResponse对象，并提供了几个用于设置送回浏览器的响应的方法（如cookies,头信息等。）
-session：表示一个请求的javax.servlet.http.HttpSession对象，session可以存储用户的状态信息。
-application:表示一个javax.servlet.ServletContext对象，这有助于查找有关servlet引擎和servlet环境的信息。
-exception：针对错误网页，未捕捉的例外。
+    pageContext:网页的属性在这里管理。
+    page：表示从该页面产生的一个servlet实例。
+    out：是javax.jsp.JspWriter的一个实例，并提供了几个方法使你能用于向浏览器回送输出结果。
+    config：表示一个javax.servlet.ServletConfig对象，该对象用于存取servlet实例的初始化参数。
+    request:表示HttpServletRequest对象，它包含了有关浏览器请求的信息，并且提供了几个用于获取cookie,header和session数据的有用方法。
+    response:表示HttpServletResponse对象，并提供了几个用于设置送回浏览器的响应的方法（如cookies,头信息等。）
+    session：表示一个请求的javax.servlet.http.HttpSession对象，session可以存储用户的状态信息。
+    application:表示一个javax.servlet.ServletContext对象，这有助于查找有关servlet引擎和servlet环境的信息。
+    exception：针对错误网页，未捕捉的例外。
 
 4.过滤器和拦截器
 
@@ -1078,145 +1246,19 @@ N.参考
 
 (2)[JSP九大内置对象及其作用域](https://my.oschina.net/hp2017/blog/1932026)
 
-# Java异常
-
-1.异常的分类：
-
-(1)Throwable：
-
-所有错误与异常的超类。两个子类：Error（错误）和 Exception（异常），包含了其线程创建时线程执行堆栈的快照，它提供了printStackTrace()等接口用于获取堆栈跟踪数据等信息。
-
-(2)Error：
-
-程序中无法处理的错误，表示运行应用程序中出现了严重的错误。
-此类错误一般表示代码运行时JVM出现问题。通常有VirtualMachineError（虚拟机运行错误）（比如 OutOfMemoryError：内存不足错误；StackOverflowError：栈溢出错误）、NoClassDefFoundError（类定义错误）等。此类错误发生时，JVM将终止线程。
-这些错误是不受检异常，非代码性错误。因此，当此类错误发生时，应用程序不应该去处理此类错误。按照Java惯例，我们是不应该实现任何新的Error子类的！
-
-(3)Exception：
-
-程序本身可以捕获并且可以处理的异常。分为两类：运行时异常和编译时异常。
-
-RuntimeException：运行时异常表示JVM在运行期间可能出现的异常。这类异常是编程人员的逻辑问题。
-Java编译器不会检查它，也就是说当程序中可能出现这类异常时，倘若既没有通过throws声明抛出它，也没有用try-catch语句捕获它，还是会编译通过。（可写可不写）
-比如NullPointerException空指针异常、ArrayIndexOutBoundException数组下标越界异常、ClassCastException类型转换异常、ArithmeticExecption算术异常。
-RuntimeException异常会由Java虚拟机自动抛出并自动捕获（就算我们没写异常捕获语句运行时也会抛出错误！！），此类异常的出现绝大数情况是代码本身有问题应该从逻辑上去解决并改进代码。
-
-非RuntimeException：编译时异常，除RuntimeException及其子类之外的异常。这类异常是由一些外部的偶然因素所引起的。
-Java编译器会检查它。如果程序中出现此类异常，要么通过throws进行声明抛出，要么通过try-catch进行捕获处理，否则不能通过编译。在程序中，通常不会自定义该类异常，而是直接使用系统提供的异常类。该异常我们必须手动在代码里添加捕获语句来处理该异常。
-例如Exception，FileNotFoundException，IOException，SQLException。
-
-(4)受检异常与非受检异常
-
-Java的所有异常可以分为受检异常（checked exception）和非受检异常（unchecked exception）。
-
-受检异常：编译器要求必须处理的异常。正确的程序在运行过程中，经常容易出现的、符合预期的异常情况。一旦发生此类异常，就必须采用某种方式进行处理。除RuntimeException及其子类外，其他的Exception异常都属于受检异常。编译器会检查此类异常，也就是说当编译器检查到应用中的某处可能会此类异常时，将会提示你处理本异常——要么使用try-catch捕获，要么使用方法签名中用throws关键字抛出，否则编译不通过。
-非受检异常：编译器不会进行检查并且不要求必须处理的异常，也就说当程序中出现此类异常时，即使我们没有try-catch捕获它，也没有使用throws抛出该异常，编译也会正常通过。该类异常包括运行时异常（RuntimeException极其子类）和错误（Error）。
-
-2.异常相关关键字
-
-    try – 用于监听。将要被监听的代码(可能抛出异常的代码)放在try语句块之内，当try语句块内发生异常时，异常就被抛出。
-    catch – 用于捕获异常。catch用来捕获try语句块中发生的异常。
-    finally – finally语句块总是会被执行。它主要用于回收在try块里打开的物理资源(如数据库连接、网络连接和磁盘文件)。只有finally块，执行完成之后，才会回来执行try或者catch块中的return或者throw语句，如果finally中使用了return或者throw等终止方法的语句，则就不会跳回执行，直接停止。
-    throw – 用在方法内部，只能用于抛出一种异常，用来抛出方法或代码块中的异常，受查异常和非受查异常都可以被抛出。
-    throws – 用在方法签名中，用于声明该方法可能抛出的异常。
-
-throw和throws都是消极处理异常的方式，只是抛出或者可能抛出异常，但是不会由函数去处理异常，真正的处理异常由函数的上层调用处理。
-
-3.异常的处理
-
-异常的处理机制分为声明异常，抛出异常和捕获异常。
-
-捕获异常：程序通常在运行之前不报错，但是运行后可能会出现某些未知的错误，但是还不想直接抛出到上一级，那么就需要通过try…catch…的形式进行异常捕获，之后根据不同的异常情况来进行相应的处理。
-声明异常：在方法签名处使用throws关键字声明可能会抛出的异常。注意：非检查异常（Error、RuntimeException 或它们的子类）不可使用throws关键字来声明要抛出的异常。一个方法出现编译时异常，就需要try-catch或throws处理，否则会导致编译错误。
-抛出异常：如果你觉得解决不了某些异常问题，且不需要调用者处理，那么你可以抛出异常。throw关键字作用是在方法内部抛出一个Throwable类型的异常。任何Java代码都可以通过throw语句抛出异常。
-
-    是否能解决异常？
-        是 --> 捕获异常
-        否 --> 调用者是否必须处理（是否受检异常）？
-            是 --> 声明受检异常
-            否 --> 抛出运行时异常
-
-4.自定义异常
-
-当需要一些跟特定业务相关的异常信息类时。可以继承Exception来定义一个受检异常。也可以继承自RuntimeException或其子类来定义一个非受检异常。
-
-5.异常与return
-
-finally中改变返回值的做法是不好的，因为如果存在finally代码块，try中的return语句不会立马返回调用者，而是记录下返回值待finally代码块执行完毕之后再向调用者返回其值。
-然后如果在finally中修改了返回值，就会返回修改后的值。显然，在finally中返回或者修改返回值会对程序造成很大的困扰。
-即使catch中包含了return语句，finally子句依然会执行。若finally中也包含return语句，finally中的return会覆盖前面的return。
-
-    public static int getInt() {
-        int a = 10;
-        try {
-            System.out.println(a / 0);
-            a = 20;
-        } catch (ArithmeticException e) {
-            a = 30;
-            return a;
-            /*
-             * return a 在程序执行到这一步的时候，这里不是return a 而是 return 30；这个返回路径就形成了
-             * 但是呢，它发现后面还有finally，所以继续执行finally的内容，a=40
-             * 再次回到以前的路径,继续走return 30，形成返回路径之后，这里的a就不是a变量了，而是常量30
-             */
-        } finally {
-            a = 40;
-        }
-     return a;
-    }
-    
-执行结果：30
-
-    public static int getInt() {
-        int a = 10;
-        try {
-            System.out.println(a / 0);
-            a = 20;
-        } catch (ArithmeticException e) {
-            a = 30;
-            return a;
-        } finally {
-            a = 40;
-            //如果这样，就又重新形成了一条返回路径，由于只能通过1个return返回，所以这里直接返回40
-            return a; 
-        }
-    
-    }
-    
-执行结果：40
-
-6.try-with-resource
-
-JAVA7提供了更优雅的方式来实现资源的自动释放，自动释放的资源需要是实现了AutoCloseable接口的类。try代码块退出时，会自动调用scanner.close方法，和把scanner.close方法放在finally代码块中不同的是，若scanner.close抛出异常，则会被抑制，抛出的仍然为原始异常。
-
-    private  static void tryWithResourceTest(){
-        try (Scanner scanner = new Scanner(new FileInputStream("c:/abc"),"UTF-8")){
-            // code
-        } catch (IOException e){
-            // handle exception
-        }
-    }
-    
-7.NoClassDefFoundError和ClassNotFoundException区别？
-
-NoClassDefFoundError是一个Error类型的异常，是由JVM引起的，不应该尝试捕获这个异常。引起该异常的原因是JVM或ClassLoader尝试加载某类时在内存中找不到该类的定义，该动作发生在运行期间，即编译时该类存在，但是在运行时却找不到了，可能是变异后被删除了等原因导致。
-ClassNotFoundException是一个受查异常，需要显式地使用try-catch对其进行捕获和处理，或在方法签名中用throws关键字进行声明。当使用Class.forName, ClassLoader.loadClass或ClassLoader.findSystemClass动态加载类到内存的时候，通过传入的类路径参数没有找到该类，那么就会导致JVM抛出ClassNotFoundException；另一种抛出该异常的可能原因是某个类已经由一个类加载器加载至内存中，另一个加载器又尝试去加载它。
-
-8.try-catch-finally中哪个部分可以省略？
-
-catch可以省略。更为严格的说法其实是：try只适合处理运行时异常，try+catch适合处理运行时异常+普通异常（受检异常）。
-也就是说，如果你只用try去处理普通异常却不加以catch处理，编译是通不过的，因为编译器硬性规定，普通异常如果选择捕获，则必须用catch显示声明以便进一步处理。
-而运行时异常在编译时没有如此规定，所以catch可以省略，你加上catch编译器也觉得无可厚非。
-理论上，编译器看任何代码都不顺眼，都觉得可能有潜在的问题，所以你即使对所有代码加上try，代码在运行期时也只不过是在正常运行的基础上加一层皮。但是你一旦对一段代码加上try，就等于显示地承诺编译器，对这段代码可能抛出的异常进行捕获而非向上抛出处理。如果是普通异常，编译器要求必须用catch捕获以便进一步处理；如果运行时异常，捕获然后丢弃并且+finally扫尾处理，或者加上catch捕获以便进一步处理。
-至于加上finally，则是在不管有没捕获异常，都要进行的“扫尾”处理。
-
-N.参考
-
-(1)[【249期】关于Java中的异常，面试可以问的都在这里了！](https://mp.weixin.qq.com/s/IuopmEa4soPxeIQFTQKtkg)
-
 # Java新特性
 
 1.JDK 8中的Optional
+
+常用API：
+    
+    ofNullable()
+    of()
+    isPresent()
+    orElse()
+    get()
+    
+实例：
 
     import java.util.Optional;
     
@@ -1254,7 +1296,7 @@ N.参考
 2.Java8中Stream对列表去重
 
 distinct()是Java8中Stream提供的方法，返回的是由该流中不同元素组成的流。distinct()使用hashCode()和eqauls()方法来获取不同的元素。
-因此，需要去重的类必须实现 hashCode() 和 equals() 方法。换句话讲，我们可以通过重写定制的hashCode()和equals()方法来达到某些特殊需求的去重。
+因此，需要去重的类必须实现hashCode()和equals()方法。换句话讲，我们可以通过重写定制的hashCode()和equals()方法来达到某些特殊需求的去重。
 
 对于String列表的去重
 
@@ -1281,7 +1323,7 @@ distinct()是Java8中Stream提供的方法，返回的是由该流中不同元�
       out.println();
     }
 
-实体类列表的去重，代码中我们使用了 Lombok 插件的 @Data注解，可自动覆写equals()以及hashCode()方法。
+实体类列表的去重，代码中我们使用了Lombok插件的@Data注解，可自动覆写equals()以及hashCode()方法。
 
     @Data
     public class Student {
@@ -1292,7 +1334,7 @@ distinct()是Java8中Stream提供的方法，返回的是由该流中不同元�
     @Test
     public void listDistinctByStreamDistinct() throws JsonProcessingException {
         ObjectMapper objectMapper = new ObjectMapper();
-        // 1. 对于 Student 列表去重
+        // 1. 对于Student列表去重
         List<Student> studentList = getStudentList();
         out.print("去重前：");
         out.println(objectMapper.writeValueAsString(studentList));
@@ -1310,7 +1352,7 @@ Java8的API中添加了一个新的特性：流，即stream。stream是将数组
     (a)stream不存储数据，而是按照特定的规则对数据进行计算，一般会输出结果；
     (b)stream不会改变数据源，通常情况下会产生一个新的集合；
     (c)stream具有延迟执行特性，只有调用终端操作时，中间操作才会执行。
-    (d)对stream操作分为终端操作和中间操作，那么这两者分别代表什么呢？终端操作：会消费流，这种操作会产生一个结果的，如果一个流被消费过了，那它就不能被重用的。中间操作：中间操作会产生另一个流。因此中间操作可以用来创建执行一系列动作的管道。一个特别需要注意的点是:中间操作不是立即发生的。相反，当在中间操作创建的新流上执行完终端操作后，中间操作指定的操作才会发生。所以中间操作是延迟发生的，中间操作的延迟行为主要是让流API能够更加高效地执行。
+    (d)对stream操作分为终端操作和中间操作，那么这两者分别代表什么呢？终端操作：会消费流，这种操作会产生一个结果的，如果一个流被消费过了，那它就不能被重用的。中间操作：中间操作会产生另一个流。因此中间操作可以用来创建执行一系列动作的管道。一个特别需要注意的点是：中间操作不是立即发生的。相反，当在中间操作创建的新流上执行完终端操作后，中间操作指定的操作才会发生。所以中间操作是延迟发生的，中间操作的延迟行为主要是让流API能够更加高效地执行。
     (e)stream不可复用，对一个已经进行过终端操作的流再次调用，会抛出异常。
 
 (2)创建Stream
@@ -1450,18 +1492,18 @@ Stream流中，map可以将一个流的元素按照一定的映射规则映射�
     // 对象集合>>对象集合
     // 这种写法改变了原有的personList。
     List<Person> collect = personList.stream().map(person -> {
-    person.setName(person.getName());
-    person.setSalary(person.getSalary() + 10000);
-    return person;
+        person.setName(person.getName());
+        person.setSalary(person.getSalary() + 10000);
+        return person;
     }).collect(Collectors.toList());
     System.out.println(collect.get(0).getSalary());
     System.out.println(personList.get(0).getSalary());
     // 这种写法并未改变原有personList。
     List<Person> collect2 = personList.stream().map(person -> {
-    Person personNew = new Person(null, 0);
-    personNew.setName(person.getName());
-    personNew.setSalary(person.getSalary() + 10000);
-    return personNew;
+        Person personNew = new Person(null, 0);
+        personNew.setName(person.getName());
+        personNew.setSalary(person.getSalary() + 10000);
+        return personNew;
     }).collect(Collectors.toList());
     System.out.println(collect2.get(0).getSalary());
     System.out.println(personList.get(0).getSalary());

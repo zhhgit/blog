@@ -100,22 +100,25 @@ Spring AOP和AspectJ的关系：
 两者都是为了实现AOP这个目的而出现的技术，Spring aop参考AspectJ编程风格。原本spring aop初期的时候所用的编程风格，让人用起来，很不方便，而且让人看不懂。后来，spring aop就开始取用了Aspectj的编程风格去进行编程。
 
 AOP中的切面、切点、连接点、通知，四者的关系？
-aspect 切面
-pointcut 切点，表示连接点的集合（类似一个表）。
-joinpoint 连接点，目标对象中的方法（每一条记录）。
-weaving 把代理逻辑加入到目标对象上的过程叫做织入
-advice 通知
 
-Spring中定义了五种类型的通知，它们分别是
-前置通知 (@Before)
-返回通知 (@AfterReturning)
-异常通知 (@AfterThrowing)
-后置通知 (@After)
-环绕通知 (@Around)
+    aspect 切面
+    pointcut 切点，表示连接点的集合（类似一个表）。
+    joinpoint 连接点，目标对象中的方法（每一条记录）。
+    weaving 把代理逻辑加入到目标对象上的过程叫做织入
+    advice 通知
+
+Spring中定义了五种类型的通知：
+
+    前置通知 (@Before)
+    返回通知 (@AfterReturning)
+    异常通知 (@AfterThrowing)
+    后置通知 (@After)
+    环绕通知 (@Around)
 
 执行顺序：
-代码正常结束：@Around的jp.proceed()之前的逻辑 --> @Before --> jp.proceed()，也就是原函数执行 --> @Around的jp.proceed()之后的逻辑 --> @After --> @AfterReturning
-代码出现异常：@Around的jp.proceed()之前的逻辑 --> @Before --> jp.proceed()，也就是原函数执行 --> @Around的jp.proceed()之后的逻辑 --> @After --> @AfterThrowing
+
+    代码正常结束：@Around的jp.proceed()之前的逻辑 --> @Before --> jp.proceed()，也就是原函数执行 --> @Around的jp.proceed()之后的逻辑 --> @After --> @AfterReturning
+    代码出现异常：@Around的jp.proceed()之前的逻辑 --> @Before --> jp.proceed()，也就是原函数执行 --> @Around的jp.proceed()之后的逻辑 --> @After --> @AfterThrowing
 
 基于注解：
 

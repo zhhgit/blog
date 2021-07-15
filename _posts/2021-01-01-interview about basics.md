@@ -308,10 +308,10 @@ HR面：除了薪水外其他福利待遇、公积金、补充医疗、年终奖
     Java
         --Java基础
         --Java IO
+        --Java异常
         --Java反射
         --Java注解
         --Java Web
-        --Java异常
         --Java新特性
         --Java集合
     
