@@ -789,24 +789,26 @@ spi文件存储路径在META-INF\dubbo\internal目录下，并且文件名为接
 Hibernate在批量数据处理时有弱势，针对单一对象简单的增删查改，适合于Hibernate。而对于批量的修改，删除，不适合用Hibernate,这也是ORM框架的弱点。
 
 2.Hibernate的工作原理
-(1)通过Configuration().configure();读取并解析hibernate.cfg.xml配置文件。
-(2)由hibernate.cfg.xml中的<mapping resource="com/xx/User.hbm.xml"/>读取并解析映射信息。
-(3)通过config.buildSessionFactory();创建SessionFactory。
-(4)sessionFactory.openSession();打开Session。
-(5)session.beginTransaction();创建事务Transaction。
-(6)持久化操作。
-(7)session.getTransaction().commit();提交事务。
-(8)关闭Session。
-(9)关闭SessionFactory。
+
+    (1)通过Configuration().configure();读取并解析hibernate.cfg.xml配置文件。
+    (2)由hibernate.cfg.xml中的<mapping resource="com/xx/User.hbm.xml"/>读取并解析映射信息。
+    (3)通过config.buildSessionFactory();创建SessionFactory。
+    (4)sessionFactory.openSession();打开Session。
+    (5)session.beginTransaction();创建事务Transaction。
+    (6)持久化操作。
+    (7)session.getTransaction().commit();提交事务。
+    (8)关闭Session。
+    (9)关闭SessionFactory。
 
 3.Hibernate的核心接口
 
 一共5个，分别是Session、SessionFactory、Transaction、Query 和 Configuration。
-(1)Session接口:Session接口负责执行被持久化对象的CRUD操作。但需要注意的是Session对象是非线程安全的。同时，Hibernate的session不同于JSP应用中的HttpSession。这里当使用session这个术语时，其实指的是Hibernate中的session，HttpSesion对象称为用户session。
-(2)SessionFactory接口:SessionFactory接口负责初始化Hibernate。它充当数据存储源的代理，并负责创建Session对象。这里用到了工厂模式。需要注意的是SessionFactory并不是轻量级的，因为一般情况下， 一个项目通常只需要一个SessionFactory就够，当需要操作多个数据库时，可以为每个数据库指定一个SessionFactory。
-(3)Configuration接口:Configuration接口负责配置并启动Hibernate，创建SessionFactory对象。在Hibernate的启动的过程中，Configuration类的实例首先定位映射文档位置、读取配置，然后创建SessionFactory对象。
-(4)Transaction接口:Transaction接口负责事务相关的操作。它是可选的，开发人员也可以设计编写自己的底层事务处理代码。
-(5)Query和Criteria接口:Query和Criteria接口负责执行各种数据库查询。它可以使用HQL语言或SQL语句两种表达方式。
+
+    (1)Session接口:Session接口负责执行被持久化对象的CRUD操作。但需要注意的是Session对象是非线程安全的。同时，Hibernate的session不同于JSP应用中的HttpSession。这里当使用session这个术语时，其实指的是Hibernate中的session，HttpSesion对象称为用户session。
+    (2)SessionFactory接口:SessionFactory接口负责初始化Hibernate。它充当数据存储源的代理，并负责创建Session对象。这里用到了工厂模式。需要注意的是SessionFactory并不是轻量级的，因为一般情况下， 一个项目通常只需要一个SessionFactory就够，当需要操作多个数据库时，可以为每个数据库指定一个SessionFactory。
+    (3)Configuration接口:Configuration接口负责配置并启动Hibernate，创建SessionFactory对象。在Hibernate的启动的过程中，Configuration类的实例首先定位映射文档位置、读取配置，然后创建SessionFactory对象。
+    (4)Transaction接口:Transaction接口负责事务相关的操作。它是可选的，开发人员也可以设计编写自己的底层事务处理代码。
+    (5)Query和Criteria接口:Query和Criteria接口负责执行各种数据库查询。它可以使用HQL语言或SQL语句两种表达方式。
 
 # Mybatis
 
