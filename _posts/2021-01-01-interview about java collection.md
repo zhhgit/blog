@@ -94,7 +94,8 @@ java.util.concurrent中的集合类都为fail-safe的，迭代器不抛出Concur
 
 如何避免ConcurrentModificationException：
 如果当前单个线程在更改容器(add, delete…)，那么迭代的时候采用iterator.remove()方法可以确保迭代器在查找next的时候，指针不会丢失。
-如果当前有多个线程在对容器进行操作，例如一个线程正在向容器中写数据，而另一个线程在迭代此容器，这时候就必须考虑并发下的线程安全问题。这时候可以采用java.util.concurrent包下面的线程安全的容器解决此异常。在遍历一个集合的时候我们可以使用并发集合类来避免ConcurrentModificationException，比如使用CopyOnWriteArrayList，而不是ArrayList。
+如果当前有多个线程在对容器进行操作，例如一个线程正在向容器中写数据，而另一个线程在迭代此容器，这时候就必须考虑并发下的线程安全问题。这时候可以采用java.util.concurrent包下面的线程安全的容器解决此异常。
+在遍历一个集合的时候我们可以使用并发集合类来避免ConcurrentModificationException，比如使用CopyOnWriteArrayList，而不是ArrayList。
 
 为何Iterator接口没有具体的实现：
 Iterator接口定义了遍历集合的方法，但它的实现则是集合实现类的责任。每个能够返回用于遍历的Iterator的集合类都有它自己的Iterator实现内部类。
@@ -148,7 +149,8 @@ Collections则是集合类的一个工具类，其中提供了一系列静态方
     (d)HashMap(int initialCapacity, float loadFactor): 构建一个拥有特定容量和加载因子的空的哈希映像
 
 为什么线程不安全：
-HashMap不是线程安全的，如果想要线程安全的HashMap，可以通过Collections类的静态方法synchronizedMap获得线程安全的HashMap。除了不同步和允许使用null之外，HashMap类与Hashtable大致相同。
+HashMap不是线程安全的，如果想要线程安全的HashMap，可以通过Collections类的静态方法synchronizedMap获得线程安全的HashMap。
+除了不同步和允许使用null之外，HashMap类与Hashtable大致相同。
 在JDK7中，在多线程环境下，扩容时会造成环形链或数据丢失。使用头插法，在扩容时，其转移过程会rehash，并对链表进行反转。
 在JDK8中，在多线程环境下，会发生数据覆盖的情况。两条不同的数据hash值一样，并且该位置数据为null，所以两个线程会数据覆盖。
 
