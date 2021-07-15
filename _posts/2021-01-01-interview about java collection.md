@@ -226,7 +226,8 @@ HashMap为什么不直接使用对象的原始hash值呢?通过如下方法，�
 
 14.TreeMap
 
-TreeMap<K,V>的Key值是要求实现java.lang.Comparable，所以迭代的时候TreeMap默认是按照Key值升序排序的；TreeMap的实现是基于红黑树结构。适用于按自然顺序或自定义顺序遍历键（key）。添加到SortedMap实现类的元素必须实现Comparable接口，否则必须给它的构造函数提供一个Comparator接口的实现。
+TreeMap<K,V>的Key值是要求实现java.lang.Comparable，所以迭代的时候TreeMap默认是按照Key值升序排序的；
+TreeMap的实现是基于红黑树结构。适用于按自然顺序或自定义顺序遍历键（key）。添加到SortedMap实现类的元素必须实现Comparable接口，否则必须给它的构造函数提供一个Comparator接口的实现。
 基于红黑树实现。TreeMap没有调优选项，因为该树总处于平衡状态。
 
     (a)TreeMap()：构建一个空的映像树
@@ -242,7 +243,7 @@ HashMap继承AbstractMap抽象类，TreeMap继承自SortedMap接口。
 AbstractMap抽象类：覆盖了equals()和hashCode()方法以确保两个相等映射返回相同的哈希码。如果两个映射大小相等、包含同样的键且每个键在这两个映射中对应的值都相同，则这两个映射相等。映射(指的是Entry)的哈希码是映射元素哈希码的总和，其中每个元素是Map.Entry接口的一个实现。因此，不论映射内部顺序如何，两个相等映射会报告相同的哈希码。
 SortedMap接口：它用来保持键的有序顺序。SortedMap接口为映像的视图(子集)，包括两个端点提供了访问方法。除了排序是作用于映射的键以外，处理SortedMap和处理SortedSet一样。添加到SortedMap实现类的元素必须实现Comparable接口，否则您必须给它的构造函数提供一个Comparator接口的实现。TreeMap类是它的唯一一个实现。
 
-HashMap & TreeMap & LinkedHashMap使用场景：
+HashMap&TreeMap&LinkedHashMap使用场景：
 HashMap：在Map中插入、删除和定位元素时；
 TreeMap：在需要按自然顺序或自定义顺序遍历键的情况下；
 LinkedHashMap：在需要输出的顺序和输入的顺序相同的情况下。
@@ -297,8 +298,8 @@ Java volatile关键字来保证可见性、有序性。但不保证原子性。
 在多处理器下，为了保证各个处理器的缓存是一致的，就会实现缓存一致性协议，当某个CPU在写数据时，如果发现操作的变量是共享变量，则会通知其他CPU告知该变量的缓存行是无效的，因此其他CPU在读取该变量时，发现其无效会重新从主存中加载数据。
 
 Node<K,V>的元素val和指针next是用volatile修饰的，在多线程环境下线程A修改结点的val或者新增节点的时候是对线程B可见的。
-在1.8中ConcurrentHashMap的get操作全程不需要加锁，这也是它比其他并发集合比如hashtable、用Collections.synchronizedMap()包装的hashmap安全效率高的原因之一。get操作全程不需要加锁是因为Node的成员val是用volatile修饰的。与数组（transient volatile Node<K,V>[] table;是指array的地址是volatile的而不是数组元素的值是volatile的。）用volatile修饰没有关系。
-数组用volatile修饰主要是保证在数组扩容的时候保证可见性。
+在1.8中ConcurrentHashMap的get操作全程不需要加锁，这也是它比其他并发集合比如hashtable、用Collections.synchronizedMap()包装的hashmap安全效率高的原因之一。get操作全程不需要加锁是因为Node的成员val是用volatile修饰的。
+与数组（transient volatile Node<K,V>[] table;是指array的地址是volatile的而不是数组元素的值是volatile的。）用volatile修饰没有关系。 数组用volatile修饰主要是保证在数组扩容的时候保证可见性。
 
 18.ArrayList和Vector的异同
 
@@ -424,7 +425,7 @@ CopyOnWriteArrayList虽然是一个线程安全版的ArrayList，但其每次修
 
 24.HashSet的实现原理
 
-(1)HashSet是基于HashMap实现的，默认构造函数是构建一个初始容量为16，负载因子为0.75 的HashMap。封装了一个HashMap对象来存储所有的集合元素，所有放入HashSet中的集合元素实际上由HashMap的key来保存，而HashMap的value则存储了一个PRESENT，它是一个静态的Object对象。
+(1)HashSet是基于HashMap实现的，默认构造函数是构建一个初始容量为16，负载因子为0.75的HashMap。封装了一个HashMap对象来存储所有的集合元素，所有放入HashSet中的集合元素实际上由HashMap的key来保存，而HashMap的value则存储了一个PRESENT，它是一个静态的Object对象。
 (2)当我们试图把某个类的对象当成HashMap的key，或试图将这个类的对象放入HashSet中保存时，重写该类的equals(Object obj)方法和hashCode()方法很重要，而且这两个方法的返回值必须保持一致：当该类的两个的hashCode()返回值相同时，它们通过equals()方法比较也应该返回true。通常来说，所有参与计算hashCode()返回值的关键属性，都应该用于作为equals()比较的标准。
 (3)HashSet的其他操作都是基于HashMap的。
 
@@ -458,7 +459,7 @@ COW技术的应用场景很多，Linux通过Copy On Write技术极大地减少�
 在一个线程中使用Iterator迭代器遍历vector，同时另一个线程对vector作修改时，会抛出java.util.ConcurrentModificationException异常。
 很多人不理解，因为Vector的所有方法都加了synchronized关键字来修饰，包括迭代器方法，理论上应该是线程安全的呀。
 两个关键变量：expectedModCount：表示对List修改次数的期望值，它的初始值与modCount相等。modCount：表示List集合结构被修改次数，是AbstractList类中的一个成员变量，初始值为0。
-看过ArrayList的源码就知道，每次调用add()和remove()方法时就会对modCount进行加1操作。而我们上面的测试代码中调用了Vector类的clear()方法，这个方法中对modCount进行了加1，而迭代器中的expectedModCount依然等于0，两者不等，因此抛了异常。这就是集合中的fail-fast机制，fail-fast 机制用来防止在对集合进行遍历过程当中，出现意料之外的修改，会通过Unchecked异常暴力的反应出来。
+看过ArrayList的源码就知道，每次调用add()和remove()方法时就会对modCount进行加1操作。而我们上面的测试代码中调用了Vector类的clear()方法，这个方法中对modCount进行了加1，而迭代器中的expectedModCount依然等于0，两者不等，因此抛了异常。这就是集合中的fail-fast机制，fail-fast机制用来防止在对集合进行遍历过程当中，出现意料之外的修改，会通过Unchecked异常暴力的反应出来。
 虽然Vector的方法都采用了synchronized进行了同步，但是实际上通过Iterator访问的情况下，每个线程里面返回的是不同的iterator，也即是说expectedModCount变量是每个线程私有。如果此时有2个线程，线程1在进行遍历，线程2在进行修改，那么很有可能导致线程2修改后导致Vector中的modCount自增了，线程2的expectedModCount也自增了，但是线程1的expectedModCount没有自增，此时线程1遍历时就会出现expectedModCount不等于modCount的情况了。
 同样地，SynchronizedList在使用迭代器遍历的时候同样会有问题的，源码中的注释已经提醒我们要手动加锁了。
 foreach循环里不能调用集合的remove/add/clear方法这一条规约不仅对非线程安全的ArrayList/LinkedList适用，对于线程安全的Vector以及synchronizedList也同样适用！！因此，要想解决以上问题，只能在遍历前（无论用不用iterator）加锁。
@@ -538,7 +539,7 @@ CopyOnWriteArrayList的核心理念就是读写分离，写操作在一个复制
 (5)CopyOnWriteArrayList优缺点总结
 优点：
 对于一些读多写少的数据，写入时复制的做法就很不错，例如配置、黑名单、物流地址等变化非常少的数据，这是一种无锁的实现。可以帮我们实现程序更高的并发。
-CopyOnWriteArrayList并发安全且性能比Vector好。Vector是增删改查方法都加了synchronized 来保证同步，但是每个方法执行的时候都要去获得锁，性能就会大大下降，而CopyOnWriteArrayList只是在增删改上加锁，但是读不加锁，在读方面的性能就好于Vector。
+CopyOnWriteArrayList并发安全且性能比Vector好。Vector是增删改查方法都加了synchronized来保证同步，但是每个方法执行的时候都要去获得锁，性能就会大大下降，而CopyOnWriteArrayList只是在增删改上加锁，但是读不加锁，在读方面的性能就好于Vector。
 
 缺点：
 数据一致性问题。CopyOnWrite容器只能保证数据的最终一致性，不能保证数据的实时一致性。比如线程A在迭代CopyOnWriteArrayList容器的数据。线程B在线程A迭代的间隙中将CopyOnWriteArrayList部分的数据修改了，但是线程A迭代出来的是旧数据。
@@ -550,7 +551,7 @@ CopyOnWriteArrayList并发安全且性能比Vector好。Vector是增删改查方
 
 如何变得安全：
 Hashtable：通过synchronized来保证线程安全的，独占锁，悲观策略。吞吐量较低，性能较为低下。
-SynchronizedHashMap ：通过Collections.synchronizedMap()方法对HashMap进行包装，返回一个SynchronizedHashMap对象，在源码中SynchronizedHashMap也是用过synchronized来保证线程安全的。但是实现方式和Hashtable略有不同（前者是 synchronized 方法，后者是通过 synchronized 对互斥变量加锁实现）。
+SynchronizedHashMap ：通过Collections.synchronizedMap()方法对HashMap进行包装，返回一个SynchronizedHashMap对象，在源码中SynchronizedHashMap也是用过synchronized来保证线程安全的。但是实现方式和Hashtable略有不同（前者是synchronized方法，后者是通过synchronized对互斥变量加锁实现）。
 ConcurrentHashMap：JUC中的线程安全容器，高效并发。ConcurrentHashMap的key、value都不允许为null。
 
 N.参考
