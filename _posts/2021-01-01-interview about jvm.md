@@ -11,20 +11,20 @@ tags: [Interview]
 
 1.类加载过程
 
-加载：将类的.class文件中的二进制数据读入到内存中，将其放在运行时数据区的方法区内，然后在内存上创建一个java.lang.Class对象用来封装类在方法区内的数据结构作为这个类的各种数据的访问入口。
-验证：主要是为了确保class文件中的字节流包含的信息是否符合当前JVM的要求，且不会危害JVM自身安全，比如校验文件格式、是否是cafe baby魔术、字节码验证等等。
-准备：为类变量分配内存并设置类变量（是被static修饰的变量，变量不是常量，所以不是final的，就是static的）初始值的阶段。这些变量所使用的内存在方法区中进行分配。比如private static int age = 26;类变量age会在准备阶段过后为其分配四个（int四个字节）字节的空间，并且设置初始值为0，而不是26。若是final的，则在编译期就会设置上最终值。
-解析：JVM会在此阶段把类的二进制数据中的符号引用替换为直接引用。
-初始化：初始化阶段是执行类构造器<clinit>()方法的过程，到了初始化阶段，才真正开始执行类定义的Java程序代码（或者说字节码 ）。比如准备阶段的那个age初始值是0，到这一步就设置为26。
-使用：对象都出来了，业务系统直接调用阶段。
-卸载：用完了，可以被GC回收了。
+    加载：将类的.class文件中的二进制数据读入到内存中，将其放在运行时数据区的方法区内，然后在内存上创建一个java.lang.Class对象用来封装类在方法区内的数据结构作为这个类的各种数据的访问入口。
+    验证：主要是为了确保class文件中的字节流包含的信息是否符合当前JVM的要求，且不会危害JVM自身安全，比如校验文件格式、是否是cafe baby魔术、字节码验证等等。
+    准备：为类变量分配内存并设置类变量（是被static修饰的变量，变量不是常量，所以不是final的，就是static的）初始值的阶段。这些变量所使用的内存在方法区中进行分配。比如private static int age = 26;类变量age会在准备阶段过后为其分配四个（int四个字节）字节的空间，并且设置初始值为0，而不是26。若是final的，则在编译期就会设置上最终值。
+    解析：JVM会在此阶段把类的二进制数据中的符号引用替换为直接引用。
+    初始化：初始化阶段是执行类构造器<clinit>()方法的过程，到了初始化阶段，才真正开始执行类定义的Java程序代码（或者说字节码）。比如准备阶段的那个age初始值是0，到这一步就设置为26。
+    使用：对象都出来了，业务系统直接调用阶段。
+    卸载：用完了，可以被GC回收了。
 
 2.类加载器种类以及加载范围
 
-启动类加载器（Bootstrap ClassLoader）：最顶层类加载器，他的父类加载器是个null，也就是没有父类加载器。负责加载jvm的核心类库，比如java.lang.*等，从系统属性中的sun.boot.class.path所指定的目录中加载类库。他的具体实现由Java虚拟机底层C++代码实现。
-扩展类加载器（Extension ClassLoader）：父类加载器是Bootstrap ClassLoader。从java.ext.dirs系统属性所指定的目录中加载类库，或者从JDK的安装目录的jre/lib/ext子目录（扩展目录）下加载类库，如果把用户的jar文件放在这个目录下，也会自动由扩展类加载器加载。继承自java.lang.ClassLoader。
-应用程序类加载器（Application ClassLoader）：父类加载器是Extension ClassLoader。从环境变量classpath或者系统属性java.class.path所指定的目录中加载类。继承自java.lang.ClassLoader。
-自定义类加载器（User ClassLoader）：除了上面三个自带的以外，用户还能制定自己的类加载器，但是所有自定义的类加载器都应该继承自java.lang.ClassLoader。比如热部署、tomcat都会用到自定义类加载器。
+    启动类加载器（Bootstrap ClassLoader）：最顶层类加载器，他的父类加载器是个null，也就是没有父类加载器。负责加载jvm的核心类库，比如java.lang.*等，从系统属性中的sun.boot.class.path所指定的目录中加载类库。它的具体实现由Java虚拟机底层C++代码实现。
+    扩展类加载器（Extension ClassLoader）：父类加载器是Bootstrap ClassLoader。从java.ext.dirs系统属性所指定的目录中加载类库，或者从JDK的安装目录的jre/lib/ext子目录（扩展目录）下加载类库，如果把用户的jar文件放在这个目录下，也会自动由扩展类加载器加载。继承自java.lang.ClassLoader。
+    应用程序类加载器（Application ClassLoader）：父类加载器是Extension ClassLoader。从环境变量classpath或者系统属性java.class.path所指定的目录中加载类。继承自java.lang.ClassLoader。
+    自定义类加载器（User ClassLoader）：除了上面三个自带的以外，用户还能制定自己的类加载器，但是所有自定义的类加载器都应该继承自java.lang.ClassLoader。比如热部署、tomcat都会用到自定义类加载器。
 
 3.双亲委派
 
@@ -35,7 +35,7 @@ tags: [Interview]
 防止内存中出现多份同样的字节码，安全。比如自己重写个java.lang.Object并放到Classpath中，没有双亲委派的话直接自己执行了，那不安全。双亲委派可以保证这个类只能被顶层Bootstrap Classloader类加载器加载，从而确保只有JVM中有且仅有一份正常的java核心类。如果有多个的话，那么就乱套了。比如相同的类instance of可能返回false，因为可能父类不是同一个类加载器加载的Object。
 
 为什么需要破坏双亲委派模型？
-Java spi 方式，比如jdbc4.0开始就是其中之一。热部署的场景会破坏，否则实现不了热部署。
+Java spi方式，比如jdbc4.0开始就是其中之一。热部署的场景会破坏，否则实现不了热部署。
 
 (1)Jdbc：
 以前的用法是未破坏双亲委派模型的，比如Class.forName("com.mysql.cj.jdbc.Driver");而在JDBC4.0以后，开始支持使用spi的方式来注册这个Driver，具体做法就是在mysql的jar包中的META-INF/services/java.sql.Driver文件中指明当前使用的Driver是哪个，然后使用的时候就不需要我们手动的去加载驱动了，我们只需要直接获取连接就可以了。Connection con = DriverManager.getConnection(url, username, password );
