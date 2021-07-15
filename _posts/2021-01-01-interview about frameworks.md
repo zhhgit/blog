@@ -54,7 +54,7 @@ Bean实例化阶段：
 4.Spring-bean的循环依赖以及解决方式
 
 循环依赖其实就是循环引用，也就是两个或两个以上的bean互相持有对方，最终形成闭环。比如A依赖于B，B依赖于C，C又依赖于A。注意，这里不是函数的循环调用，是对象的相互依赖关系。循环调用其实就是一个死循环，除非有终结条件。
-Spring中循环依赖场景有： （1）构造器的循环依赖 （2）field属性的循环依赖。
+Spring中循环依赖场景有：（1）构造器的循环依赖 （2）field属性的循环依赖。
 检测循环依赖相对比较容易，Bean在创建的时候可以给该Bean打标，如果递归调用回来发现正在创建中的话，即说明了循环依赖了。
 Spring的循环依赖的理论依据其实是基于Java的引用传递，当我们获取到对象的引用时，对象的field或属性是可以延后设置的(但是构造器必须是在获取引用之前)。
 
@@ -97,7 +97,8 @@ JDK动态代理、CGLIB代理。
 Spring默认，如果实现了接口的类，是使用jdk动态代理。如果没实现接口，就使用cglib代理。
 
 Spring AOP和AspectJ的关系：
-两者都是为了实现AOP这个目的而出现的技术，Spring aop参考AspectJ编程风格。原本spring aop初期的时候所用的编程风格，让人用起来，很不方便，而且让人看不懂。后来，spring aop就开始取用了Aspectj的编程风格去进行编程。
+两者都是为了实现AOP这个目的而出现的技术，Spring aop参考AspectJ编程风格。
+原本spring aop初期的时候所用的编程风格，让人用起来，很不方便，而且让人看不懂。后来，spring aop就开始取用了Aspectj的编程风格去进行编程。
 
 AOP中的切面、切点、连接点、通知，四者的关系？
 
@@ -185,13 +186,13 @@ Spring中定义了五种类型的通知：
 
 失效的场景：
 
-注解@Transactional配置的方法非public权限修饰；
-注解@Transactional所在类非Spring容器管理的bean；
-注解@Transactional所在类中，注解修饰的方法被类内部方法调用；
-业务代码抛出异常类型非RuntimeException，事务失效；解决方案：@Transactional注解修饰的方法，加上rollbackfor属性值，指定回滚异常类型：@Transactional(propagation = Propagation.REQUIRED,rollbackFor = Exception.class)
-业务代码中存在异常时，使用try…catch…语句块捕获，而catch语句块没有throw new RuntimeExecption异常；
-注解@Transactional中Propagation属性值设置错误即Propagation.NOT_SUPPORTED；
-mysql关系型数据库，且存储引擎是MyISAM而非InnoDB，则事务会不起作用；
+    注解@Transactional配置的方法非public权限修饰；
+    注解@Transactional所在类非Spring容器管理的bean；
+    注解@Transactional所在类中，注解修饰的方法被类内部方法调用；
+    业务代码抛出异常类型非RuntimeException，事务失效；解决方案：@Transactional注解修饰的方法，加上rollbackfor属性值，指定回滚异常类型：@Transactional(propagation = Propagation.REQUIRED,rollbackFor = Exception.class)
+    业务代码中存在异常时，使用try…catch…语句块捕获，而catch语句块没有throw new RuntimeExecption异常；
+    注解@Transactional中Propagation属性值设置错误即Propagation.NOT_SUPPORTED；
+    mysql关系型数据库，且存储引擎是MyISAM而非InnoDB，则事务会不起作用；
 
 7.DI与IOC
 
@@ -241,11 +242,12 @@ mysql关系型数据库，且存储引擎是MyISAM而非InnoDB，则事务会不
 10.Spring bean作用域
 
 共5中，后3种是在web项目下才用到的。
-singleton：单例模式，当spring创建applicationContext容器的时候，spring会预初始化所有的该作用域实例，加上lazy-init就可以避免预处理。
-prototype：原型模式，每次通过getBean获取该bean就会新产生一个实例，创建后spring将不再对其管理。
-request：每次请求都新产生一个实例，和prototype不同就是创建后，接下来的管理，spring依然在监听。
-session：每次会话，同上。
-global session：全局的web域，类似于servlet中的application。
+
+    singleton：单例模式，当spring创建applicationContext容器的时候，spring会预初始化所有的该作用域实例，加上lazy-init就可以避免预处理。
+    prototype：原型模式，每次通过getBean获取该bean就会新产生一个实例，创建后spring将不再对其管理。
+    request：每次请求都新产生一个实例，和prototype不同就是创建后，接下来的管理，spring依然在监听。
+    session：每次会话，同上。
+    global session：全局的web域，类似于servlet中的application。
 
 11.常用注解
 
@@ -409,16 +411,16 @@ HelloController这个类需要实现Controller这个接口，并且覆写handleR
 
 执行原理：
 
-(1)DispatcherServlet：前端控制器，作为整个SpringMVC的控制中心。用户发出请求，DispatcherServlet接收请求并拦截请求。
-(2)HandlerMapping：处理器映射器，DispatcherServlet调用HandlerMapping,HandlerMapping根据请求url去查找对应的处理。
-(3)HandlerExecution：具体的handler(处理)，将解析后的url对应的处理传递给DispatcherServlet。
-(4)HandlerAdapter：处理器适配器，将DispatcherServlet传递的信息去执行相应的controller。
-(5)Controller层中调用service层，获得数据放在ModelAndView对象中，并给ModelAndView设置页面信息。
-(6)HandlerAdapter将视图名传递给DispatcherServlet。
-(7)DispatcherServlet调用视图解析器来解析HandlerAdapter传递的视图名。
-(8)视图解析器将解析的视图名传给DispatcherServlet。
-(9)DispatcherServlet根据视图解析器返回的视图名调用具体的视图。
-(10)用户获得视图。
+    (1)DispatcherServlet：前端控制器，作为整个SpringMVC的控制中心。用户发出请求，DispatcherServlet接收请求并拦截请求。
+    (2)HandlerMapping：处理器映射器，DispatcherServlet调用HandlerMapping,HandlerMapping根据请求url去查找对应的处理。
+    (3)HandlerExecution：具体的handler(处理)，将解析后的url对应的处理传递给DispatcherServlet。
+    (4)HandlerAdapter：处理器适配器，将DispatcherServlet传递的信息去执行相应的controller。
+    (5)Controller层中调用service层，获得数据放在ModelAndView对象中，并给ModelAndView设置页面信息。
+    (6)HandlerAdapter将视图名传递给DispatcherServlet。
+    (7)DispatcherServlet调用视图解析器来解析HandlerAdapter传递的视图名。
+    (8)视图解析器将解析的视图名传给DispatcherServlet。
+    (9)DispatcherServlet根据视图解析器返回的视图名调用具体的视图。
+    (10)用户获得视图。
 
 2.Controller是否是单例的？
 
