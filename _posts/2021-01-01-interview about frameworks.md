@@ -878,7 +878,7 @@ MyBatis专注于SQL本身，是一个足够灵活的DAO层解决方案。
 6.通常一个Xml映射文件，都会写一个Dao接口与之对应，请问这个Dao接口的工作原理是什么？Dao接口里的方法，参数不同时，方法能重载吗？
 
 Dao接口即Mapper接口。接口的全限名，就是映射文件中mapper的namespace的值；接口的方法名，就是映射文件中mapper的Statement的id值；接口方法内的参数，就是传递给sql的参数。
-Mapper接口是没有实现类的，当调用接口方法时，接口全限名+方法名拼接字符串作为key值，可唯一定位一个MapperStatement。在Mybatis中，每一个<select>、<insert>、<update>、<delete>标签，都会被解析为一个MapperStatement对象。
+Mapper接口是没有实现类的，当调用接口方法时，接口全限名+方法名拼接字符串作为key值，可唯一定位一个MapperStatement。在Mybatis中，每一个select、insert、update、delete标签，都会被解析为一个MapperStatement对象。
 举例：com.mybatis3.mappers.StudentDao.findStudentById，可以唯一找到namespace为com.mybatis3.mappers.StudentDao下面id为findStudentById的MapperStatement。
 
 Mapper接口里的方法，是不能重载的，因为是使用"全限名+方法名"的保存和寻找策略。Mapper接口的工作原理是JDK动态代理，Mybatis运行时会使用JDK动态代理为Mapper接口生成代理对象proxy，代理对象会拦截接口方法，转而执行MapperStatement所代表的sql，然后将sql执行结果返回。
@@ -1197,7 +1197,7 @@ TypeHandler有两个作用，一是完成从javaType至jdbcType的转换，二�
 Mybatis将所有Xml配置信息都封装到All-In-One重量级对象Configuration内部。
 在Xml映射文件中，<parameterMap>标签会被解析为ParameterMap对象，其每个子元素会被解析为ParameterMapping对象。
 <resultMap>标签会被解析为ResultMap对象，其每个子元素会被解析为ResultMapping对象。
-每一个<select>、<insert>、<update>、<delete>标签均会被解析为MappedStatement对象，标签内的sql会被解析为BoundSql对象。
+每一个select、insert、update、delete标签均会被解析为MappedStatement对象，标签内的sql会被解析为BoundSql对象。
 
 N.参考
 

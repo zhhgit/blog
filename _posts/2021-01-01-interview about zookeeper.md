@@ -454,7 +454,9 @@ world模式：
     
 IP模式：
 
-需要两台虚拟机一起授权的话需要用逗号将授权列表隔开：setAcl /ipNode ip:192.168.103.133:cdrwa,ip:192.168.103.132:cdrwa
+需要两台虚拟机一起授权的话需要用逗号将授权列表隔开：
+
+    setAcl /ipNode ip:192.168.103.133:cdrwa,ip:192.168.103.132:cdrwa
 
     [zk: localhost:2181(CONNECTED) 8] create /ipNode "ipNode"
     Created /ipNode
