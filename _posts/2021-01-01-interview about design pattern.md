@@ -9,18 +9,20 @@ tags: [Interview]
 
 1.设计模式分类
 
-创建型：工厂、抽象工厂、建造者、单例、原型
+设计模式是软件开发人员在软件开发过程中面临的一般问题的解决方案。这些解决方案是众多软件开发人员经过相当长的一段时间的试验和错误总结出来的。设计模式是代码可用性的延伸。
 
-结构型：适配器、装饰器、代理、外观、桥接、组合、享元
+(1)创建型：工厂、抽象工厂、建造者、单例、原型
 
-行为型：策略、观察者、模板方法、迭代器、命令、
+(2)结构型：适配器、装饰器、代理、外观、桥接、组合、享元
+
+(3)行为型：策略、观察者、模板方法、迭代器、命令。
 
 2.在JDK中几个常用的设计模式？
 
-单例模式（Singleton pattern）用于Runtime，Calendar和其他的一些类中。
-工厂模式（Factory pattern）被用于各种不可变的类如 Boolean，像Boolean.valueOf。
-观察者模式（Observer pattern）被用于Swing和很多的事件监听中。
-装饰器设计模式（Decorator design pattern）被用于多个Java IO类中。
+    单例模式（Singleton pattern）用于Runtime，Calendar和其他的一些类中。
+    工厂模式（Factory pattern）被用于各种不可变的类如Boolean，像Boolean.valueOf。
+    观察者模式（Observer pattern）被用于Swing和很多的事件监听中。
+    装饰器设计模式（Decorator design pattern）被用于多个Java IO类中。
 
 3.单例模式
 
@@ -249,9 +251,80 @@ tags: [Interview]
 
 11.Spring中用了哪些设计模式？
 
-工厂模式：在BeanFactory以及ApplicationContext创建中都有用到；
-代理模式：在Aop实现中用到了JDK的动态代理；
-单例模式：在创建bean的时候，默认单例；
+    工厂模式：在BeanFactory以及ApplicationContext创建中都有用到；
+    代理模式：在Aop实现中用到了JDK的动态代理；
+    单例模式：在创建bean的时候，默认单例；
+    
+12.代理模式
+
+代理模式是java中最常用的设计模式之一，尤其是在spring框架中广泛应用。
+对于java的代理模式，一般可分为：静态代理、动态代理、以及CGLIB实现动态代理。
+
+(1)静态代理：静态代理需要针对被代理的方法提前写好代理类，如果被代理的方法非常多则需要编写很多代码，因此，对于上述缺点，通过动态代理的方式进行了弥补。
+
+(2)JDK动态代理：动态代理主要是通过反射机制，在运行时动态生成所需代理的class。
+
+    public class DynamicProxyTest {
+    
+        public static void main(String[] args) {
+            Target target = new TargetImpl();
+            DynamicProxyHandler handler = new DynamicProxyHandler(target);
+            Target proxySubject = (Target) Proxy.newProxyInstance(TargetImpl.class.getClassLoader(),TargetImpl.class.getInterfaces(),handler);
+            String result = proxySubject.execute();
+            System.out.println(result);
+        }
+    
+    }
+    
+    public class DynamicProxyHandler implements InvocationHandler{
+    
+        private Target target;
+    
+        public DynamicProxyHandler(Target target) {
+            this.target = target;
+        }
+    
+        @Override
+        public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+            System.out.println("========before==========");
+            Object result = method.invoke(target,args);
+            System.out.println("========after===========");
+            return result;
+        }
+    }
+
+(3)CGLib代理：CGLib采用了非常底层的字节码技术，其原理是通过字节码技术为一个类创建子类，并在子类中采用方法拦截的技术拦截所有父类方法的调用，顺势织入横切逻辑。
+JDK动态代理与CGLib动态代理均是实现Spring AOP的基础。
+
+    public class MyMethodInterceptor implements MethodInterceptor{
+    
+        @Override
+        public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable {
+            System.out.println(">>>>MethodInterceptor start...");
+            Object result = proxy.invokeSuper(obj,args);
+            System.out.println(">>>>MethodInterceptor ending...");s
+            return "result";
+        }
+    }
+    
+    public class CglibTest {
+    
+        public static void main(String[] args) {
+            System.out.println("***************");
+            Target target = new Target();
+            CglibTest test = new CglibTest();
+            Target proxyTarget = (Target) test.createProxy(Target.class);
+            String res = proxyTarget.execute();
+            System.out.println(res);
+        }
+    
+        public Object createProxy(Class targetClass) {
+            Enhancer enhancer = new Enhancer();
+            enhancer.setSuperclass(targetClass);
+            enhancer.setCallback(new MyMethodInterceptor());
+            return enhancer.create();
+        }
+    }
 
 N.参考
 
