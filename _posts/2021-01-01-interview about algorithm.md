@@ -258,7 +258,6 @@ AVL树得名于它的发明者G. M. Adelson-Velsky和E. M. Landis，名字已拼
         //循环建堆    
         for(int i=0;i<arrayLength-1;i++){  
             //建堆    
-  
             buildMaxHeap(a,arrayLength-1-i);  
             //交换堆顶和最后一个元素    
             swap(a,0,arrayLength-1-i);  
@@ -284,7 +283,7 @@ AVL树得名于它的发明者G. M. Adelson-Velsky和E. M. Landis，名字已拼
                 int biggerIndex=2*k+1;  
                 //如果biggerIndex小于lastIndex，即biggerIndex+1代表的k节点的右子节点存在    
                 if(biggerIndex<lastIndex){  
-                    //若果右子节点的值较大    
+                    // 如果右子节点的值较大    
                     if(data[biggerIndex]<data[biggerIndex+1]){  
                         //biggerIndex总是记录较大子节点的索引    
                         biggerIndex++;  
@@ -610,6 +609,154 @@ N.参考
             left.next = null;
             right.next = null;
         }
+    }
+
+6.合并两个有序链表
+
+    public ListNode mergeTwoLists(ListNode l1, ListNode l2) {
+        if(l1 == null){
+            return l2;
+        }
+        if(l2 == null){
+            return l1;
+        }
+        if(l1.val < l2.val){
+            ListNode nextNode = l1.next;
+            l1.next = mergeTwoLists(nextNode,l2);
+            return l1;
+        }
+        else {
+            ListNode nextNode = l2.next;
+            l2.next = mergeTwoLists(l1,nextNode);
+            return l2;
+        }
+    }
+    
+# 算法——二叉树
+
+1.先序遍历
+
+    // 递归
+    public List<Integer> preorderTraversal(TreeNode root) {
+        List<Integer> ret = new LinkedList<>();
+        if (root == null){
+            return ret;
+        }
+        ret.add(root.val);
+        List<Integer> left = preorderTraversal(root.left);
+        List<Integer> right = preorderTraversal(root.right);
+        ret.addAll(left);
+        ret.addAll(right);
+        return ret;
+    }
+    
+    // 非递归
+    public List<Integer> preorderTraversal(TreeNode root) {
+        List<Integer> ret = new LinkedList<>();
+        if (root == null){
+            return ret;
+        }
+        Deque<TreeNode> stack = new LinkedList<>();
+        stack.push(root);
+        while (stack.size() > 0){
+            TreeNode node = stack.pop();
+            ret.add(node.val);
+            if (node.right != null){
+                stack.push(node.right);
+            }
+            if (node.left != null){
+                stack.push(node.left);
+            }
+        }
+        return ret;
+    }
+
+2.中序遍历
+
+    // 递归
+    public List<Integer> inorderTraversal(TreeNode root) {
+        List<Integer> list = new LinkedList<>();
+        if(root == null){
+            return list;
+        }
+        List<Integer> left = inorderTraversal(root.left);
+        ret.addAll(left);
+        ret.add(root.val);
+        List<Integer> right = inorderTraversal(root.right);
+        ret.addAll(right);
+        return list;
+    }
+    
+    // 非递归
+    public List<Integer> inorderTraversal(TreeNode root) {
+        List<Integer> list = new LinkedList<>();
+        if(root == null){
+            return list;
+        }
+        Deque<TreeNode> stack = new LinkedList<>();
+        TreeNode curr = root;
+        while (curr != null || stack.size() != 0){
+            while (curr != null){
+                stack.push(curr);
+                curr = curr.left;
+            }
+            TreeNode tempNode = stack.pop();
+            list.add(tempNode.val);
+            curr = tempNode.right;
+        }
+        return list;
+    }
+
+3.后序遍历
+
+    public List<Integer> postorderTraversal(TreeNode root) {
+        Deque<TreeNode> stack = new LinkedList<>();
+        List<Integer> result = new LinkedList<>();
+        if (root == null){
+            return result;
+        }
+        stack.push(root);
+        while (stack.size() > 0){
+            TreeNode node = stack.pop();
+            result.add(node.val);
+            if (node.left != null){
+                stack.push(node.left);
+            }
+            if (node.right != null){
+                stack.push(node.right);
+            }
+        }
+        Collections.reverse(result);
+        return result;
+    }
+    
+4.层级遍历
+
+    public List<List<Integer>> levelOrder(TreeNode root) {
+        List<List<Integer>> lists = new LinkedList<>();
+        if(root == null){
+            return lists;
+        }
+        List<TreeNode> prev = new LinkedList<>();
+        prev.add(root);
+        while (prev.size() > 0){
+            List<TreeNode> next = new LinkedList<>();
+            List<Integer> addList = new LinkedList<>();
+            int size = prev.size();
+            for(int i = 0;i<size;i++){
+                TreeNode node = prev.get(i);
+                addList.add(node.val);
+                if(node.left != null){
+                    next.add(node.left);
+                }
+                if(node.right != null){
+                    next.add(node.right);
+                }
+            }
+            lists.add(addList);
+            prev = next;
+        }
+        return lists;
     }
 
 # 其他
