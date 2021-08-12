@@ -445,6 +445,95 @@ N.参考
  
 (1)[【228期】面试高频：Java常用的八大排序算法一网打尽！](https://mp.weixin.qq.com/s/4_huQurXRYuR6Kq2pERqIQ)
 
+# 算法——二分查找
+
+1.有序数组中查找指定数字，找到就返回其位置，没找到就返回其应该插入的位置。
+
+    public int[] searchRange(int[] nums, int target) {
+        int len = nums.length;
+        int left = 0,right = len-1;
+        int[] ret = {-1,-1};
+        if((len==0) || (target<nums[0]) || (target> nums[right])){
+            return ret;
+        }
+        else if(len==1){
+            if(target==nums[0]){
+                ret[0] = 0;
+                ret[1] = 0;
+            }
+            return ret;
+        }
+        else{
+            while(left<right){
+                int middle = (left+right)/2;
+                if(nums[middle]<target){
+                    left=middle+1;
+                }
+                else{
+                    right=middle;
+                }
+            }
+            if(nums[left]!=target){
+                return ret;
+            }
+            else{
+                ret[0] = left;
+            }
+            left=0;
+            right=len-1;
+            while(left<right){
+                int middle = (left+right+1)/2;
+                if(nums[middle]>target){
+                    right=middle-1;
+                }
+                else{
+                    left=middle;
+                }
+            }
+            ret[1] = right;
+            return ret;
+        }
+    }
+    
+2.无重复数字的有序数组以某位置为轴反转，在其中寻找给定的数字，找到返回位置，没找到返回-1
+
+    public int search(int[] nums, int target) {
+        int left = 0;
+        int right = nums.length-1;
+        int mid;
+        while(left<right){
+            mid = (left+right+1)/2;
+            if(target == nums[mid]){
+                return mid;
+            }
+            if(nums[mid]>nums[right]){
+                if(target<nums[mid] && target>=nums[left]){
+                    right = mid;
+                }
+                else{
+                    left = mid;
+                }
+            }
+            else if(nums[mid]<nums[right]){
+                if(target<=nums[right] && target>nums[mid]){
+                    left = mid;
+                }
+                else{
+                    right = mid;
+                }
+            }
+            else{
+                right--;
+            }
+        }
+        if(left==right && nums[left]==target){
+            return left;
+        }
+        else{
+            return -1;
+        }
+    }
+
 # 算法——链表
 
 1.整个链表翻转
