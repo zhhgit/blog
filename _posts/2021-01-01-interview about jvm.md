@@ -11,19 +11,25 @@ tags: [Interview]
 
 1.类加载过程
 
-    加载：将类的.class文件中的二进制数据读入到内存中，将其放在运行时数据区的方法区内，然后在内存上创建一个java.lang.Class对象用来封装类在方法区内的数据结构作为这个类的各种数据的访问入口。
-    验证：主要是为了确保class文件中的字节流包含的信息是否符合当前JVM的要求，且不会危害JVM自身安全，比如校验文件格式、是否是cafe baby魔术、字节码验证等等。
-    准备：为类变量分配内存并设置类变量（是被static修饰的变量，变量不是常量，所以不是final的，就是static的）初始值的阶段。这些变量所使用的内存在方法区中进行分配。比如private static int age = 26;类变量age会在准备阶段过后为其分配四个（int四个字节）字节的空间，并且设置初始值为0，而不是26。若是final的，则在编译期就会设置上最终值。
-    解析：JVM会在此阶段把类的二进制数据中的符号引用替换为直接引用。
-    初始化：初始化阶段是执行类构造器<clinit>()方法的过程，到了初始化阶段，才真正开始执行类定义的Java程序代码（或者说字节码）。比如准备阶段的那个age初始值是0，到这一步就设置为26。
-    使用：对象都出来了，业务系统直接调用阶段。
-    卸载：用完了，可以被GC回收了。
+    步骤一：加载
+        加载：将类的.class文件中的二进制数据读入到内存中，将其放在运行时数据区的方法区内，然后在内存上创建一个java.lang.Class对象用来封装类在方法区内的数据结构作为这个类的各种数据的访问入口。类的加载过程是由类加载器来完成，类加载器由JVM提供，也可以通过继承ClassLoader来实现自己的类加载器。
+    
+    步骤二：链接
+        验证：主要是为了确保class文件中的字节流包含的信息是否符合当前JVM的要求，且不会危害JVM自身安全，比如校验文件格式、是否是cafe baby魔术、字节码验证等等。
+        准备：为类变量分配内存并设置类变量（是被static修饰的变量，变量不是常量，所以不是final的，就是static的）初始值的阶段。这些变量所使用的内存在方法区中进行分配。比如private static int age = 26;类变量age会在准备阶段过后为其分配四个（int四个字节）字节的空间，并且设置初始值为0，而不是26。若是final的，则在编译期就会设置上最终值。
+        解析：JVM会在此阶段把类的二进制数据中的符号引用替换为直接引用。对于一个方法的调用，编译器会生成一个包含目标方法所在的类、目标方法名、接收参数类型以及返回值类型的符号引用，来指代要调用的方法。解析阶段的目的，就是将这些符号引用解析为实际引用。如果符号引用指向一个未被加载的类，或者未被加载类的字段或方法，那么解析将触发这个类的加载（但未必会触发解析与初始化）。
+
+    步骤三：初始化
+        初始化：初始化阶段是执行类构造器<clinit>()方法的过程，到了初始化阶段，才真正开始执行类定义的Java程序代码（或者说字节码）。比如准备阶段的那个age初始值是0，到这一步就设置为26。虚拟机会收集类及父类中的类变量及类方法组合为<clinit>方法，根据定义的顺序进行初始化。虚拟机会保证子类的<clinit>执行之前，父类的<clinit>方法先执行完毕。虚拟机会保证一个类的<clinit>方法在多线程环境中被正确地加锁和同步，如果多个线程同时去初始化一个类，那么只有一个线程去执行这个类的<clinit>方法，其他线程都需要阻塞等待，直到活动线程执行<clinit>方法完毕。
+        
+    步骤四：使用：对象都出来了，业务系统直接调用阶段。
+    步骤五：卸载：用完了，可以被GC回收了。
 
 2.类加载器种类以及加载范围
 
-    启动类加载器（Bootstrap ClassLoader）：最顶层类加载器，他的父类加载器是个null，也就是没有父类加载器。负责加载jvm的核心类库，比如java.lang.*等，从系统属性中的sun.boot.class.path所指定的目录中加载类库。它的具体实现由Java虚拟机底层C++代码实现。
+    启动类加载器（Bootstrap ClassLoader）：最顶层类加载器，他的父类加载器是个null，也就是没有父类加载器。负责加载jvm的核心类库，比如java.lang.*等，从系统属性中的sun.boot.class.path所指定的目录中加载类库。它的具体实现由Java虚拟机底层C++代码实现。根类加载器负责加载%JAVA_HOME%/jre/lib下的jar包，以及由虚拟机参数-Xbootclasspath指定的类。
     扩展类加载器（Extension ClassLoader）：父类加载器是Bootstrap ClassLoader。从java.ext.dirs系统属性所指定的目录中加载类库，或者从JDK的安装目录的jre/lib/ext子目录（扩展目录）下加载类库，如果把用户的jar文件放在这个目录下，也会自动由扩展类加载器加载。继承自java.lang.ClassLoader。
-    应用程序类加载器（Application ClassLoader）：父类加载器是Extension ClassLoader。从环境变量classpath或者系统属性java.class.path所指定的目录中加载类。继承自java.lang.ClassLoader。
+    应用程序类加载器（Application ClassLoader）：父类加载器是Extension ClassLoader。负责加载来自java命令的-classpath选项、java.class.path系统属性，或者CLASSPATH环境变量所指定的JAR包和类路径。继承自java.lang.ClassLoader。也叫System ClassLoader为系统（应用）类加载器。程序可以通过ClassLoader.getSystemClassLoader()来获取系统类加载器。如果没有特别指定，则用户自定义的类加载器默认都以系统类加载器作为父加载器。
     自定义类加载器（User ClassLoader）：除了上面三个自带的以外，用户还能制定自己的类加载器，但是所有自定义的类加载器都应该继承自java.lang.ClassLoader。比如热部署、tomcat都会用到自定义类加载器。
 
 3.双亲委派
@@ -51,6 +57,7 @@ Java spi方式，比如jdbc4.0开始就是其中之一。热部署的场景会�
 4.如何自定义一个类加载器
 
 只需要继承java.lang.Classloader类，然后覆盖他的findClass(String name)方法即可，该方法根据参数指定的类名称，返回对应的Class对象的引用。
+如果要实现自定义类，可以重写这两个方法来实现。但推荐重写findClass方法，而不是重写loadClass方法，因为loadClass方法内部会调用findClass方法。
 
 5.热部署原理
 
@@ -60,7 +67,7 @@ Java spi方式，比如jdbc4.0开始就是其中之一。热部署的场景会�
 
 (1)Java类何时会被加载？最通俗易懂的答案就是：当运行过程中需要这个类的时候。
 
-    遇到new、getstatic、putstatic等指令时。
+    遇到new、getstatic、putstatic等指令时。即当遇到用以新建目标类实例的new指令时，初始化new指令的目标类；当遇到调用静态方法或者使用静态变量，初始化静态变量或方法所在的类；
     对类进行反射调用的时候。
     初始化某个类的子类的时候。
     虚拟机启动时会先加载设置的程序主类。
@@ -82,6 +89,17 @@ JVM默认用于加载用户程序的ClassLoader为AppClassLoader，不过无论�
 在上面那个例子中，loadClass()方法最终会调用到ClassLoader.definClass1()中，这是一个Native方法。definClass1()对应的JNI方法为Java_java_lang_ClassLoader_defineClass1()。
 
     static native Class<?> defineClass1(ClassLoader loader, String name, byte[] b, int off, int len, ProtectionDomain pd, String source); 
+    
+(4)ClassLoader只会对类进行加载，不会进行初始化
+
+    public static void main(String[] args) throws ClassNotFoundException {
+        ClassLoader classLoader = ClassLoader.getSystemClassLoader();
+        //下面语句仅仅是加载Tester类
+        classLoader.loadClass("loader.Tester");
+        System.out.println("系统加载Tester类");
+        //下面语句才会初始化Tester类
+        Class.forName("loader.Tester");
+    }
 
 # JVM内存管理
 
