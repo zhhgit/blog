@@ -18,8 +18,6 @@ tags: [Resources]
 7.[Boss直聘](https://www.zhipin.com/shanghai/)
 8.[看准网](http://www.kanzhun.com/)
 
-弃用：[应届生](http://www.yingjiesheng.com/)、[大街网](http://www.dajie.com/)
-
 <hr>
 
 # 前端
