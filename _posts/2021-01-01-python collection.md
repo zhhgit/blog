@@ -13,13 +13,13 @@ tags: [Python]
 
 (1)数据类型，Python默认拥有以下内置数据类型，可以使用type()函数获取任何对象的数据类型
 
-文本类型：str
-数值类型：int, float, complex
-序列类型：list, tuple, range
-映射类型：dict
-集合类型：set, frozenset
-布尔类型：bool
-二进制类型：bytes, bytearray, memoryview
+    文本类型：str
+    数值类型：int, float, complex
+    序列类型：list, tuple, range
+    映射类型：dict
+    集合类型：set, frozenset
+    布尔类型：bool
+    二进制类型：bytes, bytearray, memoryview
 
     x = "Hello World"
     x = 29
