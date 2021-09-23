@@ -169,63 +169,28 @@ tags: [Python]
     print(next(myiter))
     print(next(myiter))
     print(next(myiter))
-    
-(8)对于字典和列表是传递的对象引用，即可以修改原对象，对于数字、字符串、元组是传递的值。
 
-(9)global变量
+(8)生成器
 
-通常在函数内部创建变量时，该变量是局部变量，只能在该函数内部使用。要在函数内部创建全局变量，可以使用global关键字。
+如果列表元素可以按照某种算法推算出来，那我们是否可以在循环的过程中不断推算出后续的元素呢？
+这样就不必创建完整的list，从而节省大量的空间。在Python中，这种一边循环一边计算的机制，称为生成器：generator。
 
-    def myfunc():
-      global x
-      x = "fantastic"
-    
-    myfunc()
-    # 输出结果为Python is fantastic
-    print("Python is " + x)
+    g = (x * x for x in range(10))
+    for n in g:
+        print(n)
 
-2.面向对象
-    
-(1)类的示例
+定义generator的另一种方法。如果一个函数定义中包含yield关键字，那么这个函数就不再是一个普通函数，而是一个generator。
+这里最难理解的就是generator和函数的执行流程不一样。函数是顺序执行，遇到return语句或者最后一行函数语句就返回。而变成generator的函数，在每次调用next()的时候执行，遇到yield语句返回，再次执行时从上次返回的yield语句处继续执行。
 
-    class Person:
-      # 每次使用类创建新对象时，都会自动调用 __init__() 函数
-      def __init__(self, name, age):
-        self.name = name
-        self.age = age
-    
-      # self参数是对类的当前实例的引用，它必须是类中任意函数的首个参数
-      def myfunc(self):
-        print("Hello my name is " + self.name)
-        
-      # 如果一个类表现得像一个list，要获取有多少个元素，就得用len()函数。要让len()函数工作正常，类必须提供一个特殊方法__len__()，它返回元素的个数。 
-      def __len__(self):
-      
-    p1 = Person("Bill", 63)
-    p1.myfunc()
-    # 删除对象属性
-    del p1.age
-    # 删除对象
-    del p1
-    
-(2)继承
+    def fib(max):
+        n, a, b = 0, 0, 1
+        while n < max:
+            yield b
+            a, b = b, a + b
+            n = n + 1
+        return 'done'
 
-    class Student(Person):
-      def __init__(self, fname, lname, year):
-        super().__init__(fname, lname)
-        self.graduationyear = year
-    
-    x = Student("Elon", "Musk", 2019)
-
-(3)类方法：@staticmethod，方法参数中没有self
-
-(4)引入：from src.session1.common.PrintUtil import PrintUtil
-
-(5)调用：类中的某个方法调用其他方法self.another_method()
-
-(6)私有属性：self.__attr_name
-
-3.字符串
+(9)字符串
 
     # 字符串长度
     len(str)
@@ -294,7 +259,7 @@ tags: [Python]
     a = str[i]
     b = str[i:j]
 
-4.列表
+(10)列表
 
     # 访问项目
     item = thislist[3]
@@ -357,8 +322,8 @@ tags: [Python]
     # 二维列表初始化
     initMatrix = [[0 for i in range(m)] for j in range(n)]
 
-5.集合
-    
+(11)集合
+
     # 添加
     thisset.add("orange")
     # 添加多个
@@ -374,8 +339,8 @@ tags: [Python]
     # 合并
     set3 = set1.union(set2)
     set1.update(set2)
-    
-6.字典
+
+(12)字典
 
     # 访问
     x = thisdict["model"]
@@ -416,9 +381,64 @@ tags: [Python]
     # 判断是否存在key
     if key in dict
 
-7.队列：from collections import deque，有append(),popleft()方法
+(13)队列：from collections import deque，有append(),popleft()方法
 
-8.模块
+(14)对于字典和列表是传递的对象引用，即可以修改原对象，对于数字、字符串、元组是传递的值。
+
+(15)global变量
+
+通常在函数内部创建变量时，该变量是局部变量，只能在该函数内部使用。要在函数内部创建全局变量，可以使用global关键字。
+
+    def myfunc():
+      global x
+      x = "fantastic"
+    
+    myfunc()
+    # 输出结果为Python is fantastic
+    print("Python is " + x)
+
+2.面向对象
+    
+(1)类的示例
+
+    class Person:
+      # 每次使用类创建新对象时，都会自动调用 __init__() 函数
+      def __init__(self, name, age):
+        self.name = name
+        self.age = age
+    
+      # self参数是对类的当前实例的引用，它必须是类中任意函数的首个参数
+      def myfunc(self):
+        print("Hello my name is " + self.name)
+        
+      # 如果一个类表现得像一个list，要获取有多少个元素，就得用len()函数。要让len()函数工作正常，类必须提供一个特殊方法__len__()，它返回元素的个数。 
+      def __len__(self):
+      
+    p1 = Person("Bill", 63)
+    p1.myfunc()
+    # 删除对象属性
+    del p1.age
+    # 删除对象
+    del p1
+    
+(2)继承
+
+    class Student(Person):
+      def __init__(self, fname, lname, year):
+        super().__init__(fname, lname)
+        self.graduationyear = year
+    
+    x = Student("Elon", "Musk", 2019)
+
+(3)类方法：@staticmethod，方法参数中没有self
+
+(4)引入：from src.session1.common.PrintUtil import PrintUtil
+
+(5)调用：类中的某个方法调用其他方法self.another_method()
+
+(6)私有属性：self.__attr_name
+
+3.模块
 
     # 导入模块中的函数
     import mymodule
@@ -436,7 +456,7 @@ tags: [Python]
     from mymodule import person1
     print (person1["age"])
 
-9.日期
+4.日期
 
     import datetime
 
@@ -449,7 +469,7 @@ tags: [Python]
     # 格式化输出日期
     x.strftime("%Y")
 
-10.JSON处理
+5.JSON处理
 
     import json
     
@@ -479,7 +499,7 @@ tags: [Python]
     {"name": "Bill", "age": 63, "married": true, "divorced": false, "children": ["Jennifer", "Rory", "Phoebe"], "pets": null, "cars": [{"model": "Porsche", "mpg": 38.2}, {"model": "BMW M5", "mpg": 26.9}]}
     '''
 
-11.正则表达式
+6.正则表达式
 
     import re
     
@@ -497,14 +517,14 @@ tags: [Python]
     # 把匹配替换为您选择的文本9
     x = re.sub("\s", "9", str)
 
-12.包管理
+7.包管理
 
     pip --version
     pip install camelcase
     pip uninstall camelcase
     pip list
 
-13.异常处理
+8.异常处理
 
     try:
         x = "demofile.txt"
@@ -520,7 +540,7 @@ tags: [Python]
     finally:
         f.close()
 
-14.IO
+9.IO
 
     # 直接打印列表 
     print(list)
