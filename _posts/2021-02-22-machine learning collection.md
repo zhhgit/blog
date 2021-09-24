@@ -3,8 +3,8 @@ layout: post
 title: "机器学习知识整理"
 description: 机器学习知识整理
 modified: 2021-02-22
-category: Machine Learning
-tags: [Machine Learning]
+category: MachineLearning
+tags: [MachineLearning]
 ---
 
 # 一、基础

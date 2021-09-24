@@ -3,8 +3,8 @@ layout: post
 title: "WebSocket"
 description: WebSocket
 modified: 2017-02-03
-category: 前端
-tags: [前端]
+category: FrontEnd
+tags: [FrontEnd]
 ---
 
 浏览器与微信小程序的跨端聊天室，如图。

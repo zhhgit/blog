@@ -3,8 +3,8 @@ layout: post
 title: "JavaScript模块化"
 description: JavaScript模块化
 modified: 2016-09-28
-category: 前端
-tags: [前端]
+category: FrontEnd
+tags: [FrontEnd]
 ---
 
 不同于C，Java等语言，当前浏览器广泛支持的JavaScript版本ECMAScript 5并没有类似于include，import这样的关键字来实现代码的模块化管理。但是随着前端代码的越发复杂和工程化，JS模块化编程已经成为一种迫切的需求。JS模块化有助于前端代码的解耦与重用。下面分成如下三个部分介绍。

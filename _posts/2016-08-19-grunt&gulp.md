@@ -3,8 +3,8 @@ layout: post
 title: "grunt&gulp"
 description: grunt&gulp
 modified: 2016-08-19
-category: 前端
-tags: [前端]
+category: FrontEnd
+tags: [FrontEnd]
 ---
 
 # 一、Grunt

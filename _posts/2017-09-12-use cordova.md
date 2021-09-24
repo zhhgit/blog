@@ -3,8 +3,8 @@ layout: post
 title: "使用Cordova"
 description: 使用Cordova
 modified: 2017-09-12
-category: 前端
-tags: [前端]
+category: FrontEnd
+tags: [FrontEnd]
 ---
 
 工作中使用Cordova已久，但是一直集中于：与客户端同事定好Cordova插件名和方法 ==》 封装JS插件 ==》 使用JS插件，理解并不深刻。新开Cordova系列，争取弄明白Android上Cordova的原理吧。

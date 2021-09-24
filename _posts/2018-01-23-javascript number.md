@@ -3,8 +3,8 @@ layout: post
 title: "JavaScript数字精度"
 description: JavaScript数字精度
 modified: 2018-01-23
-category: 前端
-tags: [前端]
+category: FrontEnd
+tags: [FrontEnd]
 ---
 
 # 一、IEEE 754规范

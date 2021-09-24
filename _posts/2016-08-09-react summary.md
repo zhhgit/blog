@@ -3,8 +3,8 @@ layout: post
 title: "React使用小结"
 description: React使用小结
 modified: 2016-08-09
-category: 前端
-tags: [前端]
+category: FrontEnd
+tags: [FrontEnd]
 ---
 
 # 一、使用React的方式
