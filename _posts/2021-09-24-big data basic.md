@@ -16,3 +16,5 @@ tags: [BigData]
 # HBase
 
 1.[我终于看懂了HBase，太不容易了](https://zhuanlan.zhihu.com/p/145551967)
+
+2.[易百HBase教程](https://www.yiibai.com/hbase)
