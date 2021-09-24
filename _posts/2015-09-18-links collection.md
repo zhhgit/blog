@@ -18,8 +18,6 @@ tags: [Resources]
 7.[Boss直聘](https://www.zhipin.com/shanghai/)
 8.[看准网](http://www.kanzhun.com/)
 
-<hr>
-
 # 前端
 
 1.[W3School](http://www.w3school.com.cn/index.html) 
@@ -40,16 +38,12 @@ tags: [Resources]
 16.[ant design](http://ant.design/)
 17.[360极速浏览器扩展](http://open.chrome.360.cn/extension_dev/overview.html)
 
-<hr>
-
 # Android
 
 1.[Android API](http://www.android-doc.com/reference/packages.html)
 2.[Android官方API](https://developer.android.google.cn/reference/packages.html)
 3.[菜鸟Android教程](http://www.runoob.com/w3cnote/android-tutorial-intro.html)
 4.[《第一行代码Android》代码](https://github.com/guolindev/booksource)
-
-<hr>
 
 # Tool
 
@@ -59,15 +53,6 @@ tags: [Resources]
 4.[mac环境下使用Charles抓包Https请求](https://segmentfault.com/a/1190000005070614)
 5.[Fiddler与Charles的特殊用途](http://www.cnblogs.com/cos2004/archive/2013/04/16/3024171.html)
 
-<hr>
-
-# Python
-
-1.[菜鸟Python3教程](http://www.runoob.com/python3/python3-tutorial.html)
-2.[莫烦Python](https://morvanzhou.github.io/)
-3.[廖雪峰Python教程](https://www.liaoxuefeng.com/wiki/0014316089557264a6b348958f449949df42a6d3a2e542c000)
-4.[tensorflow](https://tensorflow.google.cn/)
-
 # C++
 
 1.[Window10上CLion极简配置教程](https://www.jianshu.com/p/1aa989808e15)
@@ -75,10 +60,6 @@ tags: [Resources]
 3.[STL教程](http://c.biancheng.net/stl/)
 4.[CMake 入门实战](https://www.hahack.com/codes/cmake/#%E5%A4%9A%E4%B8%AA%E6%BA%90%E6%96%87%E4%BB%B6)
 5.[多头文件和源文件工程构建CMakeLists写法](https://blog.csdn.net/xh_hit/article/details/82917548)
-
-# 大数据
-
-1.[Hadoop教程](https://www.w3cschool.cn/hadoop/)
 
 # 量化
 

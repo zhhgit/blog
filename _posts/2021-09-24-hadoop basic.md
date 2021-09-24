@@ -10,3 +10,5 @@ tags: [BigData]
 # 参考
 
 1.[菜鸟Hadoop教程](https://www.runoob.com/w3cnote/hadoop-tutorial.html)
+
+2.[Hadoop教程](https://www.w3cschool.cn/hadoop/)
