@@ -9,7 +9,7 @@ tags: [Tools]
 
 # 一、jekyll安装
 
-参考[这里](http://www.tuicool.com/articles/7Vz6BzJ)，依次安装Ruby、Ruby DevKit、Jekyll。_config.yml修改如下：
+依次安装Ruby、Ruby DevKit、Jekyll。_config.yml修改如下：
 
 	port:        4000
 	baseurl:     /
@@ -23,4 +23,4 @@ Github Pages需要注意仓库分支为gh-pages，才可以访问。同步时记
 
 # 二、参考
 
-1.[jekyll的主页](http://jekyll.bootcss.com/)
+1.[jekyll主页](http://jekyll.bootcss.com/)
