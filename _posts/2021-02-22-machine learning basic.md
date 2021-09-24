@@ -1,7 +1,7 @@
 ---
 layout: post
-title: "机器学习知识整理"
-description: 机器学习知识整理
+title: "机器学习基础"
+description: 机器学习基础
 modified: 2021-02-22
 category: MachineLearning
 tags: [MachineLearning]
@@ -174,4 +174,4 @@ tags: [MachineLearning]
 
 # 二、参考
 
-1.[菜鸟教程机器学习](https://www.w3school.com.cn/python/python_ml_getting_started.asp)
+1.[w3school机器学习](https://www.w3school.com.cn/python/python_ml_getting_started.asp)

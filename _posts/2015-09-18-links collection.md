@@ -53,14 +53,6 @@ tags: [Resources]
 4.[mac环境下使用Charles抓包Https请求](https://segmentfault.com/a/1190000005070614)
 5.[Fiddler与Charles的特殊用途](http://www.cnblogs.com/cos2004/archive/2013/04/16/3024171.html)
 
-# C++
-
-1.[Window10上CLion极简配置教程](https://www.jianshu.com/p/1aa989808e15)
-2.[C++:一个程序多个源/头文件](https://blog.csdn.net/Zzwtyds/article/details/79673153)
-3.[STL教程](http://c.biancheng.net/stl/)
-4.[CMake 入门实战](https://www.hahack.com/codes/cmake/#%E5%A4%9A%E4%B8%AA%E6%BA%90%E6%96%87%E4%BB%B6)
-5.[多头文件和源文件工程构建CMakeLists写法](https://blog.csdn.net/xh_hit/article/details/82917548)
-
 # 量化
 
 1.[掘金](https://www.myquant.cn/)
