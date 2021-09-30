@@ -1,10 +1,10 @@
 ---
 layout: post
-title: "机器学习基础"
-description: 机器学习基础
+title: "python统计与绘图"
+description: python统计与绘图
 modified: 2021-02-22
-category: MachineLearning
-tags: [MachineLearning]
+category: Python
+tags: [Python]
 ---
 
 # 一、基础
