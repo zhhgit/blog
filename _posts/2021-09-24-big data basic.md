@@ -143,6 +143,9 @@ tags: [BigData]
     # 启动HBase shell
     cd /usr/local/hbase
     ./bin/hbase shell
+    # 停止容器，并保存为一个名为hbase_proto的镜像：
+    docker stop hadoop_single
+    docker commit hadoop_single hbase_proto
 
 2.参考
 
