@@ -227,7 +227,7 @@ tags: [BigData]
     # 刷新mysql系统权限关系表
     flush privileges;
 
-2.参考
+3.参考
 
 (1)[易百Hive教程](https://www.yiibai.com/hive)
 
