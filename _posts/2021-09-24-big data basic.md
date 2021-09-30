@@ -155,6 +155,80 @@ tags: [BigData]
 
 # Hive
 
+1.安装Hive
 
+    docker run -d --name=hbase_single --privileged hbase_proto /usr/sbin/init
+    docker cp /Users/zhanghao/zhhroot/download/software/apache-hive-3.1.2-bin.tar.gz hbase_single:/
+    docker exec -it hbase_single bash
+    tar -zxf apache-hive-3.1.2-bin.tar.gz
+    mv apache-hive-3.1.2-bin /usr/local/hive
+    # 配置环境变量
+    vim /etc/bashrc
+    # 如下，重新进入容器生效
+    export HADOOP_HOME=/usr/local/hadoop
+    export HIVE_HOME=/usr/local/hive
+    export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/hadoop/bin:/usr/local/hadoop/sbin:/usr/local/hive/bin:/usr/local/hbase/bin
+    export CLASSPATH=$CLASSPATH:/usr/local/hadoop/lib/*:.
+    export CLASSPATH=$CLASSPATH:/usr/local/hive/lib/*:.
+    # 配置文件
+    cd /usr/local/hive/conf
+    mv hive-default.xml.template hive-default.xml
+    # 新建一个配置文件hive-site.xml，配置Hive的Metastore，为在另一个容器172.17.0.3中启动的MySQL实例
+    vim hive-site.xml
+    
+    <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+    <?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+    <configuration>
+      <property>
+        <name>javax.jdo.option.ConnectionURL</name>
+        <value>jdbc:mysql://172.17.0.3:3306/hive?useSSL=FALSE</value>
+        <description>JDBC connect string for a JDBC metastore</description>
+      </property>
+      <property>
+        <name>javax.jdo.option.ConnectionDriverName</name>
+        <value>com.mysql.jdbc.Driver</value>
+        <description>Driver class name for a JDBC metastore</description>
+      </property>
+      <property>
+        <name>javax.jdo.option.ConnectionUserName</name>
+        <value>root</value>
+        <description>username to use against metastore database</description>
+      </property>
+      <property>
+        <name>javax.jdo.option.ConnectionPassword</name>
+        <value>123456</value>
+        <description>password to use against metastore database</description>
+      </property>
+    </configuration>
+
+    # 配置mysql jdbc包
+    cp mysql-connector-java-8.0.26-bin.jar /usr/local/hive/lib
+    # Metastore初始化
+    cd /usr/local/hive
+    ./bin/schematool -dbType mysql -initSchema
+    # 配置HDFS文件夹权限
+    hadoop fs -mkdir /tmp
+    hadoop fs -mkdir /user/hive/warehouse
+    hadoop fs -chmod g+w /tmp
+    hadoop fs -chmod g+w /user/hive/warehouse
+    # 运行Hive
+    cd $HIVE_HOME
+    ./bin/hive
+
+2.配置MySQL Metastore
+
+    docker pull hub.c.163.com/library/mysql:5.7
+    docker run --name mysql_single -e MYSQL_ROOT_PASSWORD=123456 -d hub.c.163.com/library/mysql:5.7
+    # 从172.17.0.2上用MySQL客户端连接MySQL服务
+    mysql -h 172.17.0.3 -u root -p
+    create database hive;
+    # 将所有数据库的所有表的所有权限赋给root用户，后面的hive是配置hive-site.xml中配置的连接密码
+    grant all on *.* to root@% identified by '123456'; 
+    # 刷新mysql系统权限关系表
+    flush privileges;
+
+2.参考
 
 (1)[易百Hive教程](https://www.yiibai.com/hive)
+
+(2)[Hive3.1.2安装指南](http://dblab.xmu.edu.cn/blog/2440-2/)
