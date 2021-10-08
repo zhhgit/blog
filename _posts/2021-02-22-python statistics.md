@@ -1,7 +1,7 @@
 ---
 layout: post
-title: "python统计与绘图"
-description: python统计与绘图
+title: "Python统计与绘图"
+description: Python统计与绘图
 modified: 2021-02-22
 category: Python
 tags: [Python]
