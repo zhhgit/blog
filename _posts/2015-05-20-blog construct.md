@@ -3,8 +3,8 @@ layout: post
 title: "Github Pages静态blog"
 description: Github Pages静态blog
 modified: 2015-05-20
-category: Tools
-tags: [Tools]
+category: Web
+tags: [Web]
 ---
 
 # 一、jekyll安装

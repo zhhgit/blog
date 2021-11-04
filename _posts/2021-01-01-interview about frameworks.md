@@ -204,13 +204,30 @@ Spring中定义了五种类型的通知：
 
 8.Bean是如何注入的？
 
-@Autowired：@Autowired是Spring的注解，Autowired默认先按byType，如果发现找到多个bean，则又按照byName方式比对，如果还有多个，则报出异常；@Autowired结合@Qualifier来使用，如下：
+Spring中有这么3种依赖注入的方式：
+
+    基于field注入（属性注入）
+    基于setter注入
+    基于constructor注入（构造器注入）
+
+效率上来说@Autowired/@Resource差不多，不过推荐使用@Resource一点，因为当接口有多个实现时@Resource直接就能通过name属性来指定实现类，而@Autowired还要结合@Qualifier注解来使用，且@Resource是jdk的注解，可与Spring解耦。
+为什么非要调用接口来多此一举，而不直接调用实现类serviceImpl的bean来得简单明了呢？ 直接获取实现类serviceImpl的bean也是可以的；至于加一层接口的原因：一是AOP程序设置思想指导，给别人调用的接口，调用者只想知道方法和功能，而对于这个方法内部逻辑怎么实现的并不关心；二是可以降低各个模块间的关联，实现松耦合、程序分层、高扩展性，使程序更加灵活，他除了在规范上有卓越贡献外，最精髓的是在多态上的运用；继承只能单一继承，接口却可以多实现。 当业务逻辑简单，变更较少，项目自用时，省略掉接口直接使用实现类更简单明了；反之则推荐使用接口。
+
+(1)@Autowired
+
+@Autowired是Spring的注解，Autowired默认先按byType，如果发现找到多个bean，则又按照byName方式比对，如果还有多个，则报出异常； 匹配不到，则报错，@Autowired(required=false)，如果设置required为false(默认为true)，则注入失败时不会抛出异常。 @Autowired结合@Qualifier来使用，如下：
 
     @Autowired
     @Qualifier("testServiceImpl")
     private TestService testService;                                                                                              
-                                                                                                  
-@Resource：@Resource是JDK1.6支持的注解，默认按照名称(Byname)进行装配, 如果没有指定name属性，当注解写在字段上时，默认取字段名，按照名称查找，如果注解写在setter方法上默认取属性名进行装配。当找不到与名称匹配的bean时才按照类型进行装配。但是需要注意的是，如果name属性一旦指定，就只会按照名称进行装配。
+
+(2)@Resource
+
+@Resource是JDK1.6支持的注解，默认按照名称(Byname)进行装配, 如果没有指定name属性，当注解写在字段上时，默认取字段名，按照名称查找，如果注解写在setter方法上默认取属性名进行装配。当找不到与名称匹配的bean时才按照类型进行装配。但是需要注意的是，如果name属性一旦指定，就只会按照名称进行装配。
+如果同时指定了name和type，则从Spring上下文中找到唯一匹配的bean进行装配，找不到则抛出异常。
+如果指定了name，则从上下文中查找名称（id）匹配的bean进行装配，找不到则抛出异常。
+如果指定了type，则从上下文中找到类型匹配的唯一bean进行装配，找不到或是找到多个，都会抛出异常。
+如果既没有指定name，又没有指定type，则默认按照byName方式进行装配；如果没有匹配，按照byType进行装配。
 
     @Resource(name = "testServiceImpl")
     private TestService testService;    
@@ -227,12 +244,11 @@ Spring中定义了五种类型的通知：
         }
     }
 
-效率上来说@Autowired/@Resource差不多，不过推荐使用@Resource一点，因为当接口有多个实现时@Resource直接就能通过name属性来指定实现类，而@Autowired还要结合@Qualifier注解来使用，且@Resource是jdk的注解，可与Spring解耦。
+(3)@Inject
 
-为什么非要调用接口来多此一举，而不直接调用实现类serviceImpl的bean来得简单明了呢？
-直接获取实现类serviceImpl的bean也是可以的；
-至于加一层接口的原因：一是AOP程序设置思想指导，给别人调用的接口，调用者只想知道方法和功能，而对于这个方法内部逻辑怎么实现的并不关心；二是可以降低各个模块间的关联，实现松耦合、程序分层、高扩展性，使程序更加灵活，他除了在规范上有卓越贡献外，最精髓的是在多态上的运用；继承只能单一继承，接口却可以多实现。
-当业务逻辑简单，变更较少，项目自用时，省略掉接口直接使用实现类更简单明了；反之则推荐使用接口。
+在Spring的环境下，@Inject和@Autowired 是相同的，因为它们的依赖注入都是使用AutowiredAnnotationBeanPostProcessor来处理的。
+@Inject是 JSR-330 定义的规范，如果使用这种方式，切换到Guice也是可以的。 Guice是google开源的轻量级DI框架。
+如果硬要说两个的区别，首先@Inject是Java EE包里的，在SE环境需要单独引入。另一个区别在于@Autowired可以设置required=false而@Inject并没有这个属性。
 
 9.Spring初始化过程
 
@@ -1223,9 +1239,122 @@ Mybatis将所有Xml配置信息都封装到All-In-One重量级对象Configuratio
 <resultMap>标签会被解析为ResultMap对象，其每个子元素会被解析为ResultMapping对象。
 每一个select、insert、update、delete标签均会被解析为MappedStatement对象，标签内的sql会被解析为BoundSql对象。
 
+25.实例
+
+	package org.dao;
+
+	import org.springframework.stereotype.Repository;
+	import java.util.List;
+	import org.entity.*;
+
+	@Repository
+	public interface StudentDao {
+
+	    //查询所有记录
+		public List<Student> queryAll();
+		
+		//增加一条记录
+		public void addOne(Student entity);
+
+		//修改一条记录
+		public void updateOne(Student entity);
+		
+		//删除一条记录
+		public void deleteOne(int id);
+		
+	}
+
+MyBatis配置：
+
+root-context.xml为：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+                http://www.springframework.org/schema/context
+                 http://www.springframework.org/schema/context/spring-context-3.2.xsd
+                http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.2.xsd">
+    <!-- Root Context: defines shared resources visible to all other web components -->
+
+    <!-- 将数据库配置文件读取到容器中，交给Spring管理 -->
+    <bean id="propertyConfigurer"
+        class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="locations">
+            <list>
+                <value>classpath:jdbc.properties</value>
+            </list>
+        </property>
+    </bean>
+
+     <!-- 数据源定义 -->
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource"
+        init-method="init" destroy-method="close">
+        <property name="driverClassName" value="${jdbc.driverClassName}"></property>
+        <property name="url" value="${jdbc.url}"></property>
+        <property name="username" value="${jdbc.username}"></property>
+        <property name="password" value="${jdbc.password}"></property>
+    </bean>
+
+     <!-- MyBatis配置 -->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="mapperLocations" value="classpath:mybatis.xml" />
+        <property name="dataSource" ref="dataSource" />
+    </bean>
+
+    <bean id="mapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
+        <property name="mapperInterface" value="org.dao.StudentDao" />
+        <property name="sqlSessionFactory" ref="sqlSessionFactory" />
+    </bean>
+
+</beans>
+```
+
+mybatis.xml中写具体的增删改查语句
+
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.dao.StudentDao">
+
+    <!--查询所有记录-->
+    <select id="queryAll" resultType="org.entity.Student">
+        select * from newstudent2
+    </select>
+
+    <!--插入一条记录-->
+    <insert id="addOne" parameterType="org.entity.Student">
+        insert into newstudent2 (id,name,phone) values (#{id},#{name},#{phone})
+    </insert>
+
+    <!--修改一条记录  -->
+    <update id="updateOne" parameterType="org.entity.Student">
+        update newstudent2 set name = #{name},phone = #{phone} where id = #{id}
+    </update>
+
+    <!--删除一条记录  -->
+    <delete id="deleteOne" parameterType="int">
+       delete from newstudent2 where id = #{id}
+    </delete>
+
+</mapper>
+```
+
 N.参考
 
 (1)[【250期】关于Mybatis知识点，面试可以问的都在这里了！](https://mp.weixin.qq.com/s/kReDxX3pA_ygyxzeWJDtoQ)
+
+(2)[w3cschool Mybatis教程](https://www.w3cschool.cn/mybatis/mybatis-dyr53b5w.html)
+
+(3)[C语言编程网 Mybatis教程](http://c.biancheng.net/mybatis/)
+
+(4)[Mybatis官方教程](https://mybatis.org/mybatis-3/zh/getting-started.html)
+
+(5)[Mybatis教程-实战看这一篇就够了](https://www.cnblogs.com/diffx/p/10611082.html)
+
+(6)[Mybatis-plus教程](https://mp.baomidou.com/guide/)
 
 # Netty
 

@@ -670,3 +670,5 @@ tags: [Python]
 2.[菜鸟Python教程](https://www.runoob.com/python3/python3-tutorial.html)
 
 3.[廖雪峰Python教程](https://www.liaoxuefeng.com/wiki/1016959663602400)
+
+4.[Unofficial Windows Binaries for Python Extension Packages](https://www.lfd.uci.edu/~gohlke/pythonlibs/)

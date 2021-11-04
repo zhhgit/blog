@@ -186,6 +186,18 @@ tags: [Interview]
 意图：定义一个创建对象的接口，让其子类自己决定实例化哪一个工厂类，工厂模式使其创建过程延迟到子类进行。
 所谓的工厂方法模式，就是定义一个工厂方法，通过传入的参数，返回某个实例，然后通过该实例来处理后续的业务逻辑。一般的，工厂方法的返回值类型是一个接口类型，而选择具体子类实例的逻辑则封装到了工厂方法中了。通过这种方式，来将外层调用逻辑与具体的子类的获取逻辑进行分离。
 
+    public class PeopleFactory {
+    
+        public People getPeople(String name){
+            if(name.equals("Xiaoming")){
+                return new Xiaoming();
+            }else if(name.equals("Xiaohong")){
+                return new Xiaohong();
+            }
+            return null;
+        }
+    }
+
 6.观察者模式
 
 当对象间存在一对多关系时，则使用观察者模式（Observer Pattern）。比如，当一个对象被修改时，则会自动通知它的依赖对象。观察者模式属于行为型模式。
@@ -200,6 +212,29 @@ tags: [Interview]
 8.策略模式
 
 策略模式就是一个接口下有多个实现类，而每种实现类会处理某一种情况。
+从工厂模式的代码中可以看到工厂模式主要是返回的接口实现类的实例化对象，最后返回的结果是接口实现类中的方法。
+而策略模式是在实例化策略模式的时候已经创建好了，我们可以在策略模式中随意的拼接重写方法，而工厂模式是不管方法的拼接这些的，只关注最后的结果不注重过程，而策略模式注重的是过程。
+
+    public class StrategySign {
+    
+        private People people;
+     
+        public StrategySign(People people){
+            this.people = people;
+        }
+     
+        public StrategySign(String name){
+            if(name.equals("Xiaoming")){
+                this.people = new Xiaoming();
+            }else if(name.equals("Xiaohong")){
+                this.people = new Xiaohong();
+            }
+        }
+     
+        public void run(){
+            people.run();
+        }
+    }
 
 9.实现低耦合就是对两类之间进行解耦，解耦的本质就是将类之间的直接关系转换成间接关系，不管是类向上转型，接口回调还是适配器模式都是在类之间加了一层，将原来的直接关系变成间接关系，使得两类对中间层是强耦合，两类之间变成弱耦合关系。
 
