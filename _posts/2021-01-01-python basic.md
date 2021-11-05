@@ -672,3 +672,9 @@ tags: [Python]
 3.[廖雪峰Python教程](https://www.liaoxuefeng.com/wiki/1016959663602400)
 
 4.[Unofficial Windows Binaries for Python Extension Packages](https://www.lfd.uci.edu/~gohlke/pythonlibs/)
+
+5.[W3school Numpy](https://www.w3school.com.cn/python/numpy_intro.asp)
+
+6.[NumPy官网](http://www.numpy.org.cn/)
+
+7.[菜鸟NumPy教程](https://www.runoob.com/numpy/numpy-tutorial.html)
