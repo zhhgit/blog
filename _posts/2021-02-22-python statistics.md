@@ -10,66 +10,13 @@ tags: [Python]
 # 一、基础
 
 1.统计与绘图
-
-    # 均值
-    import numpy
-    speed = [99,86,87,88,111,86,103,87,94,78,77,85,86]
-    x = numpy.mean(speed)
-    print(x)
-    
-    # 中值
-    import numpy    
-    speed = [99,86,87,88,111,86,103,87,94,78,77,85,86]
-    x = numpy.median(speed)
-    print(x)
     
     # 众数，输出的是ModeResult(mode=array([86]), count=array([3]))，分别是众数和出现次数
     from scipy import stats
     speed = [99,86,87,88,111,86,103,87,94,78,77,85,86]
     x = stats.mode(speed)
     print(x)
-    
-    # 方差σ^2
-    import numpy
-    speed = [32,111,138,28,59,77,97]
-    x = numpy.var(speed)
-    print(x)
 
-    # 标准差σ
-    import numpy
-    speed = [32,111,138,28,59,77,97]
-    x = numpy.std(speed)
-    print(x)
-
-    # 百分位数，即75%的数值小于等于该值
-    import numpy
-    ages = [5,31,43,48,50,41,7,11,15,39,80,82,32,2,8,6,25,36,27,61,31]
-    x = numpy.percentile(ages, 75)
-    print(x)
-    
-    # 生成随机分布数据集并绘制直方图
-    import numpy
-    import matplotlib.pyplot as plt
-    # 生成随机分布数据集，0.0-5.0之前的数，250个数
-    x = numpy.random.uniform(0.0, 5.0, 250)
-    # 绘制直方图，参数5跟上面的5.0没有关系，是指格子数，即分布划分为5个区间。
-    plt.hist(x, 5)
-    plt.show()
-    
-    # 创建正态分布数据集，创建的数组（具有 100000 个值）绘制具有 100 栏的直方图。平均值为5.0，标准差为1.0。
-    import numpy
-    import matplotlib.pyplot as plt
-    x = numpy.random.normal(5.0, 1.0, 100000)
-    plt.hist(x, 100)
-    plt.show()
-    
-    # 绘制散点图
-    import numpy
-    import matplotlib.pyplot as plt
-    x = numpy.random.normal(5.0, 1.0, 1000)
-    y = numpy.random.normal(10.0, 2.0, 1000)
-    plt.scatter(x, y)
-    plt.show()
     
     # 绘制线性回归线
     import matplotlib.pyplot as plt
