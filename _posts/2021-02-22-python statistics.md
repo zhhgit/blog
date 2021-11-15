@@ -11,13 +11,6 @@ tags: [Python]
 
 1.统计与绘图
     
-    # 众数，输出的是ModeResult(mode=array([86]), count=array([3]))，分别是众数和出现次数
-    from scipy import stats
-    speed = [99,86,87,88,111,86,103,87,94,78,77,85,86]
-    x = stats.mode(speed)
-    print(x)
-
-    
     # 绘制线性回归线
     import matplotlib.pyplot as plt
     from scipy import stats
