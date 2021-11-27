@@ -159,7 +159,7 @@ Android平台会检查Java JDK，Android SDK，Android target，Gradle这几个�
         <description>
             Demo1
         </description>
-        <author email="zhh900601@sina.com" href="http://zhanghao90.cn">
+        <author email="zhh900601@sina.com" href="http://zhanghao90.top">
             zhanghao
         </author>
         <content src="index.html" />

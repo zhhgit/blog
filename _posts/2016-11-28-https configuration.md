@@ -13,22 +13,22 @@ tags: [Web]
 
 # 二、HTTPS证书
 
-通过腾讯云SSL证书管理申请，针对某个二级域名。验证的方式是通过添加一条新的域名解析，CNAME类型，主机记录例如为s2hw3l7imz8ihypx307fdm7fxicap6pj.wechat，记录值例如为s20161121111701.wechat.zhanghao90.cn。(腾讯云验证方式有变化，具体看其官方文档)
+通过腾讯云SSL证书管理申请，针对某个二级域名。验证的方式是通过添加一条新的域名解析，CNAME类型，主机记录例如为s2hw3l7imz8ihypx307fdm7fxicap6pj.wechat，记录值例如为s20161121111701.wechat.zhanghao90.top。(腾讯云验证方式有变化，具体看其官方文档)
 
 # 三、Apache配置
 
 SSL证书安装参考[这里](https://www.qcloud.com/document/product/400/4143#1.-apache-2.x.E8.AF.81.E4.B9.A6.E9.83.A8.E7.BD.B2)，修改conf/extra/httpd-ssl.conf文件如下：
 
-	<VirtualHost wechat.zhanghao90.cn:443>
+	<VirtualHost wechat.zhanghao90.top:443>
 	    DocumentRoot "C:/xampp/htdocs"
-	    ServerName wechat.zhanghao90.cn:443
+	    ServerName wechat.zhanghao90.top:443
 	    SSLEngine on
 	    SSLCertificateFile "sslConfig/Apache/2_www.domain.com_cert.crt"
 	    SSLCertificateKeyFile "sslConfig/Apache/3_www.domain.com.key"
 	    SSLCertificateChainFile "sslConfig/Apache/1_root_bundle.crt"
 	</VirtualHost>
 
-需要注意的是一定要用默认的443端口！至此已经可以通过https://wechat.zhanghao90.cn访问htdocs目录下的文件。
+需要注意的是一定要用默认的443端口！至此已经可以通过https://wechat.zhanghao90.top访问htdocs目录下的文件。
 
 在阿里云Linux机器上安装XAMPP后，需要这样配置才能生效。
 

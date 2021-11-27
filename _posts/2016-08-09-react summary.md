@@ -39,7 +39,7 @@ SimpleComponent.js:
         componentDidMount(){
             $.ajax({
                 type: 'GET',
-                url: "http://zhanghao90.cn/interface1",
+                url: "http://zhanghao90.top/interface1",
                 contentType: "application/json; charset=utf-8",
                 data: {},
                 dataType: 'json',
