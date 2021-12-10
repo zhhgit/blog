@@ -105,14 +105,17 @@ tags: [BigData]
 
 (2)[Hadoop教程](https://www.w3cschool.cn/hadoop/)
 
+(3)[Hadoop FileSystem Shell](https://hadoop.apache.org/docs/r3.1.4/hadoop-project-dist/hadoop-common/FileSystemShell.html)
+
 # HBase
 
 1.安装HBase
 
-    docker cp /Users/zhanghao/zhhroot/download/software/hbase-2.2.7-bin.tar.gz hadoop_single:/
-    docker exec -it hadoop_single bash
+    docker cp /Users/zhanghao/zhhroot/download/software/hbase-2.2.7-bin.tar.gz hbase_single:/
+    docker exec -it hbase_single su hadoop
+    # root用户安装然后chown
     tar -zxf hbase-2.2.7-bin.tar.gz
-    mv hbase-2.2.7-bin /usr/local/hbase
+    mv hbase-2.2.7 /usr/local/hbase
     # 修改hbase-env.sh
     cd /usr/local/hbase/conf
     vim hbase-env.sh
@@ -135,17 +138,19 @@ tags: [BigData]
         <name>hbase.rootdir</name>
         <value>hdfs://172.17.0.2:9000/hbase</value>
     </property>
+
+    chown -R hadoop /usr/local/hbase
     # 启动hbase
     cd /usr/local/hbase/bin
-    start-hbase.sh
+    sh start-hbase.sh
     # 检查在HDFS的HBase目录
     hadoop fs -ls /hbase
     # 启动HBase shell
     cd /usr/local/hbase
     ./bin/hbase shell
     # 停止容器，并保存为一个名为hbase_proto的镜像：
-    docker stop hadoop_single
-    docker commit hadoop_single hbase_proto
+    docker stop hbase_single
+    docker commit hbase_single hbase_proto
 
 2.参考
 
@@ -157,9 +162,9 @@ tags: [BigData]
 
 1.安装Hive
 
-    docker run -d --name=hbase_single --privileged hbase_proto /usr/sbin/init
-    docker cp /Users/zhanghao/zhhroot/download/software/apache-hive-3.1.2-bin.tar.gz hbase_single:/
-    docker exec -it hbase_single bash
+    docker run -d --name=hive_single --privileged hbase_proto /usr/sbin/init
+    docker cp /Users/zhanghao/zhhroot/download/software/apache-hive-3.1.2-bin.tar.gz hive_single:/
+    docker exec -it hive_single bash
     tar -zxf apache-hive-3.1.2-bin.tar.gz
     mv apache-hive-3.1.2-bin /usr/local/hive
     # 配置环境变量
@@ -202,9 +207,14 @@ tags: [BigData]
     </configuration>
 
     # 配置mysql jdbc包
-    cp mysql-connector-java-8.0.26-bin.jar /usr/local/hive/lib
+    docker cp /Users/zhanghao/zhhroot/download/software/mysql-connector-java-8.0.26-bin.jar /usr/local/hive/lib
+
+    chown -R hadoop /usr/local/hive
+    su - hadoop
+    
     # Metastore初始化
     cd /usr/local/hive
+    # 可能出现错误，见特别注意
     ./bin/schematool -dbType mysql -initSchema
     # 配置HDFS文件夹权限
     hadoop fs -mkdir /tmp
@@ -215,19 +225,40 @@ tags: [BigData]
     cd $HIVE_HOME
     ./bin/hive
 
+    # 停止容器，并保存为镜像：
+    docker stop hive_single
+    docker commit hive_single hive_proto
+
 2.配置MySQL Metastore
 
     docker pull hub.c.163.com/library/mysql:5.7
     docker run --name mysql_single -e MYSQL_ROOT_PASSWORD=123456 -d hub.c.163.com/library/mysql:5.7
     # 从172.17.0.2上用MySQL客户端连接MySQL服务
-    mysql -h 172.17.0.3 -u root -p
+    yum install mysql
+    mysql -h 172.17.0.3 -P 3306 -u root -p123456 --ssl-mode=DISABLED
     create database hive;
     # 将所有数据库的所有表的所有权限赋给root用户，后面的hive是配置hive-site.xml中配置的连接密码
-    grant all on *.* to root@% identified by '123456'; 
+    grant all privileges on *.* to 'root'@'%' identified by '123456';
     # 刷新mysql系统权限关系表
     flush privileges;
 
-3.参考
+3.特别注意
+
+    Exception in thread "main" java.lang.NoSuchMethodError: com.google.common.base.Preconditions.checkArgument(ZLjava/lang/String;Ljava/lang/Object;)V
+    at org.apache.hadoop.conf.Configuration.set(Configuration.java:1380)
+    ...
+    at org.apache.hadoop.util.RunJar.main(RunJar.java:236)
+
+    原因：
+    hadoop和hive的两个guava.jar版本不一致
+    两个位置分别位于下面两个目录：
+    /usr/local/hive/lib/
+    /usr/local/hadoop/share/hadoop/common/lib/
+
+    解决办法：
+    删除低版本的那个，将高版本的复制到低版本目录下
+
+4.参考
 
 (1)[易百Hive教程](https://www.yiibai.com/hive)
 

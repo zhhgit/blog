@@ -9,9 +9,9 @@ tags: [Web]
 
 # 一、Chrome开启跨域模式
 
-在chrome快捷方式，目标里如下设置
+Win10：新建ChromeData目录，在chrome快捷方式，目标里如下设置
 
-	"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe" --args --disable-web-security --user-data-dir
+    C:\Users\xyzq\AppData\Local\Google\Chrome\Application\chrome.exe --disable-web-security --user-data-dir=C:\Users\xyzq\AppData\Local\Google\ChromeData
 
 # 二、解决方法
 
