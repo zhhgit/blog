@@ -1356,6 +1356,8 @@ N.参考
 
 (6)[Mybatis-plus教程](https://mp.baomidou.com/guide/)
 
+(7)[易百Mybatis教程](https://www.yiibai.com/mybatis)
+
 # Netty
 
 1.什么是Netty的零拷贝
