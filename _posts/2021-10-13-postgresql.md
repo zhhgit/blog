@@ -7,7 +7,7 @@ category: Database
 tags: [Database]
 ---
 
-# 基础
+# 一、基础
 
     -- 查看版本
     SELECT version();
@@ -107,7 +107,7 @@ tags: [Database]
     select organization_id from obj where
     obj.rec_status = '1'
 
-# 参考
+# 二、参考
 
 1.[为什么“去O”唯有PG](https://dbaplus.cn/news-19-2765-1.html)
 
