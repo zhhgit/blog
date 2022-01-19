@@ -107,6 +107,8 @@ tags: [BigData]
 
 (3)[Hadoop FileSystem Shell](https://hadoop.apache.org/docs/r3.1.4/hadoop-project-dist/hadoop-common/FileSystemShell.html)
 
+(4)[执行start-dfs.sh，namenode无法启动](https://www.cnblogs.com/jichui/p/7777832.html)
+
 # HBase
 
 1.安装HBase

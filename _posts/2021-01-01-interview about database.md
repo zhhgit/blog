@@ -239,7 +239,7 @@ MySQL默认的字符检索策略：utf8_general_ci，表示不区分大小写。
 (1)可以使用utf8_general_cs，表示区分大小写，也可以使用utf8_bin，表示二进制比较，同样也区分大小写。创建表时，直接设置表的collate属性为utf8_general_cs或者utf8_bin；如果已经创建表，则直接修改字段的Collation属性为utf8_general_cs或者utf8_bin。
 
     -- 创建表：
-    CREATE TABLE testt(
+    CREATE TABLE test(
     id INT PRIMARY KEY,
     name VARCHAR(32) NOT NULL
     ) ENGINE = INNODB COLLATE =utf8_bin;
