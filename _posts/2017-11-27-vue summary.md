@@ -1,10 +1,10 @@
 ---
 layout: post
-title: "使用Vuex"
-description: 使用Vuex
+title: "Vue基础"
+description: Vue基础
 modified: 2017-11-27
-category: FrontEnd
-tags: [FrontEnd]
+category: Vue
+tags: [Vue]
 ---
 
 实践了一下用Vue做项目。官方文档确实很详细。

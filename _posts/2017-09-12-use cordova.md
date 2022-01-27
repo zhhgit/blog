@@ -1,7 +1,7 @@
 ---
 layout: post
-title: "使用Cordova"
-description: 使用Cordova
+title: "Cordova基础"
+description: Cordova基础
 modified: 2017-09-12
 category: FrontEnd
 tags: [FrontEnd]

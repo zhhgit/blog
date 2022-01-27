@@ -7,7 +7,7 @@ category: BigData
 tags: [BigData]
 ---
 
-# Hadoop
+# 一、Hadoop
 
 1.基本环境配置
 
@@ -70,11 +70,20 @@ tags: [BigData]
     # 在启动HDFS以前我们对其进行一些简单配置，
     cd $HADOOP_HOME/etc/hadoop
     # 修改两个文件：core-site.xml，hdfs-site.xml
-    在core-site.xml中在标签下添加属性
+
+    cd /usr/local/hadoop
+    mkdir hadoop_tmp
+    # 在core-site.xml中在标签下添加属性
     <property>
         <name>fs.defaultFS</name>
         <value>hdfs://172.17.0.2:9000</value>
     </property>
+    # 解决namenode无法启动问题，添加如下
+    <property>
+        <name>hadoop.tmp.dir</name>
+        <value>/usr/local/hadoop/hadoop_tmp</value>
+    </property>
+
     # 在hdfs-site.xml中的标签下添加属性
     <property>
         <name>dfs.replication</name>
@@ -109,7 +118,7 @@ tags: [BigData]
 
 (4)[执行start-dfs.sh，namenode无法启动](https://www.cnblogs.com/jichui/p/7777832.html)
 
-# HBase
+# 二、HBase
 
 1.安装HBase
 
@@ -160,7 +169,7 @@ tags: [BigData]
 
 (2)[易百HBase教程](https://www.yiibai.com/hbase)
 
-# Hive
+# 三、Hive
 
 1.安装Hive
 

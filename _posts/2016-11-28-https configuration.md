@@ -3,8 +3,8 @@ layout: post
 title: "HTTPS配置"
 description: HTTPS配置
 modified: 2016-11-28
-category: Web
-tags: [Web]
+category: Linux
+tags: [Linux]
 ---
 
 # 一、二级域名

@@ -680,3 +680,5 @@ tags: [Python]
 7.[菜鸟NumPy教程](https://www.runoob.com/numpy/numpy-tutorial.html)
 
 8.[厦门大学数据库实验室Python入门教程](http://dblab.xmu.edu.cn/blog/python/)
+
+9.[莫烦Python](https://mofanpy.com/)

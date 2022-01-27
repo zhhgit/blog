@@ -3,8 +3,8 @@ layout: post
 title: "跨域"
 description: 跨域
 modified: 2015-07-09
-category: Web
-tags: [Web]
+category: FrontEnd
+tags: [FrontEnd]
 ---
 
 # 一、Chrome开启跨域模式
