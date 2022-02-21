@@ -1,7 +1,7 @@
 ---
 layout: post
-title: "后端开发面试题 -- 框架篇"
-description: 后端开发面试题 -- 框架篇
+title: "面试题 -- 框架篇"
+description: 面试题 -- 框架篇
 modified: 2021-01-01
 category: Interview
 tags: [Interview]
@@ -336,6 +336,22 @@ Spring为此提供了一个org.springframework.bean.factory.FactoryBean的工厂
     T getObject()：返回由FactoryBean创建的Bean实例，如果isSingleton()返回true，则该实例会放到Spring容器中单实例缓存池中；
     boolean isSingleton()：返回由FactoryBean创建的Bean实例的作用域是singleton还是prototype；
     Class<T> getObjectType()：返回FactoryBean创建的Bean类型。
+
+13.动态添加Bean到容器中
+
+    // 或者直接获取Autowired注入的applicationContext
+    ApplicationContext applicationContext = new ClassPathXmlApplicationContext("applicationContext.xml");
+	// 将applicationContext转换为ConfigurableApplicationContext
+	ConfigurableApplicationContext configurableApplicationContext = (ConfigurableApplicationContext) applicationContext;
+	// 获取bean工厂并转换为DefaultListableBeanFactory
+	DefaultListableBeanFactory defaultListableBeanFactory = (DefaultListableBeanFactory) configurableApplicationContext.getBeanFactory();
+	// 通过BeanDefinitionBuilder创建bean定义
+	BeanDefinitionBuilder beanDefinitionBuilder = BeanDefinitionBuilder.genericBeanDefinition(ONE_CLASS.class);
+	// 设置属性值或者引用
+	beanDefinitionBuilder.addPropertyValue("propertyKey", "propertyValue");
+	beanDefinitionBuilder.addPropertyReference("propertyKey", "anotherBeanName");
+	// 注册bean
+	defaultListableBeanFactory.registerBeanDefinition("beanId",beanDefinitionBuilder.getBeanDefinition());
 
 N.参考
 
@@ -1478,3 +1494,28 @@ Log4j 2.5 引入了DeleteAction，使用户可以自己控制删除哪些文件�
 上述配置文件中，Delete部分便是配置DeleteAction的删除策略，指定了当触发rollover时，删除baseDir文件夹或其子文件下面的文件名符合app-*.log.gz且距离最后的修改日期超过60天的文件。
 其中，basePath指定了扫描开始路径，为baseDir文件夹。maxDepth指定了目录扫描深度，为2表示扫描baseDir文件夹及其子文件夹。
 IfFileName指定了文件名需满足的条件，IfLastModified指定了文件修改时间需要满足的条件。
+
+# Struts2
+
+1.Spring Struts2 iBatis整合的工程中新增接口
+
+    # 数据层：
+    1.修改 resources/ibatis/sqlmap-config-updsdb.xml  //指定新增的ibatis的xml文件，也就是2
+    2.新增 resources/ibatis/TblPpdataAt.xml   //新增的ibatis的xml文件
+    3.修改 resources/spring/db/updsdb.xml //实例化数据层DAO，也就是4
+    4.新增 cn.zhanghao90.nmg.service.dao.TblPpdataAtDao    //新增的数据访问DAO
+    5.新增 cn.zhanghao90.nmg.service.entity.TblPpdataAt    //新增的领域对象，数据实体
+
+    # 服务层：
+    6.新增 resources/spring/bo/ppdata.xml //新增的服务层spring xml文件，实例化服务层对象，也就是8
+    7.新增 cn.zhanghao90.nmg.service.bo.PpdataAtBo //新增的服务层接口
+    8.新增 cn.zhanghao90.nmg.service.bo.impl.PpdataAtBoImpl    //新增的服务层实现类
+    
+    # 控制层：
+    9.修改 resources/struts.xml   //指定新增的控制层struts的xml文件，也就是10
+    10.新增 resources/struts/ppdata.xml   //新增的控制层struts xml文件
+    11.修改 resources/spring/action/action.xml    //实例化控制层action，也就是12
+    12.新增 cn.zhanghao90.nmg.service.action.PpdataAction  //新增的控制层action
+    
+    # 访问权限：
+    13.修改 cn.zhanghao90.nmg.service.interceptor.LoginInterceptor		//修改访问权限控制

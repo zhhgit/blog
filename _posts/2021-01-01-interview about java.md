@@ -1,7 +1,7 @@
 ---
 layout: post
-title: "后端开发面试题 -- Java篇"
-description: 后端开发面试题 -- Java篇
+title: "面试题 -- Java篇"
+description: 面试题 -- Java篇
 modified: 2021-01-01
 category: Interview
 tags: [Interview]
@@ -945,6 +945,108 @@ java spi提供这样的一个机制：为某个接口寻找服务实现的机制
 JDK标准的SPI会一次性实例化扩展点所有实现，如果有扩展实现初始化很耗时，但如果没用上也加载，会很浪费资源；
 JDK的SPI机制没有Ioc和AOP的支持，因此dubbo用了自己的spi机制：增加了对扩展点IoC和AOP的支持，一个扩展点可以直接setter注入其它扩展点。
 
+6.动态代理
+
+共有两种方式，JDK动态代理和CGLIB动态代理。
+
+普通的接口与实现类：
+
+	public interface ComputeService {
+	     int add(int num1, int num2);
+	}
+
+	public class ComputeServiceImpl implements ComputeService {
+
+	    @Override
+	    public int add(int num1, int num2) {
+	        int sum = num1 + num2;
+	        System.out.println("结果：" + sum);
+	        return sum;
+	    }
+	}
+
+(1)JDK动态代理
+
+    public class JDKProxySample implements InvocationHandler {
+    
+        private Object target;
+    
+        /**
+         * 绑定原实现类
+         * @param target 原实现类
+         * @return 代理类
+         */
+        public Object bind(Object target){
+            this.target = target;
+            return Proxy.newProxyInstance(target.getClass().getClassLoader(),target.getClass().getInterfaces(),this);
+        }
+    
+        /**
+         * 定义代理类执行逻辑
+         * @param proxy bind方法生成的代理对象
+         * @param method 当前调度方法
+         * @param args 调度方法的参数
+         * @return 方法返回值
+         * @throws Throwable
+         */
+        @Override
+        public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+            System.out.println("before method");
+            // 这里的ret是方法实际的返回值
+            Object ret = method.invoke(target,args);
+            System.out.println("after method");
+            return ret;
+        }
+    }
+    
+    public class Test1 {
+    
+        public static void main(String[] args){
+            ComputeService proxy =(ComputeService) new JDKProxySample().bind(new ComputeServiceImpl());
+            proxy.add(1,4);
+        }
+    }
+
+(2)CGLIB动态代理
+
+    public class CglibProxySample implements MethodInterceptor {
+    
+        public Object bind(Object target){
+            Enhancer enhancer = new Enhancer();
+            // 设置父类
+            enhancer.setSuperclass(target.getClass());
+            // 设置回调，在调用父类方法时，回调 this.intercept()
+            enhancer.setCallback(this);
+            // 创建代理对象
+            return enhancer.create();
+        }
+    
+        /**
+         *
+         * @param o 代理对象
+         * @param method 方法
+         * @param objects 方法参数
+         * @param methodProxy 方法代理
+         * @return 返回值
+         * @throws Throwable
+         */
+        @Override
+        public Object intercept(Object o, Method method, Object[] objects, MethodProxy methodProxy) throws Throwable {
+            System.out.println("before method");
+            Object ret = methodProxy.invokeSuper(o,objects);
+            System.out.println("after method");
+            return ret;
+        }
+    }
+    
+    public class Test2 {
+    
+        public static void main(String[] args){
+            ComputeService proxy =(ComputeService) new CglibProxySample().bind(new ComputeServiceImpl());
+            proxy.add(1,4);
+        }
+    }
+
 N.参考
 
 (1)[什么是反射](https://www.cnblogs.com/abcdjava/p/11146473.html)
@@ -1241,11 +1343,106 @@ Servlet使用的是模板方法的设计模式，在Servlet顶层将会调用ser
       }
     }
 
+6.WebService
+
+(1)WebService服务端
+
+WebService接口
+
+	package cn.zhanghao90.wsserver.service;
+
+	import javax.jws.WebMethod;
+
+	@javax.jws.WebService
+	public interface WebService {
+		@WebMethod
+		String sayHello(String word);
+	}
+
+WebService实现类
+
+	package cn.zhanghao90.wsserver.service;
+
+	@javax.jws.WebService
+	public class WebServiceImpl implements WebService {
+
+		@Override
+		public String sayHello(String word) {
+			String ret = "hello " + word;
+			return ret;
+		}
+
+	}
+
+在Controller的publish方法中发布服务
+
+	package cn.zhanghao90.wsserver.controller;
+
+	import javax.xml.ws.Endpoint;
+
+	import org.springframework.stereotype.Controller;
+	import org.springframework.web.bind.annotation.RequestMapping;
+
+	@Controller
+	public class HomeController {
+		
+		@RequestMapping("/index")
+		public String index() {
+			return "demo";
+		}
+		
+		@RequestMapping("/publish")
+		public void publish(){
+			String address = "http://localhost:8082/wsserver/webservice";
+			Endpoint.publish(address,new cn.zhanghao90.wsserver.service.WebServiceImpl());
+			System.out.println("success publish");
+		}
+		
+	}
+
+在浏览器中输入http://localhost:8081/webserver/publish，发布webservice服务到http://localhost:8082/wsserver/webservice。
+在浏览器中输入http://localhost:8082/wsserver/webservice?wsdl可以看到wsdl文件。
+
+(2)WebService客户端
+
+使用wsimport工具可以根据wsdl文件生成客户端代码。命令如下，其中-s代表目标目录，-p代表package。
+
+	wsimport -s D:\zhanghao\work\spare\workspace\ws_spare\wsclient\src\main\java -p cn.zhanghao90.wsclient.ws -keep http://localhost:8082/wsserver/webservice?wsdl
+
+在另一个工程wsclient中调用sayHello方法
+
+	package cn.zhanghao90.wsclient.controller;
+
+	import java.util.HashMap;
+	import java.util.Map;
+
+	import org.springframework.stereotype.Controller;
+	import org.springframework.web.bind.annotation.RequestMapping;
+	import cn.zhanghao90.wsclient.util.JsonUtil;
+	import cn.zhanghao90.wsclient.ws.WebServiceImpl;
+	import cn.zhanghao90.wsclient.ws.WebServiceImplService;
+	import cn.zhanghao90.wsclient.wsglfil.FileSendManageWSImpl;
+	import cn.zhanghao90.wsclient.wsglfil.FileSendManageWSImplService;
+
+	@Controller
+	public class HomeController {
+
+		@RequestMapping("/call")
+		public String call(String ret){
+			WebServiceImplService webServiceImplService = new WebServiceImplService();
+			WebServiceImpl port = webServiceImplService.getWebServiceImplPort();
+			String retString = port.sayHello("world");
+			return retString;
+		}	
+	}
+
 N.参考
 
 (1)[JSP内置对象——pageContext对象](https://www.jellythink.com/archives/208)
 
 (2)[JSP九大内置对象及其作用域](https://my.oschina.net/hp2017/blog/1932026)
+
+(3)[极致精简的webservice例子](https://www.cnblogs.com/fengwenzhee/p/6915606.html)
 
 # Java新特性
 

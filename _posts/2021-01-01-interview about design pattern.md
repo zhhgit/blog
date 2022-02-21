@@ -1,7 +1,7 @@
 ---
 layout: post
-title: "后端开发面试题 -- 设计模式篇"
-description: 后端开发面试题 -- 设计模式篇
+title: "面试题 -- 设计模式篇"
+description: 面试题 -- 设计模式篇
 modified: 2021-01-01
 category: Interview
 tags: [Interview]

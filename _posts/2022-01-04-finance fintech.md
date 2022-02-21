@@ -1,7 +1,7 @@
 ---
 layout: post
-title: "金融科技系统"
-description: 金融科技系统
+title: "金融科技"
+description: 金融科技
 modified: 2022-01-04
 category: Finance
 tags: [Finance]
