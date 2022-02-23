@@ -95,9 +95,9 @@ I/O多路复用程序负责监听多个套接字，并向文件事件分派器�
 
 9.使用Redis的方式
 
-UP：使用RedisConnector工具类，JedisBalancer线程池中获取连接，直接用Jedis。
-RedisTemplate：opsForValue()、opsForHash()、opsForList()、opsForSet()、opsForZSet()
-缓存注解：使用Spring Cache集成Redis（也就是注解的方式）。
+    UP：使用RedisConnector工具类，JedisBalancer线程池中获取连接，直接用Jedis。
+    RedisTemplate：opsForValue()、opsForHash()、opsForList()、opsForSet()、opsForZSet()
+    缓存注解：使用Spring Cache集成Redis（也就是注解的方式）。
 
 10.关于Redis新版本开始引入多线程
 
@@ -252,6 +252,55 @@ redis提供了“发布、订阅”模式的消息机制，其中消息订阅者
             }
         }
     }
+
+16.安装与使用
+
+下载并安装Redis-x64-3.2.100.msi。安装好后进入C:\Program Files\Redis目录，启动Redis
+
+	redis-server.exe redis.windows.conf
+
+另开一个命令窗口，进行简单数据存取
+
+	//存
+	set age 26
+	//读
+	get age
+
+17.Spring中配置
+
+root-context.xml中Redis的配置：
+
+	<?xml version="1.0" encoding="UTF-8"?>
+	<beans xmlns="http://www.springframework.org/schema/beans"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+		xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+					http://www.springframework.org/schema/context
+					 http://www.springframework.org/schema/context/spring-context-3.2.xsd
+					http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.2.xsd">
+		<!-- Root Context: defines shared resources visible to all other web components -->
+		
+		<!-- 加载Redis配置 -->
+	    <context:property-placeholder ignore-unresolvable="true" location="classpath:redis.properties" />
+
+	    <bean id="jedisPoolConfig" class="redis.clients.jedis.JedisPoolConfig">
+	        <property name="maxIdle" value="300"/> <!--最大能够保持idel状态的对象数-->
+	        <property name="maxTotal" value="60000"/><!--最大分配的对象数-->
+	        <property name="testOnBorrow" value="true"/><!--当调用borrow Oject方法时，是否进行有效性检查-->
+	    </bean>
+
+	    <bean id="jedisPool" class="redis.clients.jedis.JedisPool">
+	        <constructor-arg index="0" ref="jedisPoolConfig"/>
+	        <constructor-arg index="1" value="${redis.host}"/>
+	        <constructor-arg index="2" value="${redis.port}" type="int"/>
+	        <constructor-arg index="3" value="${redis.timeout}" type="int"/>
+	    </bean>
+	</beans>
+
+其中的redis.properties文件是Redis配置文件：
+
+	redis.host = localhost
+	redis.port = 6379
+	redis.timeout=30000
 
 # Redis数据结构与操作
 

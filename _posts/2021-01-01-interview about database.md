@@ -543,6 +543,20 @@ ENUM在内部存储时，其实存的是整数。
     通过步骤一的连接，发送结果到客户端。
     关掉连接，释放资源
 
+34.数据库备份
+
+    # MySQL
+    # 备份单表结构和数据
+    mysqldump -h 127.0.0.1 -P 9000 -u username database_name table_name -p > ./table_name_new.sql
+    # 备份单表结构
+    mysqldump -h 127.0.0.1 -P 9000 -u username -d database_name table_name -p > ./table_name_new.sql
+    # 导入到新库中
+    create database database_name_new;
+    use database_name_new;
+    source ./table_name_new.sql
+    # 备份指定库结构和数据
+    mysqldump -h 127.0.0.1 -P 9000 -u username --databases database_name -p > ./table_name_new.sql
+
 N.参考
 
 (1)[Java面试题之数据库三范式是什么？](https://www.cnblogs.com/marsitman/p/10162231.html)

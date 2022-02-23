@@ -176,3 +176,243 @@ Asks这个参数是生产者客户端的重要配置，发送消息的时候就�
 第一种是设为0，意思是生产者把消息发送出去之后，之后这消息是死是活咱就不管了，有那么点发后即忘的意思，说出去的话就不负责了。不负责自然这消息就有可能丢失，那就把可用性也丢失了。
 第二种是设为1，意思是生产者把消息发送出去之后，这消息只要顺利传达给了Leader，其他Follower有没有同步就无所谓了。存在一种情况，Leader刚收到了消息，Follower还没来得及同步Broker就宕机了，但生产者已经认为消息发送成功了，那么此时消息就丢失了。注意，设为1是Kafka的默认配置。可见Kafka的默认配置也不是那么高可用，而是对高可用和高吞吐量做了权衡折中。
 第三种是设为All（或者-1），意思是生产者把消息发送出去之后，不仅Leader要接收到，ISR列表中的Follower也要同步到，生产者才会任务消息发送成功。进一步思考，Asks=All就不会出现丢失消息的情况吗？答案是否。当ISR列表只剩Leader的情况下，Asks=All相当于Asks=1，这种情况下如果节点宕机了，还能保证数据不丢失吗？因此只有在Asks=All并且有ISR中有两个副本的情况下才能保证数据不丢失。
+
+6.安装与简单使用
+
+(1)安装
+
+    // 参考[这里](https://blog.csdn.net/u010283894/article/details/77106159)。
+    
+    // 启动ZooKeeper
+    cd D:\zookeeper\zookeeper-3.4.12\bin
+    zkserver
+    
+    // 运行Kafka
+    cd D:\kafka\kafka_2.11-0.10.0.0
+    .\bin\windows\kafka-server-start.bat .\config\server.properties
+    
+    // 主题相关
+    // 新建主题：
+    cd D:\kafka\kafka_2.11-0.10.0.0\bin\windows
+    kafka-topics.bat --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic test001
+    // 显示已有主题：
+    kafka-topics.bat --list --zookeeper localhost:2181
+    // 显示主题详细信息：
+    kafka-topics.bat --describe --zookeeper localhost:2181
+
+    // 启动生产者
+    cd D:\kafka\kafka_2.11-0.10.0.0\bin\windows
+    kafka-console-producer.bat --broker-list localhost:9092 --topic test001
+
+    // 启动消费者
+    cd D:\kafka\kafka_2.11-0.10.0.0\bin\windows
+    kafka-console-consumer.bat --zookeeper localhost:2181 --topic test001
+
+    // 在生产者中输入任何信息，消费者中会显示相应的信息。
+
+(2)Java实例
+
+在应用启动实例化MessageController时，启动消费者线程。
+
+    package zhanghao90.horizon.admin.controller.tool;
+
+    import com.alibaba.fastjson.JSON;
+    import com.alibaba.fastjson.JSONObject;
+    import org.springframework.stereotype.Controller;
+    import org.springframework.web.bind.annotation.*;
+    import zhanghao90.horizon.admin.constants.AdminConstant;
+    import zhanghao90.horizon.admin.controller.BaseController;
+    import zhanghao90.horizon.common.common.Resp;
+    import zhanghao90.horizon.common.exception.SimpleException;
+    import zhanghao90.horizon.common.plugin.kafka.KafkaUtil;
+
+    /**
+     * kafka消息发送
+     */
+
+    @Controller
+    @RequestMapping("message")
+    public class MessageController extends BaseController{
+
+
+        static {
+            // 实例化controller时就启动消费者
+            KafkaUtil.startMessageConsumer(AdminConstant.KAFKA_TOPIC);
+        }
+
+        /**
+         * 消息页面
+         * @return 页面
+         */
+        @RequestMapping(value = {"/","/index"})
+        public String index(){
+            return "/tool/message/index";
+        }
+
+
+        /**
+         * 发送消息
+         * @param params JSON参数
+         * @return JSON应答
+         */
+        @RequestMapping(value = "sendMessage",method = RequestMethod.POST)
+        public @ResponseBody String sendMessage(@RequestBody String params){
+            JSONObject paramsObj = JSONObject.parseObject(params);
+            String topic = AdminConstant.KAFKA_TOPIC;
+            String message = paramsObj.getString("message");
+
+            JSONObject data = new JSONObject();
+            Resp resp = new Resp(AdminConstant.RESP_ERROR_CODE_DEFAULT, AdminConstant.RESP_ERROR_MSG_DEFAULT,data);
+            try {
+                KafkaUtil.sendMessage(topic,message);
+                resp.setRespCode(AdminConstant.RESP_SUCCESS_CODE);
+                resp.setRespMsg(AdminConstant.RESP_SUCCESS_MSG);
+            }
+            catch (SimpleException e){
+                resp.setRespCode(e.getErrCode());
+                resp.setRespMsg(e.getErrMsg());
+            }
+            catch (Exception e){
+                e.printStackTrace();
+                resp.setRespMsg(e.getMessage());
+            }
+            return JSON.toJSONString(resp);
+        }
+
+    }
+
+调用KafkaUtil中的sendMessage方法可以发送消息。
+
+    package zhanghao90.horizon.common.plugin.kafka;
+
+    import org.apache.kafka.clients.consumer.ConsumerConfig;
+    import org.apache.kafka.clients.consumer.ConsumerRecord;
+    import org.apache.kafka.clients.consumer.ConsumerRecords;
+    import org.apache.kafka.clients.consumer.KafkaConsumer;
+    import org.apache.kafka.clients.producer.*;
+    import org.apache.kafka.common.serialization.StringDeserializer;
+    import org.apache.kafka.common.serialization.StringSerializer;
+    import org.apache.log4j.Logger;
+    import zhanghao90.horizon.common.constants.CommonConstant;
+    import zhanghao90.horizon.common.exception.SimpleException;
+    import zhanghao90.horizon.common.util.PropertiesUtil;
+    import java.util.Arrays;
+    import java.util.Properties;
+
+    public class KafkaUtil {
+
+        private static Logger logger = Logger.getLogger(KafkaUtil.class);
+        private static Properties producerConfigs = initProducerConfig();
+        private static Properties consumerConfigs = initConsumerConfig();
+        private static KafkaProducer<String,String> producer = null;
+        private static KafkaConsumer<String,String> consumer = null;
+
+
+        /**
+         * 生产者初始化配置
+         * @return 配置
+         */
+        private static Properties initProducerConfig(){
+            Properties properties = new Properties();
+            String brokerList = PropertiesUtil.getConfigInfo("kafka.host") + ":" +  PropertiesUtil.getConfigInfo("kafka.port");
+            properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, brokerList);
+            properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+            properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,StringSerializer.class.getName());
+            return properties;
+        }
+
+        /**
+         * 消费者初始化配置
+         * @return 配置
+         */
+        private static Properties initConsumerConfig(){
+            Properties properties = new Properties();
+            String brokerList = PropertiesUtil.getConfigInfo("kafka.host") + ":" +  PropertiesUtil.getConfigInfo("kafka.port");
+            properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, brokerList);
+            properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
+            properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,StringDeserializer.class.getName());
+            properties.setProperty(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
+            /*properties.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");*/
+            properties.put(ConsumerConfig.GROUP_ID_CONFIG,"0");
+            return properties;
+        }
+
+
+        /**
+         * 发送kafka消息到指定的topic
+         * @param topic topic
+         * @param message 消息
+         * @throws SimpleException 异常
+         */
+        @SuppressWarnings("unchecked")
+        public static void sendMessage(String topic,String message) throws SimpleException{
+            try {
+                if(producer == null){
+                    producer = new KafkaProducer<>(producerConfigs);
+                }
+                ProducerRecord record = new ProducerRecord<String, String>(topic, message);
+                //发送消息
+                producer.send(record, new Callback() {
+                    @Override
+                    public void onCompletion(RecordMetadata recordMetadata, Exception e) {
+                        if (null != e){
+                            logger.info("send error" + e.getMessage());
+                        }
+                        else {
+                            logger.info("send success:" + String.format("offset:%s,partition:%s",recordMetadata.offset(),recordMetadata.partition()));
+                        }
+                    }
+                });
+            }
+            catch (Exception e){
+                e.printStackTrace();
+                producer.close();
+                throw new SimpleException(CommonConstant.RESP_ERROR_CODE_KAFKA_SEND, CommonConstant.RESP_ERROR_MSG_KAFKA_SEND);
+            }
+        }
+
+        /**
+         * 启动消费者
+         * @param topic 主题
+         */
+        public static void startMessageConsumer(String topic){
+            new Thread(new KafkaConsumerRunnable(topic)).start();
+        }
+
+        /**
+         * 消费者线程
+         */
+        private static class KafkaConsumerRunnable implements Runnable{
+            String topic;
+
+            public KafkaConsumerRunnable(String topic) {
+                this.topic = topic;
+            }
+
+            @Override
+            public void run() {
+                try{
+                    if (consumer == null){
+                        consumer = new KafkaConsumer<>(consumerConfigs);
+                        consumer.subscribe(Arrays.asList(this.topic));
+                        while (true) {
+                            ConsumerRecords<String, String> records = consumer.poll(10);
+                            for (ConsumerRecord<String, String> record : records) {
+                                logger.info("receive message:" + record.value());
+                            }
+                        }
+                    }
+                }
+                catch (Exception e){
+                    e.printStackTrace();
+                    consumer.close();
+                }
+            }
+        }
+    }
+
+(3)参考
+
+[kafka在windows上的安装、运行](https://blog.csdn.net/u010283894/article/details/77106159)
+
+[Kafka教程](https://www.w3cschool.cn/apache_kafka/)
