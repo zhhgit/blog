@@ -1,7 +1,7 @@
 ---
 layout: post
-title: "SciPy基础"
-description: SciPy基础
+title: "Python系列 -- SciPy基础"
+description: Python系列 -- SciPy基础
 modified: 2022-02-15
 category: Python
 tags: [Python]

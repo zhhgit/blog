@@ -1,7 +1,7 @@
 ---
 layout: post
-title: "Python基础"
-description: Python基础
+title: "Python系列 -- Python基础"
+description: Python系列 -- Python基础
 modified: 2021-01-01
 category: Python
 tags: [Python]

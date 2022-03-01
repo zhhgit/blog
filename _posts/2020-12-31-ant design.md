@@ -2,9 +2,9 @@
 layout: post
 title: "Ant Design基础"
 description: Ant Design基础
-modified: 2022-01-25
-category: React
-tags: [React]
+modified: 2020-12-31
+category: FrontEnd
+tags: [FrontEnd]
 ---
 
 # 一、基础

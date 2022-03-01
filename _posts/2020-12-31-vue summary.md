@@ -2,9 +2,9 @@
 layout: post
 title: "Vue基础"
 description: Vue基础
-modified: 2017-11-27
-category: Vue
-tags: [Vue]
+modified: 2020-12-31
+category: FrontEnd
+tags: [FrontEnd]
 ---
 
 实践了一下用Vue做项目。官方文档确实很详细。

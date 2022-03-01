@@ -1,7 +1,7 @@
 ---
 layout: post
-title: "Hadoop, HBase, Hive安装"
-description: Hadoop, HBase, Hive安装
+title: "大数据系列 -- Hadoop, HBase, Hive安装"
+description: 大数据系列 -- Hadoop, HBase, Hive安装
 modified: 2021-09-24
 category: BigData
 tags: [BigData]

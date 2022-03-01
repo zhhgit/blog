@@ -2,9 +2,9 @@
 layout: post
 title: "React基础"
 description: React基础
-modified: 2016-08-09
-category: React
-tags: [React]
+modified: 2020-12-31
+category: FrontEnd
+tags: [FrontEnd]
 ---
 
 # 一、使用方式
