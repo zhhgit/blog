@@ -11,7 +11,7 @@ tags: [BigData]
 
 搭建Impala 4.0：
 
-从以下地址下载文件quickstart.yml放到Xterm的家目录
+安装MobaXterm软件。从以下地址下载文件quickstart.yml放到Xterm的家目录(即cd ~)
 
     https://github.com/apache/impala/blob/master/docker/quickstart.yml
 
@@ -25,7 +25,7 @@ tags: [BigData]
     export QUICKSTART_LISTEN_ADDR=0.0.0.0
     export IMPALA_QUICKSTART_IMAGE_PREFIX="apache/impala:4.0.0-"
 
-运行以下命令创建Impala 4.0的集群，会同时创建4个docker，包括Catalogd, StateStore和Impalad各一个，还有一个HMS
+运行以下命令创建Impala 4.0的集群，会同时创建4个docker容器，包括Catalogd, StateStore和Impalad各一个，还有一个HMS
 
     docker-compose -f quickstart.yml up -d
 
@@ -100,10 +100,10 @@ Impala的缺点：
     HBase	Hive	Impala
     HBase是基于Apache Hadoop的宽列存储数据库。 它使用BigTable的概念。	Hive是一个数据仓库软件。使用它，我们可以访问和管理基于Hadoop的大型分布式数据集。	Impala是一个管理，分析存储在Hadoop上的数据的工具。
     HBase的数据模型是宽列存储。	Hive遵循关系模型。	Impala遵循关系模型。
-    HBase是使用Java语言开发的。	Hive是使用Java语言开发的。	Impala是使用C ++开发的。
+    HBase是使用Java语言开发的。	Hive是使用Java语言开发的。	Impala是使用C++开发的。
     HBase的数据模型是无模式的。	Hive的数据模型是基于模式的。	Impala的数据模型是基于模式的。
     HBase提供Java，RESTful和Thrift API。	Hive提供JDBC，ODBC，Thrift API。	Impala提供JDBC和ODBC API。
-    支持C，C＃，C ++，Groovy，Java PHP，Python和Scala等编程语言。	支持C ++，Java，PHP和Python等编程语言。	Impala支持所有支持JDBC / ODBC的语言。
+    支持C，C＃，C++，Groovy，Java PHP，Python和Scala等编程语言。	支持C++，Java，PHP和Python等编程语言。	Impala支持所有支持JDBC/ODBC的语言。
     HBase提供对触发器的支持。	Hive不提供任何触发器支持。	Impala不提供对触发器的任何支持。
 
 4.Impala架构
@@ -135,9 +135,10 @@ Impala元数据和元存储是另一个重要组件。Impala使用传统的MySQL
 
     Impala-shell - 使用Cloudera VM设置Impala后，可以通过在编辑器中键入impala-shell命令来启动Impala shell。 我们将在后续章节中更多地讨论Impala shell。
     Hue界面 - 您可以使用Hue浏览器处理Impala查询。 在Hue浏览器中，您有Impala查询编辑器，您可以在其中键入和执行impala查询。 要访问此编辑器，首先，您需要登录到Hue浏览器。
-    ODBC / JDBC驱动程序 - 与其他数据库一样，Impala提供ODBC / JDBC驱动程序。 使用这些驱动程序，您可以通过支持这些驱动程序的编程语言连接到impala，并构建使用这些编程语言在impala中处理查询的应用程序。
+    ODBC/JDBC驱动程序 - 与其他数据库一样，Impala提供ODBC/JDBC驱动程序。 使用这些驱动程序，您可以通过支持这些驱动程序的编程语言连接到impala，并构建使用这些编程语言在impala中处理查询的应用程序。
 
 (5)查询执行过程
+
 每当用户使用提供的任何接口传递查询时，集群中的Impalad之一就会接受该查询。 此Impalad被视为该特定查询的协调程序。
 在接收到查询后，查询协调器使用Hive元存储中的表模式验证查询是否合适。稍后，它从HDFS名称节点收集关于执行查询所需的数据的位置的信息，并将该信息发送到其他impalad以便执行查询。
 所有其他Impala守护程序读取指定的数据块并处理查询。一旦所有守护程序完成其任务，查询协调器将收集结果并将其传递给用户。

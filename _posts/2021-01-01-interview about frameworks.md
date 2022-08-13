@@ -1219,6 +1219,52 @@ getCurrentIndex()：返回已经获取了多少条数据。
         }
     }
 
+补充实例：
+
+AbcMapper.xml中：
+
+    <select id="queryClientStatus" resultType="com.abc.CacheLoadDto">
+        select T4.client_id as key,
+               T4.CLIENT_STATUS as clientStatus
+        from t_client T4
+    </select>
+
+AbcMapper.java中：
+
+    @Options(resultSetType = ResultSetType.FORWARD_ONLY, fetchSize = 1000)
+    Cursor<CacheLoadDto> queryClientStatus();
+
+Service层类或方法上要加上@Transactional注解：
+
+    @Transactional
+    public void cacheClientStatus() {
+        Cursor<CacheLoadDto> cursor = null;
+        try{
+            cursor = abcMapper.queryClientStatus();
+            Iterator<CacheLoadDto> iter = cursor.iterator();
+            List<Map<String, Object>> smallChunk = new ArrayList<>();
+            while (iter.hasNext()) {
+                for(int i = 0; i<BATCH_SIZE && iter.hasNext(); i++) {
+                    CacheLoadDto dto = iter.next();
+                    smallChunk.add(this.convert2MapClientStatus(dto));
+                }
+                redisUtil.cacheList(smallChunk);
+                smallChunk.clear();
+            }
+        }
+        catch (Exception e) {
+            log.error(e.getMessage());
+        } finally {
+            if(null != cursor){
+                try {
+                    cursor.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
 20.Mybatis是如何将sql执行结果封装为目标对象并返回的？都有哪些映射形式？
 
 第一种是使用<resultMap>标签，逐一定义列名和对象属性名之间的映射关系。

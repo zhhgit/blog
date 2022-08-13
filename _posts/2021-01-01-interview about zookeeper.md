@@ -592,13 +592,13 @@ Leader可以接受客户端新的事务Proposal请求，将新的Proposal请求�
 其实使用mysql，redis等数据库也是可行的，但是必须一点：服务断开之后数据能够及时同步更新。
 而这一点，在使用zookeeper来落地更加适合，因为zookeeper内部的临时节点与生俱来就支持这一特性。
 
-# 参考
+N.参考
 
-1.[ZooKeeper面试题](https://blog.csdn.net/weixin_41847891/article/details/100734093)
+(1)[ZooKeeper面试题](https://blog.csdn.net/weixin_41847891/article/details/100734093)
 
-2.[什么是ZooKeeper](https://cloud.tencent.com/developer/article/1418528)
+(2)[什么是ZooKeeper](https://cloud.tencent.com/developer/article/1418528)
 
-3.[【28期】ZooKeeper面试那些事儿](https://mp.weixin.qq.com/s/nLVovl0EdfbfqnyC53nr4w)
+(3)[【28期】ZooKeeper面试那些事儿](https://mp.weixin.qq.com/s/nLVovl0EdfbfqnyC53nr4w)
 
 # Nacos
 

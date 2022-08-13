@@ -2012,3 +2012,217 @@ plugin实现时可以通过注解或者分析语句是读写方法来选定主�
 (3)使用AbstractRoutingDataSource+aop+annotation在service层决定数据源，可以支持事务。
 
 缺点：类内部方法通过this.xx()方式相互调用时，aop不会进行拦截，需进行特殊处理。
+
+# Oracle
+
+1.常用SQL
+
+    -- 查看版本
+    select * from v$version;
+
+    -- 创建用户
+    CREATE USER OT IDENTIFIED BY Orcl1234;
+
+    -- 给用户赋予connect、resource和dba三种标准角色。
+    -- Connect 角色，是授予最终用户的典型权利，最基本的权利，能够连接到ORACLE数据库中，并在对其他用户的表有访问权限时，做SELECT、UPDATE、INSERTT等操作。
+    -- Resource 角色，是授予开发人员的，能在自己的方案中创建表、序列、视图等。
+    -- DBA角色，是授予系统管理员的，拥有该角色的用户就能成为系统管理员了，它拥有所有的系统权限。
+    GRANT CONNECT, RESOURCE, DBA TO OT;
+
+    -- 使用OT用户帐户连接到数据库(ORCL)
+    CONNECT ot@orcl
+
+    -- 执行某个SQL脚本
+    @F:\mypath\tbl_modify.sql
+
+    -- 使用OT用户登录，查看当前用户能访问的表
+    select owner, tablespace_name, table_name from all_tables order by owner, tablespace_name, table_name;
+    
+    -- 查询OT schema下的数据表名
+    select owner, table_name, tablespace_name from dba_tables where owner='OT' order by table_name;
+
+    -- 创建表
+    CREATE TABLE "OT"."T_USER" (
+    "ID" NUMBER(10,0) NOT NULL,
+    "LOGIN_ID" VARCHAR2(255),
+    "NAME" VARCHAR2(255),
+    "CREATE_TIME" DATE
+    );
+    COMMENT ON COLUMN "OT"."T_USER"."ID" IS '主键ID';
+    COMMENT ON COLUMN "OT"."T_USER"."LOGIN_ID" IS '登录ID';
+    COMMENT ON COLUMN "OT"."T_USER"."NAME" IS '姓名';
+    COMMENT ON COLUMN "OT"."T_USER"."CREATE_TIME" IS '创建时间';
+    
+    ALTER TABLE "OT"."T_USER" ADD CONSTRAINT "PK_USER_ID" PRIMARY KEY ("ID");
+
+    -- 创建序列
+    create sequence SEQ_T_USER_ID
+    minvalue 1
+    maxvalue 1E28
+    start with 1
+    increment by 1
+    cache 20;
+
+    -- 查看表结构，只在命令行模式下可用
+    desc OT.T_USER;
+
+    -- 合并数据，判断B表和A表是否满足ON中条件，如果满足则用B表去更新A表，如果不满足，则将B表数据插入A表
+    MERGE INTO [target-table] A USING [source-table sql] B ON([conditional expression])
+    WHEN MATCHED THEN
+    [UPDATE sql]
+    WHEN NOT MATCHED THEN
+    [INSERT sql]
+
+    -- 从上到下递归查询
+    select txo.organization_id
+    from test.t_xtgl_organization txo
+    where txo.rec_status = '1'
+    start with txo.organization_id = #{orgId,jdbcType=VARCHAR}
+    connect by prior txo.organization_id = txo.parent_id
+
+    -- 查看表空间使用情况
+    select
+    a.tablespace_name, total, free, total-free as used, substr(free/total * 100, 1, 5) as "FREE%", substr((total - free)/total * 100, 1, 5) as "USED%"
+    from
+    (select tablespace_name, sum(bytes)/1024/1024 as total from dba_data_files group by tablespace_name) a,
+    (select tablespace_name, sum(bytes)/1024/1024 as free from dba_free_space group by tablespace_name) b
+    where a.tablespace_name = b.tablespace_name
+    order by a.tablespace_name
+
+    -- 查看指定表空间各张表占用空间
+    select * from (
+    select t.tablespace_name,t.owner, t.segment_name, t.segment_type, sum(t.bytes / 1024 / 1024) mb
+    from dba_segments t
+    where t.segment_type='TABLE'
+    group by t.tablespace_name,t.OWNER, t.segment_name, t.segment_type
+    ) t where t.TABLESPACE_NAME = 'XXX_DATA'
+    order by t.mb desc
+
+
+2.去Oracle
+
+使用AWS Schema Conversion Tool。
+
+N.参考
+
+(1)[易百Oracle教程](https://www.yiibai.com/oracle)
+
+(2)[Oracle转PostgreSQL](https://blog.csdn.net/a13131234/article/details/110677786)
+
+(3)[AWS Schema Conversion Tool](https://docs.aws.amazon.com/zh_cn/SchemaConversionTool/latest/userguide/CHAP_Installing.html)
+
+# PostgreSQL
+
+1.常用SQL
+
+    -- 查看版本
+    SELECT version();
+
+    -- 创建用户
+    create user tester with password '123456';
+
+    -- 创建数据库，并指定所属者
+    create database test owner tester;
+
+    -- 将数据库得权限，全部赋给某个用户
+    grant all on database test to tester;
+
+    -- psql连接数据库（Linux）
+    psql -h localhost -p 5432 -U tester test
+
+    -- 已连接后，打开某个数据库
+    \c test
+
+    -- 查看全部表名
+    select * from pg_tables where schemaname = 'test'
+
+    -- 查看关联，表、索引等
+    \d test.*
+
+    -- 查看表字段
+    \d test.t_training_class_config
+
+    -- 创建模式
+    create schema test authorization tester;
+
+    -- 建表
+    DROP TABLE IF EXISTS "test"."t_training_class_config";
+    CREATE TABLE "test"."t_training_class_config"
+    (
+    "id"            int4      NOT NULL,
+    "class_cd"      varchar(255) DEFAULT NULL,
+    "class_name"    varchar(255) DEFAULT NULL,
+    "type"          int4      NULL,
+    "class_status"  int4      NULL,
+    "expire_time"   timestamp NULL,
+    "deadline_time" timestamp NULL,
+    "operator"      varchar(255) DEFAULT NULL,
+    "data_status"   int4      NULL,
+    "create_time"   timestamp NULL,
+    "update_time"   timestamp NULL
+    );
+    COMMENT ON TABLE test.t_training_class_config IS '课程表';
+    
+    COMMENT ON COLUMN "test"."t_training_class_config"."id" IS '主键ID';
+    COMMENT ON COLUMN "test"."t_training_class_config"."class_cd" IS '课程编号';
+    COMMENT ON COLUMN "test"."t_training_class_config"."class_name" IS '课程名称';
+    COMMENT ON COLUMN "test"."t_training_class_config"."type" IS '类型';
+    COMMENT ON COLUMN "test"."t_training_class_config"."class_status" IS '课程状态：0有效，1无效';
+    COMMENT ON COLUMN "test"."t_training_class_config"."expire_time" IS '失效时间';
+    COMMENT ON COLUMN "test"."t_training_class_config"."deadline_time" IS '截止完成时间';
+    COMMENT ON COLUMN "test"."t_training_class_config"."operator" IS '操作人';
+    COMMENT ON COLUMN "test"."t_training_class_config"."data_status" IS '数据状态：0有效，1删除';
+    COMMENT ON COLUMN "test"."t_training_class_config"."create_time" IS '创建时间';
+    COMMENT ON COLUMN "test"."t_training_class_config"."update_time" IS '更新时间';
+    
+    ALTER TABLE "test"."t_training_class_config" ADD CONSTRAINT "t_training_class_config_pkey" PRIMARY KEY ("id");
+
+    -- 新增序列
+    DROP SEQUENCE if EXISTS "test"."seq_training_class_config_id";
+    CREATE SEQUENCE "test"."seq_training_class_config_id"
+    INCREMENT 1
+    MINVALUE 1
+    MAXVALUE 2147483647
+    START 1
+    CACHE 1;
+
+    -- 自增主键
+    CREATE TABLE COMPANY(
+    ID  SERIAL PRIMARY KEY,
+    NAME           TEXT      NOT NULL,
+    AGE            INT       NOT NULL,
+    ADDRESS        CHAR(50),
+    SALARY         REAL
+    );
+
+    -- 普通查询
+    SELECT column1, column2
+    FROM table1, table2
+    WHERE [ conditions ]
+    GROUP BY column1, column2
+    HAVING [ conditions ]
+    ORDER BY column1, column2
+    
+    -- 从上到下递归查询
+    WITH RECURSIVE obj as (
+    SELECT organization_id, rec_status FROM t_xtgl_organization where organization_id = #{orgId,jdbcType=BIGINT}
+    UNION ALL
+    SELECT c.organization_id, c.rec_status FROM t_xtgl_organization c join obj on c.parent_id =
+    obj.organization_id
+    )
+    select organization_id from obj where
+    obj.rec_status = '1'
+
+N.参考
+
+(1)[为什么“去O”唯有PG](https://dbaplus.cn/news-19-2765-1.html)
+
+(2)[【干货总结】:可能是史上最全的MySQL和PGSQL的对比材料](https://www.cnblogs.com/lyhabc/p/11628042.html)
+
+(3)[菜鸟PostgreSQL教程](https://www.runoob.com/postgresql/postgresql-tutorial.html)
+
+(4)[易百PostgreSQL教程](https://www.yiibai.com/postgresql/)
+
+(5)[Oracle迁移PostgreSQL经验总结(SQL部分)](https://blog.csdn.net/qq3892997/article/details/89878776)
+
+(6)[Oracle切换PostgreSQL遇到的问题](https://blog.csdn.net/A_len/article/details/108083518)

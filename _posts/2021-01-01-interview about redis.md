@@ -1273,6 +1273,10 @@ Sentinel和其他Sentinel协商客观下线的主节点的状态，如果处于S
 那么对于client，我们可以采取降级措施，将数据暂时写入本地缓存和磁盘中，在一段时间后重新写入master来保证数据不丢失；也可以将数据写入kafka消息队列，隔一段时间去消费kafka中的数据。
 通过上面两个参数的设置我们尽可能的减少数据的丢失，具体的值还需要在特定的环境下进行测试设置。
 
+N.参考
+
+(1)[Redis集群方案](https://blog.csdn.net/weixin_49724150/article/details/121659693)
+
 # Redis性能优化
 
 1.redis服务节点受到外部关联影响
@@ -1354,6 +1358,6 @@ N.参考
 
 # 参考
 
-(1)[Redis中文官网](http://www.redis.cn/)
+1.[Redis中文官网](http://www.redis.cn/)
 
-(2)[菜鸟Redis教程](https://www.runoob.com/redis/redis-tutorial.html)
+2.[菜鸟Redis教程](https://www.runoob.com/redis/redis-tutorial.html)

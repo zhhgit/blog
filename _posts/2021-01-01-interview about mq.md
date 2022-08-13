@@ -121,6 +121,118 @@ Kafka，mysql里增删改一条数据，对应出来了增删改3条binlog，接
 (3)如果消息积压在mq里很长时间都没处理掉，此时导致mq都快写满了
 临时写程序，接入数据来消费，消费一个丢弃一个，都不要了，快速消费掉所有的消息。后期再补数据吧。
 
+# JMS
+
+1.JMS介绍
+
+JMS即Java消息服务（Java Message Service）应用程序接口，是一个Java平台中关于面向消息中间件（MOM）的API，类似于JDBC。用于在两个应用程序之间，或分布式系统中发送消息，进行异步通信。消息模型有点对点，发布订阅两种模型。
+它提供创建、发送、接收、读取消息的服务。由Sun公司和它的合作伙伴设计的应用程序接口和相应语法，使得Java程序能够和其他消息组件进行通信。
+JMS是一个消息服务的标准或者说是规范，允许应用程序组件基于JavaEE平台创建、发送、接收和读取消息。它使分布式通信耦合度更低，消息服务更加可靠以及异步性。
+在Java中，目前基于JMS实现的消息队列常见技术有ActiveMQ、RabbitMQ、RocketMQ。值得注意的是，RocketMQ并没有完全遵守JMS规范，并且Kafka不是JMS的实现。
+
+2.JMS消费
+
+(1)同步：订阅者/接收方通过调用receive()来接收消息。在receive()方法中，线程会阻塞直到消息到达或者到指定时间后消息仍未到达。
+
+(2)异步：消息订阅者需注册一个消息监听者，类似于事件监听器，只要消息到达，JMS服务提供者会通过调用监听器的onMessage()递送消息。
+
+3.JMS API接口
+
+JMS编程模型非常类似于JDBC。
+
+    ConnectionFactory：客户端用来创建连接的受管对象；可以通过JNDI来查找ConnectionFactory对象。
+    Connection：客户端到JMS提供者之间的活动连接。
+    Session：发送和接收消息的一个单线程上下文
+    Destination：由Session创建的Queue或Topic对象。
+    MessageProducer：由Session创建的对象，用于发送消息到Queue或Topic。
+    MessageCosumer 由Session 创建的对象，用于接收Queue或Topic中的消息。
+    Message：消费者和生产者之间传送的数据。
+    MessageListener：消息监听器，消费者注册消息监听器，有消息到达，将调用该接口的onMessage方法。
+
+4.JMS的优势
+
+    (1)松耦合：我们可以很容易地开发松耦合应用程序。这意味着JMS API是所有JMS提供程序都应实施的标准或规范，以便我们可以将现有的JMS提供程序更改为新的JMS提供程序，而只需进行很少的更改（即仅配置），而无需更改我们的JMS应用程序代码。
+    (2)异步：我们可以非常轻松地开发异步消息应用程序。 这意味着JMS Sender可以发送消息并继续自己的工作。 它不等待JMS Receiver完成消息使用。
+    (3)健壮且可靠：JMS确保将一条消息仅传递到目标系统一次。 因此，我们可以非常轻松地开发可靠的应用程序。
+    (4)互操作性：JMS API允许其他Java平台语言（例如Scala和Groovy）之间的互操作性。
+
+5.JMS组件
+
+    (1)JMS客户端：用于发送（或产生或发布）或接收（或使用或订阅）消息的Java程序。
+
+    (2)JMS Sender：用于将消息发送到目标系统的JMS客户端。JMS发送者也称为JMS生产者或JMS发布者。
+
+    (3)JMS接收器：JMS客户端，用于从源系统接收消息。JMS接收器也称为JMS使用者或JMS订阅者。
+
+    (4)JMS Provider：JMS API是一组通用接口，不包含任何实现。 JMS Provider是第三方系统，负责实施JMS API以向客户端提供消息传递功能。JMS Provider也称为MOM（面向消息的中间件）软件或Message Broker或JMS Server或Messaging Server。JMS Provider还提供了一些UI组件来管理和控制此MOM软件。
+    
+    (5)JMS管理对象 ：管理员为使用JMS客户端而预先配置的JMS对象。 它们是ConnectionFactory和目标对象。
+         ConnectionFactory：ConnectionFactory对象用于在Java应用程序和JMS Provider之间创建连接。 应用程序使用它与JMS Provider进行通信。
+         目标：目标也是JMS客户端使用的JMS对象，用于指定其发送的消息的目的地和接收的消息的源。有两种类型的目标：队列和主题。
+
+    (6)JMS消息：一个对象，其中包含在JMS客户端之间传输的数据。JMS消息由以下三部分组成：
+         消息头（header）—JMS消息头包含许多字段，它们是消息发送后由JMS提供者或消息发送者产生的，用来表示消息、设置优先权和失效时间等等，并且为消息确定路由。
+         属性（property）—用来添加删除消息头以外的附加消息。
+         消息体（body）—JMS中定义了5种消息体：ByteMessage、MapMessage、ObjectMessage、StreamMessage和TextMessage。
+
+6.JMS消息的可靠性
+
+消息的可靠性通过三个方面保证：消息的持久化、事务、消息的签收。
+
+(1)消息的持久化
+
+消息的持久化是通过设置DeliveryMode实现的，DeliveryMode有两种模式：
+
+    DeliveryMode.PERSISTENT：持久化，服务器宕机重启后消息依然存在
+    DeliveryMode.NON_PERSISTENT：非持久化，服务器宕机再重启消息将不存在
+
+Queue中的消息默认是持久化的，Topic中的消息默认是非持久化的。
+对于Topic，消费者采用MessageConsumer和采用TopicSubscriber消费消息是不同的，JMS不会将MessageConsumer对象持久化(也就无法记录时间节点)，但是会将TopicSubscriber对象持久化，这样就可以记录每个订阅者的订阅时间点，即使消费者掉线，也能在恢复后消费掉线时产生的消息；采用TopicSubscriber方式消费消息时需要消息持久化。
+消息的持久化和消息的订阅模式是完全不同的两个概念，它们之间没有任何关系，只不过消息的持久化是否有意义需要参考消息的消费方式。
+消息的持久化可以在两个地方设置：
+
+    a、调用生产者的MessageProducer.setDeliveryMode()方法，设置该生产者生产的所有消息的持久化模式，除非单独为某个消息设置了持久化模式
+    b、调用消息的Message.setJMSDeliveryMode()，只设置这一条消息的持久化模式
+
+(2)事务
+
+在通过Connection创建Session的时候可以指明这个Session下的消息生产者和消息消费者是否以事务的方式发送和消费消息：
+
+    Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+
+事务中的操作作为一个原子的整体，要么一次性全部提交，要么全部回滚。以事务的方式发送和消费消息，需要显式的提交和回滚事务，在事务未提交之前是不会生效的。
+
+    try {
+        ...
+        session.commit();
+    } catch (JMSException e) {
+        session.rollback();
+        e.printStackTrace();
+    }
+
+(3)消息的签收
+
+消息的签收是消息被消费的标志，消息的签收机制是为了避免消息的重复消费，因此消息的签收是相对于消费者的，对于生产者几乎没有意义。
+对于Queue中的消息，一旦消息被签收则这条消息的状态就会从待消费状态(Pending Messages)变为已消费状态(Messages Dequeued)，从而从待消费队列中移除。
+对于Topic中的消息，若采用MessageConsumer消费消息则签收机制是没有意义的，因为MessageConsumer只能消费Topic中自消费者在MQ服务器注册之后推送到Topic中的消息，至于这之前的消息签收与否MessageConsumer不关心(因为看不到之前的消息)，也就是说使用MessageConsumer消费Topic中的消息时是不会存在重复消费的问题的；
+若采用TopicSubscriber消费消息，签收机制避免重复消费消息的作用就凸显出来了，此时消息的签收将会作为某个订阅者(以Connection的ClientID作为标识)已消费过Topic中的某个消息的标志，也就是说消费者每次上线后都只会消费订阅的Topic中未被签收的消息，已签收的消息则不会被重复消费。
+
+消息的签收机制有四种：
+
+    a、Session.AUTO_ACKNOWLEDGE：值为 1，自动签收，消费一条签收一条
+    b、Session.CLIENT_ACKNOWLEDGE：值为 2，客户端手动签收，需显示调用Message.acknowledge()方法完成签收
+    c、Session.DUPS_OK_ACKNOWLEDGE：值为 3，不必必须签收，消息可能会重复发送。在第二次重新传递消息的时候，消息头的JmsDelivered会被置为true标示当前消息已经传送过一次，客户端需要进行消息的重复处理控制。
+    d、Session.SESSION_TRANSACTED：值为 0，以事务的方式签收，该种方式创建Session时事务必须设置为 true。
+
+事务对消息签收的影响：消息签收是事务控制的一部分
+
+    a、若创建Session时是以事务的方式创建的，此时只要事务提交就会将所有消息的签收状态置为已签收，只要事务不提交则消息的签收状态就不起作用
+    b、若创建Session时是以非事务的方式创建的，则对消息的签收有没有影响
+
+N.参考
+
+(1)[JMS介绍](https://www.cnblogs.com/wuyongyin/p/14929636.html)
+
 # Kafka
 
 1.Kafka基本概念
@@ -416,3 +528,7 @@ Asks这个参数是生产者客户端的重要配置，发送消息的时候就�
 [kafka在windows上的安装、运行](https://blog.csdn.net/u010283894/article/details/77106159)
 
 [Kafka教程](https://www.w3cschool.cn/apache_kafka/)
+
+# 参考
+
+1.[消息队列MQ/JMS/Kafka介绍](https://blog.csdn.net/Pastxu/article/details/124533142)

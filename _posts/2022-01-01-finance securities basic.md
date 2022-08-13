@@ -297,3 +297,11 @@ PB系统是证券公司为提升对机构客户的综合服务能力推出的高
 12.股权激励业务
 
 股权激励是指公司以本公司股票为标的对其董事，高级管理人员及其他员工进行的长期性的激励，无论是上市公司还是非上市公司都可以依法进行股权激励。股权激励工具可分为股票期权和限制性股票。
+
+# 五、资产托管
+
+1.[商业银行资产托管业务手册（2022年版）](https://mp.weixin.qq.com/s/-sX7llyJIy4hq2qzyXKoEA)
+
+2.[详解资产托管业务：银行转型必争之地-招证|银行](https://mp.weixin.qq.com/s/WGn5AspH1HVDkUH1hutNZw)
+
+3.[银行资产托管岗位是做什么工作的？前景如何？](https://www.optbbs.com/forum.php?mod=viewthread&extra=page%3D1&tid=12531034&share_token=f79fa412-53fe-4411-8784-d8d917684ab0)
