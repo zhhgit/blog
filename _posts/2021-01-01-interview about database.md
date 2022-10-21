@@ -2103,6 +2103,14 @@ plugin实现时可以通过注解或者分析语句是读写方法来选定主�
 
 使用AWS Schema Conversion Tool。
 
+3.死锁问题
+
+    -- 查看
+    select * from v$locked_object;
+
+    -- kill
+    select 'alter system kill session' || ''''||trim(t2.sid)||','||trim(t2.serial#)||''';' from v$locked_object t1,v$session t2 where t1.session_id=t2.sid order by t2.logon_time;
+
 N.参考
 
 (1)[易百Oracle教程](https://www.yiibai.com/oracle)
@@ -2110,6 +2118,8 @@ N.参考
 (2)[Oracle转PostgreSQL](https://blog.csdn.net/a13131234/article/details/110677786)
 
 (3)[AWS Schema Conversion Tool](https://docs.aws.amazon.com/zh_cn/SchemaConversionTool/latest/userguide/CHAP_Installing.html)
+
+(4)[v$locked_object v$lock锁表的问题](http://blog.itpub.net/69959246/viewspace-2684446/)
 
 # PostgreSQL
 

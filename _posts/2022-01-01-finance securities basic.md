@@ -1,7 +1,7 @@
 ---
 layout: post
-title: "证券基础知识"
-description: 证券基础知识
+title: "金融系列 -- 证券基础知识"
+description: 金融系列 -- 证券基础知识
 modified: 2022-01-01
 category: Finance
 tags: [Finance]
