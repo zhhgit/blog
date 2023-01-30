@@ -76,6 +76,7 @@ HR面：除了薪水外其他福利待遇、公积金、补充医疗、年终奖
         --消息队列基础
         --JMS
         --Kafka
+        --RabbitMQ
         
     Redis
         --Redis基础

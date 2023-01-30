@@ -2097,7 +2097,9 @@ plugin实现时可以通过注解或者分析语句是读写方法来选定主�
     group by t.tablespace_name,t.OWNER, t.segment_name, t.segment_type
     ) t where t.TABLESPACE_NAME = 'XXX_DATA'
     order by t.mb desc
-
+    
+    -- 查看数据库DBLINK
+    select * from dba_db_links;
 
 2.去Oracle
 
@@ -2108,8 +2110,50 @@ plugin实现时可以通过注解或者分析语句是读写方法来选定主�
     -- 查看
     select * from v$locked_object;
 
+    -- 查看数据库锁表情况
+    SELECT S.USERNAME,
+    DECODE(L.TYPE, 'TM', 'TABLE LOCK', 'TX', 'ROW LOCK', NULL) LOCK_LEVEL,
+    O.OWNER,
+    O.OBJECT_NAME,
+    O.OBJECT_TYPE,
+    S.SID,
+    S.SERIAL#,
+    S.TERMINAL,
+    S.MACHINE,
+    S.PROGRAM,
+    S.OSUSER
+    FROM V$SESSION S,
+    V$LOCK L,
+    DBA_OBJECTS O
+    WHERE L.SID = S.SID
+    AND L.ID1 = O.OBJECT_ID(+)
+    AND S.USERNAME IS NOT NULL
+    AND L.TYPE = 'TX';
+
     -- kill
     select 'alter system kill session' || ''''||trim(t2.sid)||','||trim(t2.serial#)||''';' from v$locked_object t1,v$session t2 where t1.session_id=t2.sid order by t2.logon_time;
+
+4.物化视图
+
+    -- 创建，去掉注释否则可能报错
+    CREATE MATERIALIZED VIEW VW_Table
+    BUILD IMMEDIATE  　　　　　　　　　　 --创建时立即刷新      
+    REFRESH FORCE  　　　　　　　　　　　 --如果可以快速刷新则进行快速刷新，否则完全刷新        
+    ON DEMAND   　　　　　　　　　　　　　 --刷新方式          
+    START WITH SYSDATE    　　　　　　　 --第一次刷新时间
+    NEXT  SYSDATE+1/(24)   　　　　　　　--刷新时间间隔
+    AS SELECT 1 id,'A'name FROM dual;
+
+    -- 查询物化视图定义
+    select * from DBA_MVIEWS where MVIEW_NAME='VW_TABLE';
+
+    -- 刷新
+    BEGIN
+    dbms_mview.refresh('VW_TABLE');
+    END;
+
+    -- 删除物化视图
+    DROP MATERIALIZED VIEW VW_TABLE;
 
 N.参考
 
@@ -2120,6 +2164,10 @@ N.参考
 (3)[AWS Schema Conversion Tool](https://docs.aws.amazon.com/zh_cn/SchemaConversionTool/latest/userguide/CHAP_Installing.html)
 
 (4)[v$locked_object v$lock锁表的问题](http://blog.itpub.net/69959246/viewspace-2684446/)
+
+(5)[Oracle实体化视图](https://blog.51cto.com/35137560/4919968)
+
+(6)[学习Oracle这一篇就够了](https://blog.csdn.net/qq_38490457/article/details/107976731)
 
 # PostgreSQL
 
