@@ -32,11 +32,33 @@ tags: [Interview]
 守护线程（即daemon thread），是个服务线程，准确地来说就是服务其他的线程，这是它的作用——而其他的线程只有一种，那就是用户线程。所以java里线程分2种：守护线程，比如垃圾回收线程，就是最典型的守护线程。用户线程，就是应用程序里的自定义线程。
 当JVM中不存在任何一个正在运行的非守护线程时，则JVM进程即会退出。
 
+    t.setDaemon(true)
+
 4.创建线程方式
 
 (1)继承Thread类
 
+	public class NewThread extends Thread {
+	    @Override
+	    public void run(){
+	    
+	    }
+	}
+
+	Thread thread1 = new NewThread();
+	thread1.start();
+
 (2)实现Runnable接口。
+
+    public class NewRunnable implements Runnable{
+	    @Override
+	    public void run(){
+	    
+	    }
+    }
+
+    Thread thread1 = new Thread(new NewRunable());
+    thread1.start();
 
 (3)应用程序可以使用Executor框架来创建线程池。
 
@@ -65,6 +87,15 @@ tags: [Interview]
 
 采用实现Runnable、Callable接口的方式创建多线程时，优势是线程类只是实现了Runnable接口或Callable接口，还可以继承其他类。在这种方式下，多个线程可以共享同一个target对象，所以非常适合多个相同线程来处理同一份资源的情况，从而可以将CPU、代码和数据分开，形成清晰的模型，较好地体现了面向对象的思想。
 线程池也是非常高效的，很容易实现和使用。
+Callable代表一个有返回值的异步计算任务，Future是异步计算的结果。FutureTask是包装类，可以将Callable转化为Runnable和Future，同时实现了Runnable和Future接口。
+
+Future的方法：
+
+    E get() //会阻塞，直到得到计算结果
+    E get(Long time, TimeUnit unit) //会阻塞或超时，如果未能获取结果会抛出TimeoutException
+    boolean cancel(boolean mayInterrupt) 取消任务，如果已经开始且mayInterrupt为true，就会被中断。成功取消就返回true
+    boolean isCancelled() 是否在完成前被取消
+    boolean isDone() //是否结束，无论完成、被取消、或抛出异常都返回true
 
 5.线程状态
 
@@ -77,6 +108,8 @@ tags: [Interview]
 其他阻塞: 运行(running)的线程执行Thread.sleep(long ms)或t.join()方法，或者发出了I/O请求时，JVM会把该线程置为阻塞状态。当sleep()状态超时、join()等待线程终止或者超时、或者I/O处理完毕时，线程重新转入可运行(runnable)状态。
 (5)死亡(terminated)：线程run()、 main()方法执行结束，或者因异常退出了run()方法，则该线程结束生命周期。死亡的线程不可再次复生。
 
+Thread.State getState()方法，获得线程当前状态。
+
 6.同步方法和同步代码块的区别
 
 同步方法默认用this或者当前类class对象作为锁。
@@ -88,6 +121,13 @@ tags: [Interview]
     sThreadLocal.set(T)
     sThreadLocal.get()
     sThreadLocal.remove()
+
+    public static final ThreadLocal<SimpleDateFormat> dateFormat = new ThreadLocal<SimpleDateFormat>(){
+        protected SimpleDateFormat initalValue(){
+            return new SimpleDateFormat("yyyy-MM--dd");
+        }
+    }
+    String dateStamp = dateFormat.get().format(new Date());
     
 ThreadLocal的静态内部类ThreadLocalMap为每个Thread都维护了一个数组table，ThreadLocal确定了一个数组下标，而这个下标就是value存储的对应位置。
 对于某一ThreadLocal来讲，它的索引值i是确定的，在不同线程之间访问时访问的是不同的table数组的同一位置即都为table[i]，只不过这个不同线程之间的table是独立的。
@@ -119,7 +159,7 @@ Servlet不是线程安全的。要解释为什么Servlet为什么不是线程安
 
 Java虚拟机层面所暴露给我们的状态，与操作系统底层的线程状态是两个不同层面的事。有人常觉得Java线程状态中还少了个running状态，这其实是把两个不同层面的状态混淆了。对Java线程状态而言，不存在所谓的running状态，它的runnable状态包含了running状态。
 Java线程状态均来自于Thread类下的State这一内部枚举类中所定义的状态，包括6种，New/Runnable/Blocked/Waiting/Timed_Waiting/Terminated。
-现在的时分（time-sharing）多任务（multi-task）操作系统架构通常都是用所谓的“时间分片（time quantum or time slice）”方式进行抢占式（preemptive）轮转调度（round-robin式）。更复杂的可能还会加入优先级（priority）的机制。
+现在的时分（time-sharing）多任务（multi-task）操作系统架构通常都是用所谓的“时间分片（time quantum or time slice）”方式进行抢占式（preemptive）轮转调度（round-robin式）。更复杂的可能还会加入优先级（priority）（设置线程优先级setPriority()方法）的机制。
 这个时间分片通常是很小的，一个线程一次最多只能在cpu上运行比如10-20ms的时间（此时处于running状态），也即大概只有0.01秒这一量级，时间片用后就要被切换下来放入调度队列的末尾等待再次调度。（也即回到ready状态）。如果期间进行了I/O的操作还会导致提前释放时间分片，并进入等待队列。又或者是时间分片没有用完就被抢占，这时也是回到ready状态。
 这一切换的过程称为线程的上下文切换（context switch），当然cpu不是简单地把线程踢开就完了，还需要把被相应的执行状态保存到内存中以便后续的恢复执行。
 显然，10-20ms对人而言是很快的，不计切换开销（每次在1ms以内），相当于1秒内有50-100次切换。事实上时间片经常没用完，线程就因为各种原因被中断，实际发生的切换次数还会更多。也这正是单核CPU上实现所谓的“并发（concurrent）”的基本原理，但其实是快速切换所带来的假象。
@@ -368,7 +408,7 @@ wait/notify机制、管道通信，是消息传递机制，管道通信通过管
 
 3种方法：
 (1)使用退出标志，使线程正常退出，也就是当run方法完成后线程终止。
-(2)使用Thread.stop()方法强行终止，但是不推荐这个方法，这个方法是不安全的，因为stop和suspend及resume一样都是过期作废的方法。
+(2)使用Thread.stop()方法强行终止，但是不推荐这个方法，这个方法是不安全的，因为stop和suspend及resume一样都是过期作废的方法。stop方法会导致不一致，考虑转账的场景已经从一个账户转出，但是未对另一个账户转入。 suspend方法容易导致死锁，挂起的线程持有锁但是等待被恢复，而将其挂起的线程等待获得锁。
 (3)使用interrupt方法中断线程。
 
 (1)停止不了的线程
@@ -1156,6 +1196,50 @@ ThreadPoolExecutor回收工作线程，一条线程getTask()返回null，就会�
     TIDYING：所有任务终止，线程池会变为TIDYING状态。当线程池变为TIDYING状态时，会执行钩子函数terminated()。
     TERMINATED：线程池彻底终止的状态。
 
+9.Executors
+
+Executors类静态方法返回ExecutorService实例
+
+    newCachedThreadPool()   // 必要时创建新线程，空闲线程保留60秒
+    newFixedThreaadPool()   // 固定大小线程池
+    newSingleThreadExecutor()   // 退化为大小为1的固定大小线程池
+    newScheduledTheadPool() // 为预定执行而创建的固定线程池
+    newSingleThreadScheduledExecutor() // 为预定执行而创建的单线程线程池
+
+ExecutorService对象可以提交Runnable或者Callable对象
+
+    Future<?> submit(Runnable task)
+    Future<?> submit(Runnable task,T result)
+    Future<?> submit(Callable task)
+
+程序执行结束需要关闭线程池
+
+    shutdown()  // 等待所有任务执行完成后，线程死亡
+    shutdownNow()   // 取消未开始任务，中断执行中的任务，线程死亡
+
+ScheduledExecutorService有如下方法：
+
+    ScheduledFuture<E> schedule(Callable<E> task, Long time, TimeUnit unit) //  指定时间后执行一次
+    ScheduledFuture<?> schedule(Runnable task, Long time, TimeUnit unit)    // 指定时间后执行一次
+    ScheduledFuture<?> scheduleAtFixedRate(Runnable task, Long initialDelay, Long period, TimeUnit unit)    // 初始延迟后指定周期执行
+    ScheduledFuture<?> scheduleWithFixedDelay(Runnable task, Long initialDelay, Long delay, TimeUnit unit)  // 初始延迟后前一次完成与后一次经过指定延迟后周期执行
+
+控制一组相关任务，ExecutorService实例有如下方法
+
+    T invokeAny(Collection<Callable<T>> tasks)  // 给定一组相关任务，只要有一个完成及返回结果
+    List<Future<T>> invokeAll(Collection<Callable<T>> tasks)    // 给定一组相关任务，所有任务都完成返回列表
+
+invokeAll的缺点是必须所有执行完才能获取结果，ExecutorCompletionService按照完成顺序返回执行结果
+
+    ExecutorCompletionService service = new ExecutorCompletionService(executor);
+    for (Callable<T> task : tasks){
+        service.submit(task);
+    }
+    for (int i = 0;i<tasks.size();i++){
+        // 取tasks.size()次，如果结果还没有take()会阻塞
+        furtherProcess(service.take().get());
+    }
+
 # Java锁机制
 
 1.公平锁/非公平锁
@@ -1377,6 +1461,7 @@ tryLock()：
 
 Synchronized的语义底层是通过一个monitor的对象来完成，其实wait/notify等方法也依赖于monitor对象，这就是为什么只有在同步的块或者方法中才能调用wait/notify等方法，否则会抛出java.lang.IllegalMonitorStateException的异常的原因。
 synchronized是重量级锁，在JDK1.6中进行优化，如自旋锁、适应性自旋锁、锁消除、锁粗化、偏向锁、轻量级锁等技术来减少锁操作的开销。
+从Java 1.0开始每个对象都有一个内部锁，用synchronized关键字修饰的方法，对象的锁将保护整个方法，等效于ReentrantLock。内部锁只有一个条件对象，Object对象的final方法wait(),notify(),notifyAll()方法等价于Condition对象的await(),signal(),signalAll()。
 
 同步代码块：
 monitorenter指令插入到同步代码块的开始位置，monitorexit指令插入到同步代码块的结束位置，JVM需要保证每一个monitorenter都有一个monitorexit与之相对应。任何对象都有一个Monitor与之相关联，当且一个Monitor被持有之后，它将处于锁定状态。线程执行到monitorenter指令时，将会尝试获取对象所对应的Monitor所有权，即尝试获取对象的锁。
@@ -1401,6 +1486,7 @@ monitorexit指令：
 14.volatile
 
 volatile是轻量级的锁，它不会引起线程上下文的切换和调度。
+volatile关键字为实例域的同步访问提供了一种免锁机制。声明为volatile，则编译器和虚拟机就知道该域可能被多个线程并发更新。
 
 (1)防止重排序，有序性
 
@@ -1469,9 +1555,20 @@ volatile是轻量级的锁，它不会引起线程上下文的切换和调度。
 16.ReentrantLock
 
 ReentrantLock，可重入锁，是一种递归无阻塞的同步机制。它可以等同于synchronized的使用，但是ReentrantLock提供了比synchronized更强大、灵活的锁机制，可以减少死锁发生的概率。
-ReentrantLock是可重入锁，可重入锁就是当前持有该锁的线程能够多次获取该锁，无需等待。可重入锁是如何实现的呢？这要从ReentrantLock的一个内部类Sync的父类说起，Sync的父类是AQS。
+ReentrantLock是可重入锁，可重入锁就是当前持有该锁的线程能够多次获取该锁，无需等待。 可重入意味着同一线程可以重复获得已经持有的锁，锁保持一个持有计数来追踪对lock()方法的嵌套调用。
+可重入锁是如何实现的呢？这要从ReentrantLock的一个内部类Sync的父类说起，Sync的父类是AQS。
 ReentrantLock的架构主要包括一个Sync的内部抽象类以及Sync抽象类的两个实现类。
 另外、Sync的两个实现类分别是NonfairSync和FairSync，一个是用于实现公平锁，一个是用于实现非公平锁。那么Sync为什么要被设计成内部类呢？Sync被设计成为安全的外部不可访问的内部类，使得ReentrantLock中所有涉及对AQS的访问都要经过Sync，其实，Sync被设计成为内部类主要是为了安全性考虑，这也是作者在AQS的comments上强调的一点。
+new ReentrantLock(true)将构造一个持有公平策略的锁，偏爱等待时间最长的线程。
+
+	Lock mylock = new ReentrantLock();
+	mylock.lock();
+	try {
+	    doSomething();
+	}
+	finally {
+	    mylock.unlock();
+	}
 
 17.Condition
 
@@ -1479,12 +1576,55 @@ Condition和Lock一起使用以实现等待/通知模式，通过await()和signa
 Condition是一种广义上的条件队列。它为线程提供了一种更为灵活的等待/通知模式，线程在调用await方法后执行挂起操作，直到线程等待的某个条件为真时才会被唤醒。
 Condition必须要配合Lock一起使用，因为对共享状态变量的访问发生在多线程环境下。一个Condition的实例必须与一个Lock绑定，因此Condition一般都是作为Lock的内部实现。
 
+考虑要转账金额低于余额的场景，一直循环等待，希望有其他线程转入金额使得while循环等待结束。但是其他线程因为无法获得锁，而不可能进入临界区。
+调用await()方法后，线程进入该条件对象的等待集，当锁可用时不能马上解除阻塞，直达另一线程调用同一条件对象的signalAll()方法。
+
+	Lock mylock = new ReentrantLock();
+	Condition sufficientFunds = mylock.newCondition();
+	
+	mylock.lock();
+	try {
+	    while(accounts[from] < amount){
+	        sufficientFunds.await();
+	    }
+	    finishTransfer();
+	    sufficientFunds.signalAll();
+	}
+	finally {
+	    mylock.unlock();
+	}
+
 18.ReentrantReadWriteLock
 
 读写锁维护着一对锁，一个读锁和一个写锁。通过分离读锁和写锁，使得并发性比一般的排他锁有了较大的提升：
 在同一时间，可以允许多个读线程同时访问。但是在写线程访问时，所有读线程和写线程都会被阻塞。
 ReentrantReadWriteLock实现ReadWriteLock接口，是可重入的读写锁实现类。
 在同步状态上，为了表示两把锁，将一个32位整型分为高16位和低16位，分别表示读和写的状态。
+
+    private int age;
+    private ReentrantReadWriteLock rwl = new ReentrantReadWriteLock();
+    private Lock readLock = rwl.readlock();
+    private Lock writeLock = rwl.writelock();
+    
+    public int getAge(){
+        readLock.lock();
+        try{
+        }
+        finally{
+            readLock.unlock();
+        }
+        return age;
+    }
+    
+    public void setAge(age){
+        writeLock.lock();
+        try{
+            this.age = age
+        }
+        finally{
+            writeLock.unlock();
+        }
+    }
 
 读写锁的主要特性：
 
@@ -1671,3 +1811,30 @@ Semaphore是一个控制访问多个共享资源的计数器，和CountDownLatch
 两者区别：
 CountDownLatch的作用是允许1或N个线程等待其他线程完成执行；而CyclicBarrier则是允许N个线程相互等待。
 CountDownLatch的计数器无法被重置；CyclicBarrier的计数器可以被重置后使用，因此它被称为是循环的barrier 。
+
+5.线程安全的集合类
+
+(1)实现类包括：散列表ConcurrentHashMap，ConcurrentSkipListMap，有序集ConcurrentSkipListSet，队列ConcurrentLinkedQueue
+
+(2)散列表操作包括：
+
+    map.putIfAbsent(key,value);
+    map.remove(key,value);
+    map.replace(key,oldValue,newValue);
+
+(3)CocyOnWriteArrayList,CopyOnWriteArraySet，所有的写线程对底层数组进行复制。构建一个迭代器，包含对当前数组的引用，即使数组后续被修改了，迭代器仍然引用旧数组。
+
+(4)HashTable,Vector是线程安全的旧集合类，HashMap和ArrayList是线程不安全的，但是提供了同步包装器变成线程安全的。还有synchronizedSet,synchronizedSortedSet,synchronizedSortedMap。
+
+    List<E> synList = Collections.synchronizedList(new ArrayList<E>);
+    Map<K,V> synMap = Collections.synchronizedMap(new HashMap<K,V>);
+
+(5)通过迭代器或者"for each"循环对集合进行访问是，如果有其他线程对集合进行修改，仍然需要客户端锁定
+
+    synchronized(synMap){
+        Iterator<K> iter = synMap.keySet().iterator();
+        while(iter.hasNext()){
+        }
+    }
+
+(6)推荐使用concurrent包中的集合，而不是同步包装器中的。

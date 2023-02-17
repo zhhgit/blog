@@ -2100,6 +2100,8 @@ plugin实现时可以通过注解或者分析语句是读写方法来选定主�
     
     -- 查看数据库DBLINK
     select * from dba_db_links;
+    SELECT * FROM DBA_OBJECTS O WHERE o.object_type = 'DATABASE LINK';
+    SELECT DBMS_METADATA.GET_DDL('DB_LINK', O.object_name, o.owner) FROM DBA_OBJECTS o where o.object_type='DATABASE LINK';
 
 2.去Oracle
 
