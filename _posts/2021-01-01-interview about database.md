@@ -2029,6 +2029,10 @@ plugin实现时可以通过注解或者分析语句是读写方法来选定主�
     -- DBA角色，是授予系统管理员的，拥有该角色的用户就能成为系统管理员了，它拥有所有的系统权限。
     GRANT CONNECT, RESOURCE, DBA TO OT;
 
+    -- 赋予表空间权限
+    ALTER USER "ABC" DEFAULT tablespace "TABLESPACE_ABC";
+    ALTER USER "ABC" QUOTA UNLIMITED ON "TABLESPACE_ABC";
+
     -- 使用OT用户帐户连接到数据库(ORCL)
     CONNECT ot@orcl
 
@@ -2103,6 +2107,30 @@ plugin实现时可以通过注解或者分析语句是读写方法来选定主�
     SELECT * FROM DBA_OBJECTS O WHERE o.object_type = 'DATABASE LINK';
     SELECT DBMS_METADATA.GET_DDL('DB_LINK', O.object_name, o.owner) FROM DBA_OBJECTS o where o.object_type='DATABASE LINK';
 
+    -- 赋权限创建DBLINK
+    grant create database link, create public database link,drop public database link to PLATFORM;
+    revoke create database link, create public database link,drop public database link from PLATFORM;
+
+    -- public dblink
+    CREATE PUBLIC DATABASE LINK LINKTOSOMEDB1
+    CONNECT TO ZHANGHAO IDENTIFIED BY 123456
+    USING '192.20.1.1:1521/db1'
+
+    -- private dblink
+    CREATE DATABASE LINK LINKTOSOMEDB2
+    CONNECT TO ZHANGHAO IDENTIFIED BY 123456
+    USING '192.20.1.1:1521/db1'
+
+    -- 查看当前用户权限
+    select * from user_sys_privs
+    grant create procedure to ZHANGHAO;
+    grant create table to ZHANGHAO;
+    grant create view to ZHANGHAO;
+    grant SELECT ANY TABLE to ZHANGHAO;
+
+    -- 闪回数据查询，20分钟前
+    SELECT * FROM (select * from t_user as of timestamp sysdate - 20/1440) WHERE PROD_ID='1234';
+
 2.去Oracle
 
 使用AWS Schema Conversion Tool。
@@ -2135,6 +2163,20 @@ plugin实现时可以通过注解或者分析语句是读写方法来选定主�
     -- kill
     select 'alter system kill session' || ''''||trim(t2.sid)||','||trim(t2.serial#)||''';' from v$locked_object t1,v$session t2 where t1.session_id=t2.sid order by t2.logon_time;
 
+    -- 存储过程或者函数被锁，查询是否有正在执行的函数或存储过程所致对象锁
+    select name
+    from v$db_object_cache
+    where owner='PLATFORM'
+    and type in('PROCEDURE','FUNCTION')
+    and locks > 0
+    and pins > 0;
+
+    -- 查询ddl锁
+    select * from dba_ddl_locks;
+
+    -- 当alter system kill session杀不了session
+    ALTER SYSTEM disconnect session'245,24379' IMMEDIATE 
+
 4.物化视图
 
     -- 创建，去掉注释否则可能报错
@@ -2157,6 +2199,24 @@ plugin实现时可以通过注解或者分析语句是读写方法来选定主�
     -- 删除物化视图
     DROP MATERIALIZED VIEW VW_TABLE;
 
+5.AWR报告
+
+AWR全称Automatic Workload Repository，自动负载信息库，是Oracle 10g版本后推出的一种性能收集和分析工具，提供了一个时间段内整个系统的报表数据。通过AWR报告，可以分析指定的时间段内数据库系统的性能。
+
+    # 使用sqlplus 
+    sys as sysdba
+    @?/rdbms/admin/awrrpt.sql
+
+6.远程连接
+
+    sqlplus user/password@//ip:port/sid
+
+7.执行计划
+
+    -- 查看执行计划
+    explain plan for + 目标SQL
+	select * from table(dbms_xplan.display)
+
 N.参考
 
 (1)[易百Oracle教程](https://www.yiibai.com/oracle)
@@ -2170,6 +2230,8 @@ N.参考
 (5)[Oracle实体化视图](https://blog.51cto.com/35137560/4919968)
 
 (6)[学习Oracle这一篇就够了](https://blog.csdn.net/qq_38490457/article/details/107976731)
+
+(7)[ORACLE AWR报告生成操作步骤](https://www.pxtk.net/3013.html)
 
 # PostgreSQL
 
