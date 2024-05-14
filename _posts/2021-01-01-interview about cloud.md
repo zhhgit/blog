@@ -474,6 +474,23 @@ ReadWriteMany：能以读写的方式挂载到多个节点。以及指定pv的�
     （swarm-manager中）docker node update --availability drain swarm-worker1
     （swarm-manager中）docker node update --availability active swarm-worker1
 
+5.配置Docker Desktop国内镜像源
+
+    {
+    "builder": {
+    "gc": {
+    "defaultKeepStorage": "20GB",
+    "enabled": true
+    }
+    },
+    "experimental": false,
+    "registry-mirrors": [
+    "https://mirror.ccs.tencentyun.com",
+    "http://hub-mirror.c.163.com",
+    "https://docker.m.daocloud.io"
+    ]
+    }
+
 N.参考
 
 (1)[网易云镜像中心](https://c.163yun.com/hub#/m/home/)

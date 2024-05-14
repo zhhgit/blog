@@ -2175,7 +2175,14 @@ plugin实现时可以通过注解或者分析语句是读写方法来选定主�
     select * from dba_ddl_locks;
 
     -- 当alter system kill session杀不了session
-    ALTER SYSTEM disconnect session'245,24379' IMMEDIATE 
+    ALTER SYSTEM disconnect session'245,24379' IMMEDIATE;
+
+    select 'alter system kill session ''' || sid || ',' || serial# || ''' immediate;' sql,
+            username,
+            program,
+            machine,
+            status
+    from v$session where status = 'INACTIVE';
 
 4.物化视图
 
