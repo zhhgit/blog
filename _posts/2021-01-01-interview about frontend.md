@@ -1046,3 +1046,863 @@ Github Pages需要注意仓库分支为gh-pages，才可以访问。同步时记
 
 [jekyll主页](http://jekyll.bootcss.com/)
 
+# React框架
+
+1.使用方式
+
+(1)安装Node v14.18.1，通过create-react-app初始化一个结合了Webpack和ES6的React工程。
+
+    npm install -g npx
+    npx create-react-app my-app
+    // Starts the development server.
+    cd my-app
+    npm start
+    // Bundles the app into static files for production.
+    npm run build
+    // Starts the test runner.
+    npm test
+    // Removes this tool and copies build dependencies, configuration files,and scripts into the app directory. If you do this, you can’t go back!
+    npm run eject
+
+(2)安装React-devtools
+
+    git clone https://github.com/facebook/react-devtools.git
+    cd react-devtools
+    git checkout v3
+    npm --registry https://registry.npm.taobao.org install
+    npm run build:extension:chrome
+    cd shells/chrome/build/unpacked
+    然后Chrome“加载已解压的扩展程序”
+
+2.React组件
+
+简单组件
+
+SimpleComponent.js:
+
+    import React, { Component } from 'react';
+    import AnotherComponent from './AnotherComponent.js';
+
+    export default class SimpleComponent extends Component {
+        constructor(props) {
+            super(props);
+            this.state = {
+                name: "Zhang Hao",
+            };
+        }
+        
+        componentDidMount(){
+            $.ajax({
+                type: 'GET',
+                url: "http://zhanghao90.top/interface1",
+                contentType: "application/json; charset=utf-8",
+                data: {},
+                dataType: 'json',
+                success: function (resp) {
+                    this.setState({
+                        name: resp
+                    });
+                },
+                error: function(err) {}
+            });
+        }
+        
+        handleClick = () => {
+        
+        }
+
+        render() {
+            return (
+                <div>
+                    {this.state.name}
+                    <AnotherComponent />
+                </div>
+            )
+        }
+    }
+
+3.Reflux架构实例
+
+一个简单的添加、删除列表项的demo。
+
+(1)views目录
+
+ListBox.js中通过ListStore.listen监听store中数据的变化，通过ListAction.addItem("new Item")通知到一个具体的action。
+
+	import React from "react";
+	import ListItem from "./ListItem.js";
+	import ListAction from "../actions/ListAction.js";
+	import ListStore from "../stores/ListStore.js"
+
+	var ListBox = React.createClass({
+	    getInitialState:function(){
+	        return{
+	            list:ListStore.getAll()
+	        };
+	    },
+
+	    onChange: function(list) {
+	        this.setState({
+	            list: list
+	        });
+	    },
+
+	    componentDidMount: function() {
+	        this.unsubscribe = ListStore.listen(this.onChange);
+	    },
+
+	    componentWillUnmount: function() {
+	        this.unsubscribe();
+	    },
+
+	    addItem: function(){
+	        ListAction.addItem("new Item");
+	    },
+
+	    deleteItem: function(){
+	        ListAction.deleteItem();
+	    },
+
+	    outputList: function(list){
+	        var listNodes = list.map(function (item, index) {
+	            return (
+	                <ListItem key={index} text={item} />
+	            );
+	        });
+	        return (
+	            <ul>
+	                {listNodes}
+	            </ul>
+	        )
+	    },
+	    render(){
+	        return(
+	            <div>
+	                {this.outputList(this.state.list)}
+	                <button type="button" onClick = {this.addItem}>增加</button>
+	                <button type="button" onClick = {this.deleteItem}>删除</button>
+	            </div>
+	        )
+	    }
+	});
+
+	export default ListBox;
+
+(2)actions目录
+
+ListAction.js中注册具体的action。
+
+	import Reflux from "reflux";
+
+	var ListAction = Reflux.createActions([
+	    "addItem",
+	    "deleteItem"
+	]);
+
+	export default ListAction;
+
+(3)stores目录
+
+ListStore.js中通过this.listenTo监听某个具体的action，通过this.trigger通知view变化。
+
+	import Reflux from 'reflux';
+	import ListAction from '../actions/ListAction.js';
+
+	var _list = ["Item1","Item2","Item3"];
+
+	var ListStore = Reflux.createStore({
+
+	    init: function() {
+	        this.listenTo(ListAction.addItem, this.addItem);
+	        this.listenTo(ListAction.deleteItem, this.deleteItem);
+	    },
+
+	    addItem: function(text){
+	        _list.push(text);
+	        this.trigger(_list);
+	    },
+
+	    deleteItem: function(){
+	        _list.pop();
+	        this.trigger(_list);
+	    },
+	    
+	    getAll: function(){
+	        return _list;
+	    }
+	});
+
+	export default ListStore;
+
+4.React Native
+
+(1)开发环境搭建
+
+(a)配置好Android运行环境，确保一个正常的Android工程能正常run起来。
+
+(b)全局安装react和react-native-cli，并初始化一个项目。
+
+    npm install -g react
+    npm install -g react-native-cli
+    react-native init Test1
+    cd Test1
+    npm install
+
+或者参考[这里](https://segmentfault.com/q/1010000004033633)初始化一个项目，会自动生成一系列的目录和文件。
+
+    node -e "require('react-native/local-cli/cli').init('.','Test1')"
+
+(c)连接真机，用如下命令运行项目
+
+    react-native run-android
+
+此时相当于执行了
+
+    adb -s XXXXX reverse tcp:8081 tcp:8081使真机成功连接
+    react-native start启动packager server
+    执行gradle，打包apk
+
+gradle执行失败可能是需要修改\Test1\android\app\build.gradle
+
+    compileSdkVersion 23
+    buildToolsVersion "23.0.3"
+    aaptOptions.cruncherEnabled = false
+    aaptOptions.useNewCruncher = false
+
+修改\Test1\android\build.gradle
+
+    classpath 'com.android.tools.build:gradle:2.3.0'
+
+修改\Test1\android\gradle\wrapper\gradle-wrapper.properties
+
+    distributionUrl=https\://services.gradle.org/distributions/gradle-3.3-all.zip
+
+(d)可能出现到执行到97%真机无法安装apk的问题，直接通过adb安装
+
+    cd D:\Work\RN\rndemos\Test1\android\app\build\outputs\apk
+    adb install app-debug.apk
+
+(e)摇手机，fetch JS bundle。出现失败的情况，可能需要更新react
+
+    npm install react --save
+
+(f)如果是AVD，直接apk拖进模拟器安装，双击r来reload。
+
+(2)Android连接问题
+
+(a)连接不上：断开连接（不开HDB）-->撤销USB调试授权-->重新连接-->授权
+
+(b)Chrome找不到device:参考[这里](http://stackoverflow.com/questions/20408996/native-usb-debugging-on-chrome-32-doesnt-detect-device)
+
+    Download the Android SDK
+
+    Locate ADB.exe, found in the platform-tools folder
+
+    Open the file using command prompt
+        cd c:\path\to\platform-tools\adb.exe
+
+    Make sure your phone is disconnected from USB
+
+    Type the following commands
+        adb devices
+        adb kill-server
+        adb start-server
+
+    Reconnect your phone, authorise your PC and enjoy the USB debugging
+
+N.参考
+
+(1)[React菜鸟教程](http://www.runoob.com/react/react-tutorial.html)
+
+(2)[React官网](https://zh-hans.reactjs.org/)
+
+(3)[React 入门实例教程](http://www.ruanyifeng.com/blog/2015/03/react.html)
+
+(4)[React组件之间如何交流](https://www.cnblogs.com/aivnfjgj/p/6180779.html)
+
+(5)[结合ES6+开发React组件](http://www.oschina.net/question/2012764_242688?fromerr=FNP2HGiK)
+
+(6)[React Router使用教程](http://www.ruanyifeng.com/blog/2016/05/react_router.html)
+
+(7)[深入理解react-router路由系统](https://segmentfault.com/a/1190000004075348?utm_source=tuicool&utm_medium=referral)
+
+(8)[Create React App中文文档](https://create-react-app.bootcss.com/)
+
+(9)[Chrome插件安装之安装React-devtools](https://blog.csdn.net/qq_41956139/article/details/105816438)
+
+(10)[react项目启动报错:Uncaught TypeError: Cannot read property 'forEach' of undefined](https://blog.csdn.net/feinifi/article/details/112448350)
+
+(11)[Creating a Note Taking App with React and Flux](https://www.sitepoint.com/creating-note-taking-app-react-flux/)
+
+(12)[Flux架构入门教程](http://www.ruanyifeng.com/blog/2016/01/flux.html)
+
+(13)[使用React和Flux创建一个记事本应用](http://www.jcodecraeer.com/a/javascript/2015/0311/2581.html)
+
+(14)[React Native中文网](http://reactnative.cn/)
+
+(15)[React native配置后，一直Installing react-native package from npm](https://segmentfault.com/q/1010000004033633)
+
+(16)[react-native-guide](https://github.com/reactnativecn/react-native-guide)
+
+(17)[React Native for Android 实践 -- 实现知乎日报客户端](http://www.race604.com/react-native-android-practice/)
+
+# Vue框架
+
+实践了一下用Vue做项目。官方文档确实很详细。
+
+1.使用Vue
+
+使用vue-cli工具可以直接生成
+
+	//安装vue-cli
+	npm install --g vue-cli
+	//生成一个项目
+	vue init webpack my-project-list
+	cd my-project-list
+	//下载依赖
+	npm install
+	//开发
+	npm run dev
+	//生产
+	npm run build
+
+一个简单的组件结构如下ListItem.vue
+
+	<template>
+	  <div class="item">
+	    <div v-if="propA === 'hehe'">
+            { {computedA} }
+	  	</div>
+	  	<a v-bind:href="propB" />
+            { {propB} }
+	  	</a>
+	  	<div v-on:click="methodA">
+	  	    { {dataA} }
+	  	</div>
+	  	<Text></Text>
+	  </div>
+	</template>
+
+	<script>
+	  import Text from "./Text.vue";
+	  export default {
+	    name: 'ListItem',
+	    data: function () {
+	      return {
+	      	dataA: 1
+	      }
+	    },
+	    props: [
+	      "propA",
+	      "propB"
+	    ],
+	    computed:{
+	      computedA () {
+	        return this.dataA + 1;
+	      }
+	    },
+	    components:{
+		  Text
+	    },
+	    methods: {
+	      methodA:function(){
+	      	this.methodB();
+	      },
+	      methodB:function(){
+	      	console.log("do something");
+	      }
+	    },
+	    created:function(){
+	    	console.log("do something when created");
+	    }
+	  }
+	</script>
+
+	<style scoped>
+	  .item{
+	  }
+	</style>
+
+代码结构：组件在src/components下，页面在src/pages下。static目录中放一些直接引用的静态资源，图片，公共的JS和CSS等。
+
+2.使用Vue Router
+
+配置文件为src/router/index.js，其中/selected/:query形式为动态匹配，可以带参数
+
+	import Vue from 'vue';
+	import Router from 'vue-router';
+	import All from '@/pages/All';
+	import Selected from "@/pages/Selected";
+
+	Vue.use(Router);
+
+	export default new Router({
+	  routes: [
+	    {
+	      path: '/all',
+	      name: 'all',
+	      component: All
+	    },
+	    {
+	      path: '/selected/:query',
+	      name: 'selected',
+	      component: Selected
+	    }
+	  ]
+	});
+
+在组件中，分别通过如下的方式实现编程式路由
+
+	router.push({ name: 'all'});
+	router.push({ name: 'selected', params: {query: query }});
+
+3.使用Vuex
+
+配置文件为src/store/index.js
+
+	import Vue from 'vue';
+	import Vuex from 'vuex';
+	import navigator from './modules/navigator'
+
+	Vue.use(Vuex);
+
+	export default new Vuex.Store({
+	  modules: {
+	    navigator
+	  },
+	})
+
+src/store/modules/navigator.js为navigator这个分模块的配置，每个模块相对独立，分别配置state,actions,mutations
+
+	const state = {
+	  show:"0"
+	};
+
+	const actions = {
+	  changeShowType ({ commit },data) {
+	    commit("changeShowType",data);
+	  }
+	};
+
+	const mutations = {
+	  changeShowType(state,payload) {
+	    state.show = payload.show;
+	  }
+	};
+
+	export default {
+	  state,
+	  actions,
+	  mutations
+	}
+
+在一个Vue组件或者页面中触发一个action，可以携带数据。
+
+	this.$store.dispatch('changeShowType',{show:"0"});
+
+action会commit一个mutation，mutation又继续改变state，都在navigator.js中很明确。在与这个state相关的组件中，可以通过computed派生出一些值
+
+	selectType () {
+	  return this.$store.state.navigator.show;
+	}
+
+最后在组件或者页面中使用与state有关的值
+
+    { {selectType} }
+
+4.参考
+
+(1)[Vue官方文档](https://cn.vuejs.org/v2/guide/index.html)
+
+(2)[Vue菜鸟教程](http://www.runoob.com/vue2/vue-tutorial.html)
+
+(3)[Vue Router官方文档](https://router.vuejs.org/zh-cn/)
+
+(4)[Vuex官方文档](https://vuex.vuejs.org/zh-cn/)
+
+# Cordova框架
+
+工作中使用Cordova已久，但是一直集中于：与客户端同事定好Cordova插件名和方法 ==》 封装JS插件 ==》 使用JS插件，理解并不深刻。新开Cordova系列，争取弄明白Android上Cordova的原理吧。
+
+按照官网说法，Cordova提供两个基本的工作流用来创建移动App。跨平台(CLI)的工作流，和平台为中心的工作流。
+
+“跨平台(CLI)的工作流:如果你想你的App运行在尽可能多的移动操作系统，那么就使用这个工作流，你只需要很少的特定平台开发。 这个工作流围绕这'cordova'CLI(命令行)。CLI是一个高级别的工具，他允许一次构建多个平台的项目，抽象了很多功能性的低级别shell脚本。CLI把公用的web资源复制到每个移动平台的子目录，根据每个平台做必要的配置变化，运行构建脚本生成2进制文件。CLI统一也提供通用接口，将插件应用在app中。如果要入门可以按照 创建你的第一个App指南中的步骤来 。除非你有一个以平台为中心的工作流，否则建议你使用跨平台工作流。”
+
+1.使用Cordova CLI
+
+安装Node，安装Cordova
+
+    npm install -g cordova
+
+创建项目
+
+    cordova create MyApp
+
+添加平台
+
+    cd MyApp
+    cordova platform add android
+
+检查你当前平台设置状况
+
+    cordova platform ls
+
+MyApp/platform目录官方建议不要改动里面的内容。检测是否满足构建平台的要求
+
+    cordova requirements
+
+Android平台会检查Java JDK，Android SDK，Android target，Gradle这几个的安装情况。通常装好Android Studio并能正常build、run项目，前三个就已经装好。Gradle需要添加系统环境变量path，比如：
+
+    C:\Users\zhanghao1\.gradle\wrapper\dists\gradle-3.3-all\55gk2rcmfc6p2dg9u9ohc3hw9\gradle-3.3\bin
+
+修改MyApp/www/目录下的前端代码，按照官网描述CLI可以把公用的web资源复制到每个移动平台的子目录。运行Android打包，手机连接状态可以直接安装。
+
+    cordova run android
+
+2.使用插件
+
+核心插件API的用法看起来很明确，直接参照文档上每个插件的用法，安装例如
+
+    cordova plugin add cordova-plugin-battery-status
+
+然后修改www目录中的JS代码，重新执行cordova run android
+
+3.开发Cordova Android插件
+
+前端JS中调用Cordova插件的形式是
+
+    exec(<successFunction>, <failFunction>, <service>, <action>, [<args>]);
+
+几个参数分别为成功回调、失败回调、插件名，插件方法，参数。所以一个新的Echo插件在JS中的调用为
+
+    cordova.exec(function(resp) {
+                    alert("success");
+                    alert(resp);
+                },
+                function(resp) {
+                    alert("fail");
+                    alert(resp);
+                },
+                "Echo",
+                "echo",
+                ["hehe"]);
+
+当使用Cordova CLI时，执行cordova run android命令会同步www文件夹中的前端代码到platforms/android/assets/www目录。
+
+按照官网的说法，[Plugin Development Guide](http://cordova.apache.org/docs/en/latest/guide/hybrid/plugins/index.html)，添加一个插件是需要写一个plugin.xml文件的，当执行cordova run android时，会将其中feature标签中的内容同步到Android工程的res/xml/config.xml文件中。
+
+    <feature name="<service_name>">
+        <param name="android-package" value="<full_name_including_namespace>" />
+    </feature>
+
+对于Echo插件，就是插入了一条
+
+    <feature name="Echo">
+            <param name="android-package" value="org.apache.cordova.echo.Echo"/>
+    </feature>
+
+新建src\org\apache\cordova\echo\Echo.java如下
+
+    package org.apache.cordova.echo;
+
+    import org.apache.cordova.CallbackContext;
+    import org.apache.cordova.CordovaPlugin;
+    import org.json.JSONArray;
+    import org.json.JSONException;
+    /**
+     * This class echoes a string called from JavaScript.
+     */
+    public class Echo extends CordovaPlugin {
+
+        @Override
+        public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
+            if (action.equals("echo")) {
+                String message = args.getString(0);
+                this.echo(message, callbackContext);
+                return true;
+            }
+            return false;
+        }
+
+        private void echo(String message, CallbackContext callbackContext) {
+            if (message != null && message.length() > 0) {
+                callbackContext.success(message);
+            } else {
+                callbackContext.error("Expected one non-empty string argument.");
+            }
+        }
+    }
+
+直接使用Android Studio来build和安装，就可以调用Echo插件。
+
+4.Android整合Cordova
+
+(1)通过Cordova CLI下载的项目中，/platforms/android项目目录中有CordovaLib目录。新建的Android工程，通过File--New--Import Module导入CordovaLib，会将整个CordovaLib目录自动拷贝过来。再添加依赖，工程右键--Open Module Settings--app--Dependancies--添加Module Dependancy--选择CordovaLib。
+
+(2)自定义插件ZHToast继承CordovaPlugin，ZHToast是插件名，getToast是插件方法。
+
+    package cn.zhanghao90.demo1;
+
+    import android.widget.Toast;
+    import org.apache.cordova.CallbackContext;
+    import org.apache.cordova.CordovaPlugin;
+    import org.json.JSONArray;
+    import org.json.JSONException;
+
+    public class ZHToast extends CordovaPlugin {
+        @Override
+        public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
+            if("getToast".equals(action)){
+                showToast(args.getString(0),args.getInt(1));
+            }
+            return true;
+        }
+
+        private void showToast(String content, int type){
+            Toast.makeText(this.cordova.getActivity(),content,type).show();
+        }
+    }
+
+(3)添加res/xml目录，添加config.xml文件。主要是feature标签中定义插件，value是全类名。content标签指定了顶级Web目录中起始页面，默认为index.html，通常在顶级Web目录的www目录中。
+
+    <?xml version='1.0' encoding='utf-8'?>
+    <widget id="cn.zhanghao90.demo1" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+        <feature name="ZHToast">
+            <param name="android-package" value="cn.zhanghao90.demo1.ZHToast"/>
+        </feature>
+        <name>Demo1</name>
+        <description>
+            Demo1
+        </description>
+        <author email="zhh900601@sina.com" href="http://zhanghao90.top">
+            zhanghao
+        </author>
+        <content src="index.html" />
+        <access origin="*" />
+        <allow-intent href="http://*/*" />
+        <allow-intent href="https://*/*" />
+        <allow-intent href="tel:*" />
+        <allow-intent href="sms:*" />
+        <allow-intent href="mailto:*" />
+        <allow-intent href="geo:*" />
+        <allow-intent href="market:*" />
+        <preference name="loglevel" value="DEBUG" />
+    </widget>
+
+(4)添加assets/www目录，其中放入前端代码，记得js中放入一个cordova.js。JS中插件调用形式还是如下
+
+    cordova.exec(function(resp) {
+                    alert("success");
+                    alert(resp);
+                },
+                function(resp) {
+                    alert("fail");
+                    alert(resp);
+                },
+                "ZHToast",
+                "getToast",
+                ["this is a test",0]
+    );
+
+(5)修改MainActivity继承CordovaActivity。
+
+    package cn.zhanghao90.demo1;
+
+    import android.os.Bundle;
+    import org.apache.cordova.*;
+
+    public class MainActivity extends CordovaActivity
+    {
+        @Override
+        public void onCreate(Bundle savedInstanceState)
+        {
+            super.onCreate(savedInstanceState);
+            // Set by <content src="index.html" /> in config.xml
+            loadUrl(launchUrl);
+        }
+    }
+
+(6)修改AndroidManifest.xml
+
+    <?xml version="1.0" encoding="utf-8"?>
+    <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+        package="cn.zhanghao90.demo1">
+
+        <application
+            android:hardwareAccelerated="true"
+            android:icon="@mipmap/ic_launcher"
+            android:label="@string/app_name">
+            <activity
+                android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale"
+                android:label="@string/activity_name"
+                android:launchMode="singleTop"
+                android:name="MainActivity"
+                android:theme="@android:style/Theme.DeviceDefault.NoActionBar"
+                android:windowSoftInputMode="adjustResize">
+                <intent-filter android:label="@string/launcher_name">
+                    <action android:name="android.intent.action.MAIN" />
+                    <category android:name="android.intent.category.LAUNCHER" />
+                </intent-filter>
+            </activity>
+        </application>
+
+    </manifest>
+
+(7)直接使用Android Studio来build和安装。
+
+5.JavaScript与Java交互
+
+activity_main.xml中有一个webview和一个button
+
+	<?xml version="1.0" encoding="utf-8"?>
+	<RelativeLayout
+	    android:layout_width="fill_parent"
+	    android:layout_height="fill_parent"
+	    xmlns:android="http://schemas.android.com/apk/res/android">
+	    <WebView
+	        android:id="@+id/webview1"
+	        android:layout_width="fill_parent"
+	        android:layout_height="fill_parent"
+	        android:layout_above="@+id/button1"/>
+	    <Button
+	        android:id="@+id/button1"
+	        android:layout_width="200dip"
+	        android:layout_height="40dip"
+	        android:layout_alignParentBottom="true"
+	        android:layout_centerHorizontal="true"
+	        android:text="android调用html5方法"
+	        android:textAllCaps="false"/>
+	</RelativeLayout>
+
+MainActivity.java中，jsKit绑定到JS的全局变量globalParams上，供JS调用。原生按钮button1会调用JS方法androidToHtml5。
+
+	package cn.zhanghao90.demo1;
+
+	import android.annotation.SuppressLint;
+	import android.app.Activity;
+	import android.os.Bundle;
+	import android.os.Handler;
+	import android.view.View;
+	import android.view.View.OnClickListener;
+	import android.webkit.WebChromeClient;
+	import android.webkit.WebView;
+	import android.widget.Button;
+
+	@SuppressLint("SetJavaScriptEnabled")
+	public class MainActivity extends Activity {
+
+	    private WebView webview1;
+	    private Button button1;
+	    private JSKit jsKit;
+	    private Handler mHandler = new Handler();
+
+	    @Override
+	    protected void onCreate(Bundle savedInstanceState) {
+	        super.onCreate(savedInstanceState);
+	        setContentView(R.layout.activity_main);
+	        //初始化控件
+	        webview1 = (WebView) findViewById(R.id.webview1);
+	        button1 = (Button) findViewById(R.id.button1);
+	        //实例化jsKit对象
+	        jsKit = new JSKit(this);
+
+	        //把jsKit绑定到全局的globalParams上，globalParams的作用域是全局的，初始化后可随处使用
+	        webview1.getSettings().setJavaScriptEnabled(true);
+	        webview1.addJavascriptInterface(jsKit, "globalParams");
+	        webview1.loadUrl("file:///android_asset/www/test.html");
+
+	        //内容的渲染需要webviewChromeClient去实现，设置webviewChromeClient基类，解决js中alert不弹出的问题和其他内容渲染问题
+	        webview1.setWebChromeClient(new WebChromeClient());
+	        //android调用html5中JS方法
+	        button1.setOnClickListener(new OnClickListener() {
+	            @Override
+	            public void onClick(View v) {
+	                mHandler.post(new Runnable() {
+	                    @Override
+	                    public void run() {
+	                        webview1.loadUrl("javascript:androidToHtml5()");
+	                    }
+	                });
+	            }
+	        });
+	    }
+	}
+
+JSKit.java中定义两个供JS调用的方法，html5ToAndroid方法显示Toast，startNewActivity方法新开一个新的Activity，注意注解@JavascriptInterface
+
+
+	package cn.zhanghao90.demo1;
+
+	import android.content.Intent;
+	import android.webkit.JavascriptInterface;
+	import android.widget.Toast;
+
+	public class JSKit {
+	    private MainActivity ma;
+	    public JSKit(MainActivity context) {
+	        this.ma = context;
+	    }
+
+	    @JavascriptInterface
+	    public void html5ToAndroid(String msg) {
+	        Toast.makeText(ma, msg, Toast.LENGTH_SHORT).show();
+	    }
+
+	    @JavascriptInterface
+	    public void startNewActivity() {
+	        Intent intent = new Intent(ma,Main2Activity.class);
+	        ma.startActivity(intent);
+	    }
+	}
+
+res/www/test.html中两个按钮分别调用JSKit中定义的两个方法
+
+	<!DOCTYPE html>
+	<HTML>
+	<HEAD>
+	    <meta name="viewport" content="width=device-width, target-densitydpi=device-dpi" />
+	    <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	    <script>
+	   function androidToHtml5(){
+	      alert("android调用html5方法");
+	   }
+	   function html5ToAndroid(){
+	      globalParams.html5ToAndroid('html5调用android方法');
+	   }
+	   function startNewActivity(){
+	      globalParams.startNewActivity();
+	   }
+	</script>
+	</HEAD>
+	<BODY>
+	<button onclick='html5ToAndroid()'>html5调用android方法</button>
+	<button onclick='startNewActivity()'>新开Activity</button>
+	</BODY>
+	</HTML>
+
+
+6.参考
+
+(1)[Cordova官网](http://cordova.apache.org/)
+
+(2)[Cordova中文网](http://cordova.axuer.com/)
+
+(3)[Android Plugin Development Guide](http://cordova.apache.org/docs/en/latest/guide/platforms/android/plugin.html)
+
+(4)[zhhgit/cordova_cli_android_demo](https://github.com/zhhgit/cordova_cli_android_demo)
+
+(5)[Android项目里集成Cordova详解](http://blog.csdn.net/u013491677/article/details/51985390)
+
+(6)[zhhgit/cordova_android_integration](https://github.com/zhhgit/cordova_android_integration)
+
+(7)[android cordova混合开发（交互部分）](http://blog.csdn.net/u010819959/article/details/50608273)
+
+(8)[zhhgit/android_js_java_bridge](https://github.com/zhhgit/android_js_java_bridge)
+
+# Ant Design框架
+
+N.参考
+
+(1)[Ant Design官网](https://ant.design/index-cn)
+
+(2)[Ant Design Pro](https://pro.ant.design/zh-CN)

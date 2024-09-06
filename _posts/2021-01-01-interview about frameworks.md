@@ -1565,3 +1565,118 @@ IfFileName指定了文件名需满足的条件，IfLastModified指定了文件�
     
     # 访问权限：
     13.修改 cn.zhanghao90.nmg.service.interceptor.LoginInterceptor		//修改访问权限控制
+
+# Activiti
+
+1.七大接口
+
+    RepositoryService：提供一系列管理流程部署和流程定义的API。
+    RuntimeService：在流程运行时对流程实例进行管理与控制。
+    TaskService：对流程任务进行管理，例如任务提醒、任务完成和创建任务等。
+    IdentityService：提供对流程角色数据进行管理的API，这些角色数据包括用户组、用户及它们之间的关系。
+    ManagementService：提供对流程引擎进行管理和维护的服务。
+    HistoryService：对流程的历史数据进行操作，包括查询、删除这些历史数据。
+    FormService：表单服务。
+
+2.28张表
+
+    act_ge_ 通用数据表，ge是general的缩写
+    act_hi_ 历史数据表，hi是history的缩写，对应HistoryService接口
+    act_id_ 身份数据表，id是identity的缩写，对应IdentityService接口
+    act_re_ 流程存储表，re是repository的缩写，对应RepositoryService接口，存储流程部署和流程定义等静态数据
+    act_ru_ 运行时数据表，ru是runtime的缩写，对应RuntimeService接口和TaskService接口，存储流程实例和用户任务等动态数据
+
+(1)资源库流程规则表
+
+    act_re_deployment 部署信息表
+    act_re_model 流程设计模型部署表
+    act_re_procdef 流程定义数据表
+
+(2)运行时数据库表
+
+    act_ru_execution 运行时流程执行实例表
+    act_ru_identitylink 运行时流程人员表，主要存储任务节点与参与者的相关信息
+    act_ru_task 运行时任务节点表
+    act_ru_variable 运行时流程变量数据表
+
+(3)历史数据库表
+
+    act_hi_actinst 历史节点表
+    act_hi_attachment 历史附件表
+    act_hi_comment 历史意见表
+    act_hi_identitylink 历史流程人员表
+    act_hi_detail 历史详情表，提供历史变量的查询
+    act_hi_procinst 历史流程实例表
+    act_hi_taskinst 历史任务实例表
+    act_hi_varinst 历史变量表
+
+(4)组织机构表
+
+    act_id_group 用户组信息表
+    act_id_info 用户扩展信息表
+    act_id_membership 用户与用户组对应信息表
+    act_id_user 用户信息表
+
+(5)通用数据表
+
+    act_ge_bytearray 二进制数据表
+    act_ge_property 属性数据表存储整个流程引擎级别的数据,初始化表结构时，会默认插入三条记录
+
+另一个维度的划分
+
+(1)流程部署相关表
+
+    act_re_deployement 部署对象表
+    act_re_procdef  流程定义表
+    act_ge_bytearray 资源文件表
+    act_ge_property  主键生成策略表（对于部署对象表的主键ID）
+
+(2)流程实例相关表
+
+    act_ru_execution 正在执行的执行对象表（包含执行对象ID和流程实例ID，如果有多个线程可能流程实例ID不一样）
+    act_hi_procinst 流程实例历史表
+    act_hi_actinst 存放历史所有完成的任务
+
+(3)Task任务相关表
+
+    act_ru_task 代办任务表 （只对应节点是UserTask的）
+    act_hi_taskinst 代办任务历史表 （只对应节点是UserTask的）
+    act_hi_actinst  所有节点活动历史表 （对应流程的所有节点的活动历史，从开始节点一直到结束节点中间的所有节点的活动都会被记录）
+
+(4)流程变量表
+
+    act_ru_variable 正在执行的流程变量表
+    act_hi_variable 流程变量历史表
+
+3.配置文件
+
+    spring:
+          activiti:
+                #控制Activiti如何处理数据库模式 28张表。
+                #false（默认）：当流程引擎启动时，Activiti不会进行任何模式更新。
+                #true：Activiti会在流程引擎启动时，检查数据库模式是否和引擎的表是匹配的，如果不匹配，会更新数据库模式。
+                #create-drop：在流程引擎创建的时候创建模式，在流程引擎关闭的时候删除模式。 一般不用。
+                #drop-create：在流程引擎开始的时候删除模式，在流程引擎结束的时候创建模式。一般不用。
+                #生产环境用false
+                database-schema-update: false
+                # 是否在启动时检查流程定义,自动部署验证设置:true-开启（默认）、false-关闭  生成表
+                check-process-definitions: false
+                #生成历史信息表
+                db-history-used: true
+                #历史记录存储等级
+                history-level: full
+                #检测身份信息表是否存在
+                db-identity-used: true
+                #加这个配置就不会一直调用了 [activiti-acquire-async-jobs]
+                #业务流程简单且不涉及耗时操作，不需要激活AsyncExecutor;如果业务流程复杂且包含多个耗时环节，那么激活AsyncExecutor可能会带来显著的性能提升
+                async-executor-activate: false
+
+N.参考
+
+(1)[spring boot整合activiti 6.0](https://blog.csdn.net/u011767319/article/details/83622611)
+
+(2)[Activiti6详细教程](https://blog.csdn.net/babylovewei/article/details/85166182)
+
+(3)[在springBoot项目中使用activiti](https://cloud.tencent.com/developer/article/1060019)
+
+(4)[springboot整合activity6工作流](https://blog.51cto.com/u_16213593/10751508)

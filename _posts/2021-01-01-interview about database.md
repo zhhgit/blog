@@ -2171,6 +2171,24 @@ plugin实现时可以通过注解或者分析语句是读写方法来选定主�
     and locks > 0
     and pins > 0;
 
+    -- 解锁被锁存储过程包
+    SELECT
+	'alter system kill session ''' || sid || ',' || serial# || ''' immediate;' SQL,
+	username,
+	program,
+	machine,
+	status
+    FROM
+    v$session
+    WHERE
+    SID IN (
+    SELECT
+    session_id
+    FROM
+    dba_ddl_locks
+    WHERE
+    name LIKE '%MR_GZFS%');
+
     -- 查询ddl锁
     select * from dba_ddl_locks;
 
