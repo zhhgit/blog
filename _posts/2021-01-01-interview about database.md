@@ -1031,8 +1031,8 @@ MySQL还有个问题是select for update语句执行中所有扫描过的行都�
 MyISAM在执行查询语句（SELECT）前，会自动给涉及的所有表加读锁，在执行更新操作（UPDATE、DELETE、INSERT等）前，会自动给涉及的表加写锁，这个过程并不需要用户干预，因此用户一般不需要直接用LOCK TABLE命令给MyISAM表显式加锁。
 显式加锁：
 
-    select  math from zje where math>60 lock in share mode； # 上共享锁（读锁）
-    select math from zje where math >60 for update； # 上排它锁（写锁）
+    select math from zje where math>60 lock in share mode； -- 上共享锁（读锁）
+    select math from zje where math >60 for update； -- 上排它锁（写锁）
 
 表锁：
 不会出现死锁，发生锁冲突几率高，并发低。
@@ -2242,6 +2242,80 @@ AWR全称Automatic Workload Repository，自动负载信息库，是Oracle 10g�
     explain plan for + 目标SQL
 	select * from table(dbms_xplan.display)
 
+8.数据迁移
+
+(1)expdp导出
+
+    # 逻辑目录的创建
+    CREATE DIRECTORY DUMP_DIR AS 'F:\oracledata';
+    SELECT * FROM DBA_DIRECTORIES t WHERE t.DIRECTORY_NAME = 'DUMP_DIR';
+    DROP DIRECTORY DUMP_DIR;
+
+    # SYS用户给导出用户赋权限
+    GRANT READ, WRITE ON DIRECTORY DUMP_DIR TO PLATFORM;
+
+    # 验证能否写入磁盘
+    DECLARE
+        l_file UTL_FILE.FILE_TYPE;
+    BEGIN
+        l_file := UTL_FILE.FOPEN('DUMP_DIR', 'testfile.txt', 'W');
+        UTL_FILE.PUT_LINE(l_file, 'This is a test.');
+        UTL_FILE.FCLOSE(l_file);
+    EXCEPTION
+        WHEN OTHERS THEN
+        UTL_FILE.FCLOSE(l_file);
+        RAISE;
+    END;
+
+    # 切换到数据库所在安装目录下
+    cd D:\app\Administrator\product\11.2.0\dbhome_1\BIN
+    # 导出元数据与数据
+    ./expdp 'platform/secret@ZHPTCS' schemas=XYDATA directory=DUMP_DIR dumpfile=XYDATA.DMP
+    # 只导出元数据
+    ./expdp 'platform/secret@ZHPTCS' schemas=XYDATA directory=DUMP_DIR dumpfile=XYDATA_DDL.DMP CONTENT=METADATA_ONLY
+    # 不区分schema，导出全部DDL
+    ./expdp 'platform/secret@ZHPTCS' directory=DUMP_DIR dumpfile=ALL_DDL.DMP FULL=Y CONTENT=METADATA_ONLY
+
+    # 要导出SQL格式的数据库对象，建议用PLSQL软件直接进行导出。
+
+(2)impdp导入
+
+    # 创建表空间
+    CREATE TABLESPACE TBS_BIBUSER_DATA DATAFILE '/data/zhptcs/TBS_BIBUSER_DATA.dbf' SIZE 1000M AUTOEXTEND ON NEXT 100M MAXSIZE UNLIMITED;
+
+    # 对于存储空间很大的表空间，一个文件最多30G，需要多个存储文件
+    ALTER TABLESPACE TBS_BIBUSER_DATA
+    ADD DATAFILE '/data/zhptcs/TBS_BIBUSER_DATA02.dbf' SIZE 10G AUTOEXTEND ON NEXT 100M MAXSIZE UNLIMITED;
+
+    # 创建用户
+    CREATE USER XYDATA IDENTIFIED BY secret
+    DEFAULT TABLESPACE TBS_BIBUSER_DATA
+    QUOTA UNLIMITED ON TBS_BIBUSER_DATA;
+
+    # 赋权限
+    grant connect to XYDATA;
+    grant dba to XYDATA;
+    grant resource to XYDATA;
+    grant unlimited tablespace to XYDATA;
+    
+    # 通过NAS转移文件
+    sudo mv /data/nasdata/oracledata/XYDATA.dmp /data/localdata/
+
+    # 授予用户逻辑目录读写权限
+    CREATE DIRECTORY DUMP_DIR AS '/data/localdata';
+    GRANT READ, WRITE ON DIRECTORY DUMP_DIR TO XYDATA;
+
+    # 磁盘要充分赋权限
+    sudo chmod 777 -R /data/*
+
+    # 配置Oracle环境变量
+    vim /etc/profile
+    export ORACLE_HOME=/u01/app/oracle/product/11.2/db_1
+
+    # 导入
+    cd /u01/app/oracle/product/11.2/db_1/bin
+    ./impdp XYDATA/secret@localhost/ZHPTCS SCHEMAS=XYDATA DIRECTORY=DUMP_DIR DUMPFILE=XYDATA.DMP
+
 N.参考
 
 (1)[易百Oracle教程](https://www.yiibai.com/oracle)
@@ -2257,6 +2331,8 @@ N.参考
 (6)[学习Oracle这一篇就够了](https://blog.csdn.net/qq_38490457/article/details/107976731)
 
 (7)[ORACLE AWR报告生成操作步骤](https://www.pxtk.net/3013.html)
+
+(8)[IMPDP和EXPDP的介绍和使用方法](https://blog.csdn.net/weixin_46291263/article/details/131974468)
 
 # PostgreSQL
 

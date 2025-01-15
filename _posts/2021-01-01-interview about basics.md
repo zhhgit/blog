@@ -55,10 +55,12 @@ HR面：除了薪水外其他福利待遇、公积金、补充医疗、年终奖
         --Spring Boot
         --Spring Cloud
         --Dubbo
-        --Mybatis
         --Hibernate
+        --Mybatis
         --Netty
         --Log4j2
+        --Struts2
+        --Activiti
         
     数据库
         --数据库基础
@@ -99,7 +101,12 @@ HR面：除了薪水外其他福利待遇、公积金、补充医疗、年终奖
         --数据结构
         --算法--基础
         --算法--排序
+        --算法--二分查找
         --算法--链表
+        --算法--二叉树
+        --加密算法
+        --其他算法
+        --LeetCode题目思路整理
         
     设计模式
     
@@ -118,6 +125,21 @@ HR面：除了薪水外其他福利待遇、公积金、补充医疗、年终奖
         --Shell
         --问题排查与调优
         --Linux研发环境
+
+    CICD
+
+    前端
+        --JavaScript
+        --跨域
+        --正则表达式
+        --WebSocket
+        --浏览器缓存
+        --打包工具
+        --Github Pages
+        --React框架
+        --Vue框架
+        --Cordova框架
+        --Ant Design框架
     
     基础
         --面经

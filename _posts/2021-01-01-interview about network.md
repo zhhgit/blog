@@ -302,3 +302,11 @@ SSL证书安装参考[这里](https://www.qcloud.com/document/product/400/4143#1
 	ProxyPass /console-web http://1.2.3.4:8081/console-web
 	ProxyPassReverse /console-web http://1.2.3.4:8081/console-web
 
+13.挂NAS存储盘
+
+    # Windows服务器，然后输入用户和密码
+    net use U: \\XXX.XXX.XXX.XXX\BHCS_ZHPT_01
+    
+    # Linux服务器，然后输入用户和密码
+    # sudo mount -t nfs -o vers=3,proto=tcp,rsize=1048576,wsize=1048576,hard,intr,timeo=600 XXX.XXX.XXX.XXX:/BHCS_ZHPT_01 /data/nasdata
+

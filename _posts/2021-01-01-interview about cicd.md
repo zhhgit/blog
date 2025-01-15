@@ -1,13 +1,15 @@
 ---
 layout: post
-title: "Jenkins"
-description: Jenkins
-modified: 2022-01-13
-category: DevOps
-tags: [DevOps]
+title: "面试题 -- CICD篇"
+description: 面试题 -- CICD篇
+modified: 2021-01-01
+category: Interview
+tags: [Interview]
 ---
 
-# 一、安装
+# Jenkins
+
+1.安装
 
     # 带blueocean的镜像
     docker pull jenkinsci/blueocean:latest
@@ -65,7 +67,7 @@ git仓库中的/jenkins/scripts/deliver.sh如下，执行Java程序(示例程序
     set -x
     java -jar target/my-app-1.0-SNAPSHOT.jar
 
-# 二、实际项目打包
+2.实际项目打包
 
 适用于\pring-boot-startup\demo1，最终效果是执行后jar包拷贝到F:\download目录
 
@@ -99,13 +101,13 @@ deliver.sh：
     # maven容器中的/home目录，映射到的是windows的F:\download目录。
     cp target/demo-1.0.0-SNAPSHOT.jar /home
 
-# 三、参考
+3.参考
 
-1.[Jenkins官方手册：使用Maven构建Java应用程序](https://www.jenkins.io/zh/doc/tutorials/build-a-java-app-with-maven/#fork-sample-repository)
+(1)[Jenkins官方手册：使用Maven构建Java应用程序](https://www.jenkins.io/zh/doc/tutorials/build-a-java-app-with-maven/#fork-sample-repository)
 
-2.[Official Jenkins Docker image](https://github.com/jenkinsci/docker/blob/master/README.md)
+(2)[Official Jenkins Docker image](https://github.com/jenkinsci/docker/blob/master/README.md)
 
-3.[dockerhub jenkins](https://registry.hub.docker.com/r/jenkins/jenkins)
+(3)[dockerhub jenkins](https://registry.hub.docker.com/r/jenkins/jenkins)
 
-4.[dockerhub jenkinsci blueocean](https://registry.hub.docker.com/r/jenkinsci/blueocean/tags)
+(4)[dockerhub jenkinsci blueocean](https://registry.hub.docker.com/r/jenkinsci/blueocean/tags)
 

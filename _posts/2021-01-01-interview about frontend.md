@@ -1024,7 +1024,7 @@ gulpfile.js文件参考[这里](http://www.tuicool.com/articles/qUvyEj)，完整
 
 [使用Gulp构建本地开发Web服务器](http://www.tuicool.com/articles/qUvyEj)
 
-# 其他
+# Github Pages
 
 1.Github Pages静态blog
 
