@@ -69,7 +69,7 @@ git仓库中的/jenkins/scripts/deliver.sh如下，执行Java程序(示例程序
 
 2.实际项目打包
 
-适用于\pring-boot-startup\demo1，最终效果是执行后jar包拷贝到F:\download目录
+适用于\spring-boot-startup\demo1，最终效果是执行后jar包拷贝到F:\download目录
 
 Jenkinsfile：
 

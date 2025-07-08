@@ -148,6 +148,4 @@ HR面：除了薪水外其他福利待遇、公积金、补充医疗、年终奖
 
 1.[Java最常见的200+面试题及自己梳理的答案--面试必备（一）](https://www.cnblogs.com/cocoxu1992/p/10460251.html)
 
-2.[久伴_不离](https://www.jianshu.com/u/837b81b0eaa9)
-
-3.[Java面试题精选阶段汇总](https://mp.weixin.qq.com/s/v28rdHMooCUlO7c0s3z6Gw)
+2.[Java面试题精选阶段汇总](https://mp.weixin.qq.com/s/v28rdHMooCUlO7c0s3z6Gw)

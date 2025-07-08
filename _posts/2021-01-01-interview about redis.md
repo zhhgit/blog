@@ -325,7 +325,7 @@ root-context.xml中Redis的配置：
 (4)最大允许key大小为512M。
 
     del key
-    // 返回序列号之后的值
+    // 返回序列化之后的值
     dump key
     // 判断是否存在key，若key存在返回1，否则返回0。
     exists key

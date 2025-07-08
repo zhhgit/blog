@@ -195,7 +195,7 @@ N.参考
     // 系统启动时间与负载
     uptime
     // 请求数
-    natstat -na | wc -l
+    netstat -na | wc -l
     // CPU
     top
     // 内存
@@ -203,7 +203,6 @@ N.参考
     // 查看GC
     jstat -gc PID
     // 查看堆栈
-    jstat -l PID
     jstack -l PID
     
 2.free命令详解
@@ -227,12 +226,12 @@ N.参考
 
 3.CPU飙升问题排查步骤
 
-执行top命令：查看所有进程占系统CPU的排序。极大可能排第一个的就是咱们的java进程（COMMAND列）。PID那一列就是进程号。
-执行top -Hp 进程号命令：查看java进程下的所有线程占CPU的情况。
-执行printf "%x\n" 线程号命令 ：后续查看线程堆栈信息展示的都是十六进制，为了找到咱们的线程堆栈信息，咱们需要把线程号转成16进制。例如,printf "%x\n 10-》打印：a，那么在jstack中线程号就是0xa。
-执行jstack 进程号 | grep 线程ID 查找某进程下-》线程ID（jstack堆栈信息中的nid）=0xa的线程状态。如果"VM Thread" os_prio=0 tid=0x00007f871806e000 nid=0xa runnable，第一个双引号圈起来的就是线程名，如果是“VM Thread”这就是虚拟机GC回收线程了。
-执行jstat -gcutil 进程号 统计间隔毫秒 统计次数（缺省代表一致统计），查看某进程GC持续变化情况，如果发现返回中FGC很大且一直增大-》确认Full GC! 也可以使用jmap -heap 进程ID查看一下进程的堆内从是不是要溢出了，特别是老年代内从使用情况一般是达到阈值(具体看垃圾回收器和启动时配置的阈值)就会进程Full GC。
-执行jmap -dump:format=b,file=filename 进程ID，导出某进程下内存heap输出到文件中。可以通过eclipse的mat工具（内存泄露工具）查看内存中有哪些对象比较多。
+    执行top命令：查看所有进程占系统CPU的排序。极大可能排第一个的就是咱们的java进程（COMMAND列）。PID那一列就是进程号。
+    执行top -Hp 进程号命令：查看java进程下的所有线程占CPU的情况。
+    执行printf "%x\n" 线程号命令 ：后续查看线程堆栈信息展示的都是十六进制，为了找到咱们的线程堆栈信息，咱们需要把线程号转成16进制。例如,printf "%x\n 10-》打印：a，那么在jstack中线程号就是0xa。
+    执行jstack 进程号 | grep 线程ID 查找某进程下-》线程ID（jstack堆栈信息中的nid）=0xa的线程状态。如果"VM Thread" os_prio=0 tid=0x00007f871806e000 nid=0xa runnable，第一个双引号圈起来的就是线程名，如果是“VM Thread”这就是虚拟机GC回收线程了。
+    执行jstat -gcutil 进程号 统计间隔毫秒 统计次数（缺省代表一致统计），查看某进程GC持续变化情况，如果发现返回中FGC很大且一直增大-》确认Full GC! 也可以使用jmap -heap 进程ID查看一下进程的堆内从是不是要溢出了，特别是老年代内从使用情况一般是达到阈值(具体看垃圾回收器和启动时配置的阈值)就会进程Full GC。
+    执行jmap -dump:format=b,file=filename 进程ID，导出某进程下内存heap输出到文件中。可以通过eclipse的mat工具（内存泄露工具）查看内存中有哪些对象比较多。
 
 原因分析：
 
@@ -357,11 +356,11 @@ CPU负载显示的是一段时间内正在使用和等待使用CPU的平均任�
 可以通过uptime、w命令查看CPU平均负载，使用top命令还能看到CPU负载总体使用率以及各个进程占用CPU的比例。
 
     // 查看物理CPU个数
-    cat /proc/cpuinfo| grep “physical id”| sort | uniq| wc -l
+    cat /proc/cpuinfo| grep 'physical id' | sort | uniq| wc -l
     // 查看每个物理CPU中core的个数(即核数)
-    cat /proc/cpuinfo| grep “cpu cores” | uniq
+    cat /proc/cpuinfo| grep 'cpu cores' | uniq
     // 查看逻辑CPU的个数
-    cat /proc/cpuinfo| grep “processor”| wc -l
+    cat /proc/cpuinfo| grep 'processor'| wc -l
     
 (3)如果CPU负载很高，利用率却很低该怎么办
 

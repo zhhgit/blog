@@ -2316,6 +2316,29 @@ AWR全称Automatic Workload Repository，自动负载信息库，是Oracle 10g�
     cd /u01/app/oracle/product/11.2/db_1/bin
     ./impdp XYDATA/secret@localhost/ZHPTCS SCHEMAS=XYDATA DIRECTORY=DUMP_DIR DUMPFILE=XYDATA.DMP
 
+9.调用存储过程
+
+    DECLARE
+        v_opdate VARCHAR2(8) := '20250415';  -- 输入参数1
+        v_fylbs  VARCHAR2(100) := '';   -- 输入参数2
+        v_code   NUMBER;                     -- 输出参数：执行结果标志
+        v_note   VARCHAR2(4000);             -- 输出参数：返回的说明信息
+    BEGIN
+        -- 调用存储过程
+        some_procedure(
+        i_opdate => v_opdate,
+        i_fylbs  => v_fylbs,
+        o_code   => v_code,
+        o_note   => v_note
+        );
+        -- 输出结果
+        DBMS_OUTPUT.PUT_LINE('执行结果标志: ' || v_code);
+        DBMS_OUTPUT.PUT_LINE('返回说明信息: ' || v_note);
+    EXCEPTION
+        WHEN OTHERS THEN
+            DBMS_OUTPUT.PUT_LINE('调用存储过程时发生异常: ' || SQLERRM);
+    END;
+
 N.参考
 
 (1)[易百Oracle教程](https://www.yiibai.com/oracle)
@@ -2435,6 +2458,10 @@ N.参考
     )
     select organization_id from obj where
     obj.rec_status = '1'
+
+    # 导出PG库DDL到指定文件
+    cd D:\Program Files\PostgreSQL\13\bin
+    ./pg_dump -U booter -h XXX.XXX.XXX.XXX -p 5432 -s -d dbname -n schemaname --encoding=GBK > F:\booter.sql
 
 N.参考
 
