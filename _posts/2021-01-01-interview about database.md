@@ -2476,3 +2476,42 @@ N.参考
 (5)[Oracle迁移PostgreSQL经验总结(SQL部分)](https://blog.csdn.net/qq3892997/article/details/89878776)
 
 (6)[Oracle切换PostgreSQL遇到的问题](https://blog.csdn.net/A_len/article/details/108083518)
+
+# Apache Doris
+
+1.常用SQL
+
+    -- 查看frontends
+    show frontends;
+    -- 查看backends
+    show backends;
+
+    --  设置登录用户的
+    SET PASSWORD = PASSWORD('xxxxxx');
+
+    -- 添加删除查看backends
+    ALTER SYSTEM ADD BACKEND "IP:9050";
+    ALTER SYSTEM DROPP BACKEND "IP:9050";
+
+    -- 查看Catalog 
+    show catalogs;
+
+    -- 查看Catalog创建语句
+    SHOW CREATE CATALOG some_catalag_name;
+
+    -- 添加Catalog
+    CREATE CATALOG zhptdx PROPERTIES (
+    'type' = 'jdbc',
+    'user' = 'xxxxxx',
+    'password'='xxxxxx',
+    'jdbc_url' = 'jdbc:oracle:thin:@IP:PORT/DB',
+    'driver_url' = 'ojdbc6-12.1.0.1-atlassian-hosted.jar',
+    'driver_class' = 'oracle.jdbc.OracleDriver'
+    );
+
+    -- 刷新指定 Catalog 的元数据（包括库、表、分区等）
+    REFRESH CATALOG some_catalag_name PROPERTIES("invalid_cache" = "true");
+
+N.参考
+
+(1)[Doris官方文档](https://doris.apache.org/zh-CN/docs/gettingStarted/what-is-apache-doris/)
