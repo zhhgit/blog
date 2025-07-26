@@ -1028,7 +1028,7 @@ Mybatis动态sql可以在Xml映射文件内，以标签的形式编写动态sql�
 Mybatis提供了9种动态sql标签：trim | where | set | foreach | if | choose | when | otherwise | bind。
 其执行原理为，使用OGNL从sql参数对象中计算表达式的值，根据表达式的值动态拼接sql，以此来完成动态sql的功能。
 
-11.Xml映射文件中，除了常见的select|insert|updae|delete标签之外，还有哪些标签？
+11.Xml映射文件中，除了常见的select|insert|update|delete标签之外，还有哪些标签？
 
 <resultMap>、<parameterMap>、<sql>、<include>、<selectKey>，加上动态sql的9个标签trim|where|set|foreach|if|choose|when|otherwise|bind等。
 其中为sql片段标签，通过<include>标签引入sql片段，<selectKey>为不支持自增的主键生成策略标签。
