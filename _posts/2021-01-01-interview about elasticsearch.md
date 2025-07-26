@@ -57,7 +57,7 @@ postings list：所有包含特定term文档的id的集合。再说id的范围�
 4.es写数据过程
 
 客户端选择一个node发送请求过去，这个node就是coordinating node（协调节点）。
-coordinating node对document进行路由，确定在那个shard，将请求转发给对应的node（有primary shard）。
+coordinating node对document进行路由，确定在哪个shard，将请求转发给对应的node（有primary shard）。
 实际的node上的primary shard处理请求，然后将数据同步到replica node。
 coordinating node如果发现primary node和所有replica node都写完，就返回响应结果给客户端。
 写请求是写入primary shard，然后同步给所有的replica shard。
