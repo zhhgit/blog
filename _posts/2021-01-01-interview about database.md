@@ -430,7 +430,7 @@ RANGE分区：是实战最常用的一种分区类型，行数据基于属于一
     INSERT INTO `m_test_db`.`Order` (`id`, `partition_key`, `amt`) VALUES ('3', '201903', '1200');
 
     # 现在查询一下，通过EXPLAIN PARTITION命令发现SQL优化器只需搜对应的区，不会搜索所有分区
-    explain partision select * from m_test_db`.`Order` where partition_key = '201902';
+    explain partition select * from m_test_db`.`Order` where partition_key = '201902';
     # 如果sql语句有问题，那么会走所有区。会很危险。所以分区表后，select语句必须走分区键。
     explain partision select * from m_test_db`.`Order` where amt > 500;
 
@@ -484,7 +484,7 @@ DECIMAL可以用于存储比BIGINT还大的整型，能存储精确的小数。
 
 包括VARCHAR、CHAR、TEXT、BLOB
 VARCHAR用于存储可变长字符串，它比定长类型更节省空间。
-VARCHAR使用额外1或2个字节存储字符串长度。列长度小于255字节时，使用1字节表示，否则使用2字节表示。
+VARCHAR使用额外1或2个字节存储字符串长度。列长度小于255字符时，使用1字节表示，否则使用2字节表示。
 VARCHAR存储的内容超出设置的长度时，内容会被截断。
 CHAR是定长的，根据定义的字符串长度分配足够的空间。
 CHAR会根据需要使用空格进行填充方便比较。
@@ -1588,7 +1588,7 @@ from后面的表关联是自右向左解析，而where条件的解析顺序是�
         DERIVED：派生表的SELECT, FROM子句的子查询。
         UNCACHEABLE SUBQUERY：一个子查询的结果不能被缓存，必须重新评估外链接的第一行。
     table：显示这一行的数据是关于哪张表的
-    type：这是重要的列，显示连接使用了何种类型。从最好到最差的连接类型为NULL、system、const、eq_reg、ref、range、index和ALL。
+    type：这是重要的列，显示连接使用了何种类型。从最好到最差的连接类型为NULL、system、const、eq_ref、ref、range、index和ALL。
         all：full table scan ;MySQL将遍历全表以找到匹配的行；
         index: index scan; index和all的区别在index类型只遍历索引，注意是遍历了。
         range：索引范围扫描，对索引的扫描开始于某一点，返回匹配值的行，常见于between等查询；
@@ -1622,7 +1622,7 @@ from后面的表关联是自右向左解析，而where条件的解析顺序是�
 (6)联合索引最左前缀原则，又叫最左侧查询，如果在（a，b，c）三个字段上建立联合索引，那么它能够加快a|（a，b）|（a，b，c）三组的查询速度。建立联合查询时，区分度最高的字段在最左边。如果建立了（a，b）联合索引，就不必再单独建立a索引。同理，如果建立了（a，b，c）索引就不必再建立a，（a，b）索引。
 (7)范围列可以用到索引，但是范围列后面的列无法用到索引。索引最多用于一个范围列，如果查询条件中有两个范围列则无法全用到索引。范围条件有：<、<=、>、>=、between等。
 (8)把计算放到业务层而不是数据库层。在字段上计算不能命中索引。不要在where子句中的“=”左边进行函数、算术运算或其他表达式运算，否则系统将不能正确使用索引。对字段有操作时也会引起全表扫描， 如select account where salary * 0.8 = 1000 或者 select account where sustring(nickname,1,3) = 'aaa'; 
-(9)强制类型转换会全表扫描，如果phone字段是varcher类型，则下面的SQL不能命中索引。Select * fromuser where phone=13800001234
+(9)强制类型转换会全表扫描，如果phone字段是varcher类型，则下面的SQL不能命中索引。Select * from user where phone=13800001234
 (10)并不是所有索引对查询都有效，SQL是根据表中数据来进行查询优化的，当索引列有大量数据重复时，SQL查询可能不会去利用索引，如一表中有字段sex，male、female几乎各一半，那么即使在sex上建了索引也对查询效率起不了作用。“性别”这种区分度不太大的属性，建立索引是没有什么意义的，不能有效过滤数据，性能与全表扫描类似。一般区分度在80%以上就可以建立索引。区分度可以使用count（distinct（列名））/count（*）来计算。
 (10)索引并不是越多越好，索引固然可以提高相应的select的效率，但同时也降低了insert及update的效率，因为insert或update时有可能会重建索引，所以怎样建索引需要慎重考虑，视具体情况而定。一个表的索引数最好不要超过6个，若太多则应考虑一些不常使用到的列上建的索引是否有必要。更新十分频繁、数据区分度不高的字段上不宜建立索引。更新会变更B+树，更新频繁的字段建立索引会大大降低数据库性能。
 (11)利用覆盖索引来进行查询操作，避免回表。被查询的列，数据能从索引中取得，而不是通过定位符row-locator再到row上获取，即“被查询列要被所建的索引覆盖”，这能够加速度查询。
@@ -2509,9 +2509,19 @@ N.参考
     'driver_class' = 'oracle.jdbc.OracleDriver'
     );
 
+    -- 删除catalog
+	drop catalog CATALOGNAME;
+
     -- 刷新指定 Catalog 的元数据（包括库、表、分区等）
     REFRESH CATALOG some_catalag_name PROPERTIES("invalid_cache" = "true");
 
 N.参考
 
 (1)[Doris官方文档](https://doris.apache.org/zh-CN/docs/gettingStarted/what-is-apache-doris/)
+
+# OceanBase
+
+1.常用SQL
+
+    -- Oracle租户查看数据库版本
+    SELECT * FROM v$version;

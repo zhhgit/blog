@@ -396,7 +396,7 @@ Base是函数对象，所以输出的是一个函数。Base.prototype是Base的�
 
 Win10：新建ChromeData目录，在chrome快捷方式，目标里如下设置
 
-    C:\Users\xyzq\AppData\Local\Google\Chrome\Application\chrome.exe --disable-web-security --user-data-dir=C:\Users\xyzq\AppData\Local\Google\ChromeData
+    C:\Users\zhanghao\AppData\Local\Google\Chrome\Application\chrome.exe --disable-web-security --user-data-dir=C:\Users\zhanghao\AppData\Local\Google\ChromeData
 
 2.解决方法
 

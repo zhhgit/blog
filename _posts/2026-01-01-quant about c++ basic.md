@@ -1,10 +1,10 @@
 ---
 layout: post
-title: "C++基础"
-description: C++基础
-modified: 2022-01-01
-category: C++
-tags: [C++]
+title: "量化系列 -- C++基础"
+description: 量化系列 -- C++基础
+modified: 2026-01-01
+category: Quant
+tags: [Quant]
 ---
 
 # C++面向过程

@@ -1,13 +1,13 @@
 ---
 layout: post
-title: "Python系列 -- Python基础"
-description: Python系列 -- Python基础
-modified: 2022-01-01
-category: Python
-tags: [Python]
+title: "量化系列 -- Python基础"
+description: 量化系列 -- Python基础
+modified: 2026-01-01
+category: Quant
+tags: [Quant]
 ---
 
-# 一、面向过程
+# 面向过程
 
 1.数据类型，Python默认拥有以下内置数据类型，可以使用type()函数获取任何对象的数据类型
 
@@ -58,7 +58,7 @@ tags: [Python]
 2.判断
 
     # 基本
-    if condition1
+    if condition1:
         # 不能为空，使用pass语句来避免错误:
         pass
     elif condition2:
@@ -264,7 +264,7 @@ tags: [Python]
     ''' 
     
     # 分割，其中max为-1表示分割所有，表示最大分割次数，返回列表。
-    str.split("/",max)
+    str1.split("/",max)
 
     # 拼接
     "".join(list)
@@ -463,7 +463,7 @@ tuple所谓的“不变”是说，tuple的每个元素，指向永远不变。�
     # 输出结果为Python is fantastic
     print("Python is " + x)
 
-# 二、函数式编程
+# 函数式编程
 
 1.高阶函数：变量可以指向函数，函数的参数能接收变量，那么一个函数就可以接收另一个函数作为参数，这种函数就称之为高阶函数。
 
@@ -551,7 +551,7 @@ sorted()函数也是一个高阶函数，它还可以接收一个key函数来实
     def int2(x, base=2):
         return int(x, base)
 
-# 三、面向对象
+# 面向对象
     
 1.类的示例
 
@@ -819,7 +819,7 @@ type()函数既可以返回一个对象的类型，又可以创建出新的类�
     h = Hello()
     h.hello()
 
-# 四、多进程与多线程
+# 多进程与多线程
 
 1.Process
 
@@ -1051,9 +1051,28 @@ ThreadLocal最常用的地方就是为每个线程绑定一个数据库连接，
 第二种任务的类型是IO密集型，涉及到网络、磁盘IO的任务都是IO密集型任务，这类任务的特点是CPU消耗很少，任务的大部分时间都在等待IO操作完成（因为IO的速度远远低于CPU和内存的速度）。对于IO密集型任务，任务越多，CPU效率越高，但也有一个限度。常见的大部分任务都是IO密集型任务，比如Web应用。
 IO密集型任务执行期间，99%的时间都花在IO上，花在CPU上的时间很少，因此，用运行速度极快的C语言替换用Python这样运行速度极低的脚本语言，完全无法提升运行效率。对于IO密集型任务，最合适的语言就是开发效率最高（代码量最少）的语言，脚本语言是首选，C语言最差。
 
-# 五、其他
+# 其他
 
-1.模块
+1.包管理
+
+    pip --version
+    # 安装
+    pip install camelcase
+    # 卸载
+    pip uninstall camelcase
+    # 查看已安装    
+    pip list
+    # 升级某个包版本
+    pip install --upgrade camelcase
+    # 升级pip本身
+    python -m pip install --upgrade pip
+
+    # anaconda安装后，配置如下几个到环境变量Path
+    D:\anaconda3
+    D:\anaconda3\Scripts
+    D:\anaconda3\Library\bin
+
+2.模块
 
     # 导入类
     from src.session1.common.PrintUtil import PrintUtil
@@ -1071,7 +1090,7 @@ IO密集型任务执行期间，99%的时间都花在IO上，花在CPU上的时�
     from mymodule import person1
     print (person1["age"])
 
-2.日期
+3.日期
 
     import datetime
 
@@ -1098,7 +1117,7 @@ IO密集型任务执行期间，99%的时间都花在IO上，花在CPU上的时�
     now - timedelta(days=1)
     now + timedelta(days=2, hours=12)
 
-3.正则表达式
+4.正则表达式
 
     import re
     
@@ -1115,18 +1134,6 @@ IO密集型任务执行期间，99%的时间都花在IO上，花在CPU上的时�
     
     # 把匹配替换为您选择的文本9
     x = re.sub("\s", "9", str)
-
-4.包管理
-
-    pip --version
-    pip install camelcase
-    pip uninstall camelcase
-    pip list
-
-    # anaconda安装后，配置如下几个到环境变量Path
-    D:\anaconda3
-    D:\anaconda3\Scripts
-    D:\anaconda3\Library\bin
 
 5.异常处理
 
@@ -1442,80 +1449,16 @@ ChainMap可以把一组dict串起来并组成一个逻辑上的dict。ChainMap�
     with create_query('Bob') as q:
         q.query()
 
-# 六、Python Web
+9.虚拟环境
 
-1.数据库访问
+    # 创建一个虚拟环境
+    python -m venv ./venv1
+    # 激活某个虚拟环境，以下为git bash中操作
+    source ./venv1/Scripts/activate
+    # 验证虚拟环境是否激活了
+    which python
 
-    import mysql.connector
-    mydb = mysql.connector.connect(
-      host="localhost",
-      user="yourusername",
-      passwd="yourpassword",
-      database="mydatabase"
-    )
-    
-    # 新增一条数据
-    mycursor = mydb.cursor()
-    sql = "INSERT INTO customers (name, address) VALUES (%s, %s)"
-    val = ("John", "Highway 21")
-    mycursor.execute(sql, val)
-    mydb.commit()
-    # 获取刚插入的行的id
-    print(mycursor.rowcount, "record inserted. ID: ", mycursor.lastrowid)
-    
-    # 新增多条数据
-    mycursor = mydb.cursor()
-    sql = "INSERT INTO customers (name, address) VALUES (%s, %s)"
-    val = [
-      ('Peter', 'Lowstreet 4'),
-      ('Amy', 'Apple st 652')
-    ]
-    mycursor.executemany(sql, val)
-    mydb.commit()
-    print(mycursor.rowcount, "was inserted.")
-    
-    # 查询
-    import mysql.connector
-    mydb = mysql.connector.connect(
-      host="localhost",
-      user="yourusername",
-      passwd="yourpassword",
-      database="mydatabase"
-    )
-    mycursor = mydb.cursor()
-    mycursor.execute("SELECT name, address FROM customers")
-    # 返回所有行
-    myresult = mycursor.fetchall()
-    for x in myresult:
-      print(x)
-      
-    # 返回结果的第一行
-    myresult = mycursor.fetchone()
-    print(myresult)
-    
-    # 带条件查询
-    sql = "SELECT * FROM customers WHERE address = %s"
-    adr = ("some address", )
-    mycursor.execute(sql, adr)
-    myresult = mycursor.fetchall()
-    for x in myresult:
-      print(x)
-      
-    # 删除
-    sql = "DELETE FROM customers WHERE address = %s"
-    adr = ("some address", )
-    mycursor.execute(sql, adr)
-    mydb.commit()
-    print(mycursor.rowcount, "record(s) deleted")
-    
-    # 修改
-    sql = "UPDATE customers SET address = %s WHERE address = %s"
-    val = ("Valley 345", "Canyon 123")
-    mycursor.execute(sql, val)
-    mydb.commit()
-    print(mycursor.rowcount, "record(s) affected")
-
-# 七、参考
+# 参考
 
 1.[W3school Python教程](https://www.w3school.com.cn/python/index.asp)
 
@@ -1529,11 +1472,7 @@ ChainMap可以把一组dict串起来并组成一个逻辑上的dict。ChainMap�
 
 6.[Unofficial Windows Binaries for Python Extension Packages](https://www.lfd.uci.edu/~gohlke/pythonlibs/)
 
-7.[W3school Numpy](https://www.w3school.com.cn/python/numpy_intro.asp)
+7.[莫烦Python](https://mofanpy.com/)
 
-8.[NumPy官网](http://www.numpy.org.cn/)
-
-9.[菜鸟NumPy教程](https://www.runoob.com/numpy/numpy-tutorial.html)
-
-10.[莫烦Python](https://mofanpy.com/)
+8.[华为云镜像站下载](https://mirrors.huaweicloud.com/python/3.10.10/)
 

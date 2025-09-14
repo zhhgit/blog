@@ -73,6 +73,8 @@ HR面：除了薪水外其他福利待遇、公积金、补充医疗、年终奖
         --数据库架构
         --Oracle
         --PostgreSQL
+        --Doris
+        --OceanBase
         
     消息队列
         --消息队列基础
