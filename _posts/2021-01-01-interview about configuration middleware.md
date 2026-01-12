@@ -1,12 +1,11 @@
 ---
 layout: post
-title: "面试题 -- ZooKeeper篇"
-description: 面试题 -- ZooKeeper篇
+title: "面试题 -- 配置中心篇"
+description: 面试题 -- 配置中心篇
 modified: 2021-01-01
 category: Interview
 tags: [Interview]
 ---
-
 # ZooKeeper
 
 1.ZooKeeper是什么？
@@ -198,7 +197,7 @@ Watch机制官方声明：一个Watch事件是一个一次性的触发器，当�
 20.Curator
 
 Curator是一个zookeeper的开源客户端，也提供了分布式锁的实现。使用方式也比较简单：
-   
+
     InterProcessMutex interProcessMutex = new InterProcessMutex(client,"/anyLock");
     interProcessMutex.acquire();
     interProcessMutex.release();
@@ -211,7 +210,7 @@ zookeeper是分布式一致性算法paxos算法的实现，面对高负载请求
 Redis：
 缺点：它获取锁的方式简单粗暴，获取不到锁直接不断尝试获取锁，比较消耗性能。Redis的设计定位决定了它的数据并不是强一致性的，在某些极端情况下，可能会出现问题。锁的模型不够健壮。即便使用redlock算法来实现，在某些复杂场景下，也无法保证其实现100%没有问题。
 优点：使用redis实现分布式锁在很多企业中非常常见，而且大部分情况下都不会遇到所谓的“极端复杂场景”。所以使用redis作为分布式锁也不失为一种好的方案，最重要的一点是redis的性能很高，可以支撑高并发的获取、释放锁操作。
-    
+
 ZK：
 缺点：如果有较多的客户端频繁的申请加锁、释放锁，对于zk集群的压力会比较大。
 优点：zookeeper天生设计定位就是分布式协调，强一致性。锁的模型健壮、简单易用、适合做分布式锁。如果获取不到锁，只需要添加一个监听器就可以了，不用一直轮询，性能消耗较小。
@@ -227,7 +226,7 @@ ZK：
     停止ZK服务: ./zkServer.sh stop
     重启ZK服务: ./zkServer.sh restart
     连接内部客户端: ./zkCli.sh或者./zkCli.sh -server 127.0.0.1(指定连接服务器IP):2181
-    
+
 (2)节点属性
 
 学习zookeeper常用命令之前先介绍一下节点属性的含义。
@@ -243,7 +242,7 @@ ZK：
     ephemeralOwner：如果结点是临时结点，则表示创建该结点的会话的SessionID；如果是持久结点，该属性值为0
     dataLength：当前节点的数据内容长度
     numChildren：当前数据结点的子结点个数
-    
+
 (3)help命令
 
 zookeeper基本常用命令通过help查看，遇到错误命令可以直接查询语法。
@@ -252,11 +251,11 @@ zookeeper基本常用命令通过help查看，遇到错误命令可以直接查�
 
     新增命令：create [-s] [-e] path data，其中 -s 为有序结点，-e 临时结点（默认是持久结点）
     查询命令：get [-s] [-w] path。-s 查看节点所有信息:数据信息+节点属性值；-w 查看节点数据信息
-        
+
     //创建持久化节点node1
     [zk: localhost:2181(CONNECTED) 0] create /node1 "123"
     Created /node1
-    
+
     //查看node1节点属性
     [zk: localhost:2181(CONNECTED) 1] get -s /node1
     123
@@ -271,11 +270,11 @@ zookeeper基本常用命令通过help查看，遇到错误命令可以直接查�
     ephemeralOwner = 0x0
     dataLength = 3
     numChildren = 0
-    
+
     //创建有序持久化节点
     [zk: localhost:2181(CONNECTED) 2] create -s /seqNode1 "seq1"
     Created /seqNode10000000011
-    
+
     //查看有序持久化节点信息
     [zk: localhost:2181(CONNECTED) 3] get -s /seqNode10000000011
     seq1
@@ -290,7 +289,7 @@ zookeeper基本常用命令通过help查看，遇到错误命令可以直接查�
     ephemeralOwner = 0x0
     dataLength = 4
     numChildren = 0
-    
+
     //创建临时节点
     [zk: localhost:2181(CONNECTED) 4] create -s -e /tmpNode1 "tmp"
     Created /tmpNode10000000012
@@ -307,7 +306,7 @@ zookeeper基本常用命令通过help查看，遇到错误命令可以直接查�
     ephemeralOwner = 0x10029ab39130008
     dataLength = 3
     numChildren = 0
-    
+
 (5)修改节点
 
     set [-s] [-v version] path data，可以直接进行修改;也可以选择使用版本号，-v + 版本号，类似乐观锁原理；
@@ -318,16 +317,16 @@ zookeeper基本常用命令通过help查看，遇到错误命令可以直接查�
     [zk: localhost:2181(CONNECTED) 15] set -v 0 /node1 "234"
 
     WATCHER::
-    
+
     WatchedEvent state:SyncConnected type:NodeDataChanged path:/node1
     [zk: localhost:2181(CONNECTED) 16] get -w /node1
     234
-    
+
 (6)删除节点
 
     delete [-v version] path:可以直接删除，也可以指定版本号删除，此命令只能删除单个节点，如果存在子节点，则需要依次删除子节点
     deleteall path：直接删除指定的所有节点
-    
+
     [zk: localhost:2181(CONNECTED) 0] delete /node1
     [zk: localhost:2181(CONNECTED) 1] get -s /node1
     org.apache.zookeeper.KeeperException$NoNodeException: KeeperErrorCode = NoNode for /node1
@@ -354,12 +353,12 @@ zookeeper基本常用命令通过help查看，遇到错误命令可以直接查�
     [zk: localhost:2181(CONNECTED) 8] deleteall /node1
     [zk: localhost:2181(CONNECTED) 9] get /node1
     org.apache.zookeeper.KeeperException$NoNodeException: KeeperErrorCode = NoNode for /node1
-    
+
 (7)查看子节点列表
 
     ls [-s] [-w] [-R] path:
     ls2 path [watch]
-    
+
     [zk: localhost:2181(CONNECTED) 19] ls /
     [a0000000001, b0000000002, c, hadoop, seqNode10000000011, zookeeper]
     [zk: localhost:2181(CONNECTED) 20] ls -s /
@@ -375,7 +374,7 @@ zookeeper基本常用命令通过help查看，遇到错误命令可以直接查�
     ephemeralOwner = 0x0
     dataLength = 0
     numChildren = 6
-    
+
     [zk: localhost:2181(CONNECTED) 21] create /node1 "node1"
     Created /node1
     //当前节点下没有子节点，返回空数组
@@ -402,7 +401,7 @@ zookeeper基本常用命令通过help查看，遇到错误命令可以直接查�
     ephemeralOwner = 0x0
     dataLength = 5
     numChildren = 1
-    
+
 (9)监听器
 
 使用 get [-s] [-w] path注册的监听器能够在结点内容发生改变的时候，向客户端发出通知。需要注意的是zookeeper的触发器是一次性的(One-time trigger)，即触发一次后就会立即失效。
@@ -413,9 +412,9 @@ zookeeper基本常用命令通过help查看，遇到错误命令可以直接查�
     //收到修改信息
     [zk: localhost:2181(CONNECTED) 30]
     WATCHER::
-    
+
     WatchedEvent state:SyncConnected type:NodeDataChanged path:/node1
-    
+
     //另一个窗口修改节点：
     [zk: localhost:2181(CONNECTED) 0] set /node1 "set node1"
 
@@ -435,7 +434,7 @@ acl权限控制，使用scheme：id：permission来标识，主要涵盖3个方�
 
 权限(permission)：create、delete、read、writer、admin也就是 增、删、查、改、管理权限，这5种权限简写为c d r w a，注意：这五种权限中，有的权限并不是对结点自身操作的例如：delete是指对子结点的删除权限。可以试图删除父结点，但是子结点必须删除干净，所以delete的权限也是很有用的。
 授权的相关命令：
-    
+
     getAcl：获取ACL权限
     setAcl：设置ACL权限
     addAuth：添加认证用户
@@ -451,7 +450,7 @@ world模式：
     [zk: localhost:2181(CONNECTED) 34] setAcl /node1 world:anyone:cdrwa
     [zk: localhost:2181(CONNECTED) 35] create /node1/node2 "node2"
     Created /node1/node2
-    
+
 IP模式：
 
 需要两台虚拟机一起授权的话需要用逗号将授权列表隔开：
@@ -479,9 +478,9 @@ IP模式：
 
 auth模式：
 
-    addauth digest <user>:<password>
-    setAcl <path> auth:<user>:<acl>
-    
+    addauth digest`<user>`:`<password>`
+    setAcl `<path>` auth:`<user>`:`<acl>`
+
     //认证用户
     [zk: localhost:2181(CONNECTED) 36] addauth digest qxy:123456
     [zk: localhost:2181(CONNECTED) 37] get -s /node1
@@ -501,9 +500,9 @@ auth模式：
     [zk: localhost:2181(CONNECTED) 38] setAcl /node1 auth:qxy:cdrwa
     //退出，重新进入
     [zk: localhost:2181(CONNECTED) 39] quit
-    
+
     WATCHER::
-    
+
     WatchedEvent state:Closed type:None path:null
     2020-07-29 22:58:56,574 [myid:] - INFO  [main:ZooKeeper@1422] - Session: 0x10029ab39130009 closed
     2020-07-29 22:58:56,574 [myid:] - INFO  [main-EventThread:ClientCnxn$EventThread@524] - EventThread shut down for session: 0x10029ab39130009
@@ -528,17 +527,17 @@ auth模式：
 
 Digest模式：
 
-    setAcl <path> digest:<user>:<password>:<acl>
-    
+    setAcl`<path>` digest:`<user>`:`<password>`:`<acl>`
+
     密码是经过SHA1以及BASE64处理的密文，在shell 中可以通过以下命令计算：
-    
-     echo -n <user>:<password> | openssl dgst -binary -sha1 | openssl base64
+
+    echo -n`<user>`:`<password>` | openssl dgst -binary -sha1 | openssl base64
     建立新的窗口，计算密码
-    
+
     [root@izbp14najjyuhkvm4qbic7z bin]# echo -n qxy:123456 | openssl dgst -binary -sha1 | openssl base64
     hDF4uLZvMJqOX2ekKFa6kSz9HNo=
     实战：
-    
+
     [zk: localhost:2181(CONNECTED) 5] create /digestNode "digestNode"
     Created /digestNode
     [zk: localhost:2181(CONNECTED) 2] setAcl /digestNode digest:qxy:hDF4uLZvMJqOX2ekKFa6kSz9HNo=:cdrwa
@@ -586,7 +585,7 @@ Leader可以接受客户端新的事务Proposal请求，将新的Proposal请求�
 每个节点都有相关的写入数据，查看的信息的时候只需要通过访问zk注册中心，读取节点下边的数据即可。当任意一台服务出现异常的时候，相关的服务也需要和zk断开连接，此时节点数据消失。
 
     {"serverIp":"127.0.0.1","totalCpu":12,"totalMemory":17179869184,"totalMemoryDesc":"16GB","memoryUsage":"58.9%"}
-    
+
 为什么不用mysql存储服务性能信息？
 
 其实使用mysql，redis等数据库也是可行的，但是必须一点：服务断开之后数据能够及时同步更新。
@@ -621,7 +620,7 @@ Nacos帮助您更敏捷和容易地构建、交付和管理微服务平台。Nac
     Name Server：通过VIP（Virtual IP）或DNS的方式实现Nacos高可用集群的服务路由
     Nacos Server：Nacos服务提供者，里面包含的Open API是功能访问入口，Conig Service、Naming Service 是Nacos提供的配置服务、命名服务模块。Consitency Protocol是一致性协议，用来实现Nacos集群节点的数据同步，这里使用的是Raft算法（Etcd、Redis哨兵选举）
     Nacos Console：控制台
-    
+
 注册中心的原理：
 
 服务实例在启动时注册到服务注册表，并在关闭时注销。
@@ -629,11 +628,13 @@ Nacos帮助您更敏捷和容易地构建、交付和管理微服务平台。Nac
 服务注册中心需要调用服务实例的健康检查API来验证它是否能够处理请求。
 Nacos提供了SDK和Open API两种形式来实现服务注册。这两种形式本质都一样，底层都是基于HTTP协议完成请求的。所以注册服务就是发送一个HTTP请求。
 Nacos客户端通过Open API的形式发送服务注册请求。Nacos服务端收到请求后，做以下三件事：构建一个Service对象保存到ConcurrentHashMap集合中、使用定时任务对当前服务下的所有实例建立心跳检测机制、基于数据一致性协议服务数据进行同步。
-    
+
 Spring Cloud完成注册的时机：
 
 在Spring-Cloud-Common包中有一个类org.springframework.cloud. client.serviceregistry.ServiceRegistry ,它是Spring Cloud提供的服务注册的标准。集成到Spring Cloud中实现服务注册的组件,都会实现该接口。该接口有一个实现类是NacoServiceRegistry。
 NacosAutoServiceRegistration继承了AbstractAutoServiceRegistration。Nacos是通过Spring的事件机制继承到SpringCloud中去的。
 AbstractAutoServiceRegistration实现了onApplicationEvent抽象方法,并且监听WebServerInitializedEvent事件(当Webserver初始化完成之后) , 调用this.bind ( event )方法。最终会调用NacosServiceREgistry.register()方法进行服务注册。
 
+N.参考
 
+(1)[Nacos 2.3官方文档](https://nacos.io/docs/v2.3/quickstart/quick-start/)

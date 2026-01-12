@@ -1,10 +1,10 @@
 ---
 layout: post
-title: "大数据基础"
-description: 大数据基础
-modified: 2023-01-01
-category: BigData
-tags: [BigData]
+title: "面试题 -- 大数据篇"
+description: 面试题 -- 大数据篇
+modified: 2021-01-01
+category: Interview
+tags: [Interview]
 ---
 
 # 基础知识
@@ -72,6 +72,58 @@ tags: [BigData]
 
 **集群部署和监控**：Ambari、Cloudera Manager
 
+3.离线数仓5层结构
+
+(1)STG（Staging）
+作用：临时缓冲，把源库增量数据“原样”落地，不做任何清洗。
+文件格式：TextFile 或 LZO，按 “库_表/yyyy-MM-dd-HH” 分区。
+生命周期：下游 ODS 成功就删，最多保留 48 h。
+注意：STG 不算正式数仓层，但如果不设，直接抽进 ODS 会把“抽数失败重跑”和“数据质量”耦合在一起，排障很痛苦。
+
+(2)ODS（Operational Data Store）
+作用：原始镜像层，保留完整业务系统快照，支持重放。
+建模：完全贴源，字段名、类型、主键保持一致；加 4 个固定字段
+etl_date、etl_src、etl_op（I/U/D）、md5_src_row。
+文件格式：ORC + SNAPPY，按天分区。
+常见坑：
+源库 delete 后，ODS 要软删（etl_op='D'），否则下游重跑会丢数。
+大表（>1 亿行）首次全量用 “sqoop-split-by 主键 + 并行 4 mappers” 抽，后续每天增量 where 更新时间 ≥ yesterday。
+
+(3)DWD（Data Warehouse Detail）
+作用：明细+维度统一、清洗、标准化，形成“唯一原子事实”。
+建模：
+事实表：采用“星型”或“Data Vault”，只保留最小粒度事务；命名 dwd_业务_过程_di。
+维度表：退化常用维度（user_status、product_category）到事实表，减少 join；缓慢变化维用 SCD2（加 start_date/end_date/is_current）。
+质量门：空值率、主键唯一性、枚举值域、时间连续性 4 项必须 100 % 通过，否则下游任务自动熔断。
+性能：dwd_order_di 50 亿行场景，用 ORC + ZLIB + 桶排序（cluster by order_id），查询命中 1 % 数据量可 30 s 内返回。
+
+(4)DWS（Data Warehouse Summary）
+作用：公共汇总，把“相同统计粒度+相同维度”提前算好，消除重复汇总。
+建模：
+按“日、周、月、年”4 张表分别建，命名 dws_业务_主题_统计周期。
+维度只保留退化键（user_id, product_id, city_id…），把 name 类长字符砍掉，减少 30 % 体积。
+指标必须“可累加”或“半累加”，不允许存“比率”这类不可累加指标。
+落地：
+日表：Hive ORC；
+周/月表：如果>10 亿行，用 ClickHouse 物化视图，查询从 3 min 降到 8 s。
+常见坑：
+把“下单”与“支付”两个业务过程混在一张宽表，导致后续财务、运营各要各的口径，互相污染。正确做法：一个业务过程一张宽表，下游 ADS 再 join。
+
+(5)ADS（Application Data Service）
+作用：面向应用、面向报表，直接给 BI、API、Excel 用。
+建模：完全“需求驱动”，可以有大宽表、也可以有比率指标；命名 ads_应用_场景_描述。
+技术选型：
+并发 < 100、数据 < 1 亿 → MySQL 单表 + 索引。
+并发 100–1000、数据 1–10 亿 → ClickHouse MergeTree。
+并发 > 1000、点查 < 50 ms → Redis/StarRocks 主键表。
+生命周期：需求下线 7 天内自动 drop，防止“僵尸表”膨胀。
+
+总结：
+离线：
+STG(48h) → ODS(全量+增量镜像) → DWD(清洗+标准化) → DWS(公共汇总) → ADS(应用/报表)
+实时：
+Source(Kafka) → ODS_RT(原始) → DWD_RT(明细+维表join) → DWS_RT(分钟级汇总) → ADS_RT(API/大屏)
+维度总线：dim_xxx 表每天离线更新 → 同步到 Redis/HBase → 实时 join 用。
 
 # Hadoop
 
