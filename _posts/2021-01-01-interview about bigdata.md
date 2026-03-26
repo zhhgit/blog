@@ -125,6 +125,58 @@ STG(48h) → ODS(全量+增量镜像) → DWD(清洗+标准化) → DWS(公共�
 Source(Kafka) → ODS_RT(原始) → DWD_RT(明细+维表join) → DWS_RT(分钟级汇总) → ADS_RT(API/大屏)
 维度总线：dim_xxx 表每天离线更新 → 同步到 Redis/HBase → 实时 join 用。
 
+4.大数据服务体系
+
+    存：大数据平台，统一存储与计算，CDH
+    管：数据治理
+    用：数据分析挖掘
+    智：可落地有价值的场景，基金实时估值，产品精准推荐，智能风控
+
+5.数据来源
+
+    内部数据
+        客户及投资交易类系统：经纪、资管、期货、自营、柜台
+        估值、TA、清算类系统
+        财务、风险、经营管理类系统
+        项目、托管类系统
+        其他：用户行为数据
+    
+    外部数据
+        Wind资讯
+        互联网舆情
+
+6.大数据平台
+
+    数据来源
+        RMDBS
+        NOSQL
+        日志文件
+        互联网
+
+    数据汇集
+        RMDBS数据抽取：Sqoop， Kettle
+        调度平台：Azkaban
+        日志文件汇聚：Flume
+        消息队列：Kafka
+        文件上传：FTP
+
+    数据存储
+        分布式文件系统HDFS
+        分布式数据库Hbase
+
+    数据计算与分析
+        资源调度Yarn
+        批处理：MapReduce，Spark SQL
+        流计算：Flink，Spark Streaming
+        SQL交互：Hive，Impala
+        机器学习MLlib
+
+    数据接口
+        文件接口
+        CLI命令行工具
+        JDBC/ODBC
+        消息队列Kafka
+
 # Hadoop
 
 1.基本环境配置
