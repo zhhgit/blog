@@ -310,3 +310,6 @@ SSL证书安装参考[这里](https://www.qcloud.com/document/product/400/4143#1
     # Linux服务器，然后输入用户和密码
     # sudo mount -t nfs -o vers=3,proto=tcp,rsize=1048576,wsize=1048576,hard,intr,timeo=600 XXX.XXX.XXX.XXX:/BHCS_ZHPT_01 /data/nasdata
 
+14.没有telnet怎么判断网络通不通？
+
+    timeout 3 bash -c 'cat < /dev/null > /dev/tcp/1.2.3.4/9001' && echo "Port is open" || echo "Port is closed or timeout"
