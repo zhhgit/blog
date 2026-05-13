@@ -2525,3 +2525,25 @@ N.参考
 
     -- Oracle租户查看数据库版本
     SELECT * FROM v$version;
+
+    -- 查看长事务
+    SELECT * FROM (
+        SELECT
+        SVR_IP,
+        SQL_ID,
+        QUERY_SQL,
+        REQUEST_TIME,
+        ELAPSED_TIME
+        FROM GV$OB_SQL_AUDIT
+            ORDER BY REQUEST_TIME DESC
+    ) WHERE ROWNUM <= 10;
+    
+    -- 查看某个具体SQL语句
+    SELECT
+    QUERY_SQL,      -- 具体的 SQL 文本
+    REQUEST_TIME,   -- 请求开始时间
+    ELAPSED_TIME,   -- 执行耗时(微秒)
+    RET_CODE        -- 返回码(0代表成功)
+    FROM GV$OB_SQL_AUDIT
+    WHERE SQL_ID = 'CF128EC3161A04263984F91961D8AC17'
+    AND ROWNUM = 1;
