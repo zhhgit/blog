@@ -2547,3 +2547,10 @@ N.参考
     FROM GV$OB_SQL_AUDIT
     WHERE SQL_ID = 'CF128EC3161A04263984F91961D8AC17'
     AND ROWNUM = 1;
+
+    -- 新建指向原生Oracle数据库的dblink
+    drop DATABASE LINK linktoabc;
+    CREATE DATABASE LINK linktoabc
+    CONNECT TO someuser@oracle IDENTIFIED BY somepassword
+    OCI
+    HOST '1.2.3.4:1521/somedbname';
